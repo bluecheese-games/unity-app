@@ -1,0 +1,17 @@
+//
+// Copyright (c) 2024 Pierre Martin All rights reserved
+//
+
+using System.Threading.Tasks;
+using UnityEngine;
+
+namespace BlueCheese.Unity.App.Services
+{
+    public interface IAssetService
+    {
+        T LoadAssetFromResources<T>(string path) where T : Object;
+        Task<T> LoadAssetFromResourcesAsync<T>(string path) where T : Object;
+        T[] LoadAssetsFromResources<T>(string path) where T : Object;
+        T Instantiate<T>(T prefab = null, string name = null, Transform parent = null) where T : Component;
+    }
+}

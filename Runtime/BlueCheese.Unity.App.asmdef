@@ -1,0 +1,16 @@
+{
+    "name": "BlueCheese.Unity.App",
+    "rootNamespace": "BlueCheese.Unity.App",
+    "references": [
+        "GUID:f6ecf9bcf81d8e245a50ec0ac247ad60"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

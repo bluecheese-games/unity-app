@@ -1,0 +1,19 @@
+{
+  "name": "games.bluecheese.unity-app",
+  "displayName": "BlueCheese App",
+  "version": "1.0.0",
+  "unity": "2021.1",
+  "description": "Built-in services for Unity applications.",
+  "keywords": [ "core", "library", "unity", "app", "services" ],
+  "category": "libraries",
+  "dependencies": {
+	  "com.unity.textmeshpro": "3.0.8",
+	  "com.unity.modules.jsonserialize": "1.0.0"
+  },
+  "samples": [
+  ],
+  "author": {
+    "name": "Pierre Martin",
+    "url": "https://github.com/bluecheese-games"
+  }
+}
