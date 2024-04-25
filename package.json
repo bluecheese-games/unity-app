@@ -7,7 +7,7 @@
   "keywords": [ "core", "library", "unity", "app", "services" ],
   "category": "libraries",
   "dependencies": {
-	  "games.bluecheese.unity-core": "https://github.com/bluecheese-games/unity-core.git",
+	  "https://github.com/bluecheese-games/unity-core.git": "1.0.0",
 	  "com.unity.textmeshpro": "3.0.8",
 	  "com.unity.modules.jsonserialize": "1.0.0"
   },
