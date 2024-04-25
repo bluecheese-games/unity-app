@@ -1,0 +1,24 @@
+//
+// Copyright (c) 2024 Pierre Martin All rights reserved
+//
+
+using System;
+using UnityEngine;
+
+namespace BlueCheese.Unity.App.Services
+{
+    public class ClockUpdater : MonoBehaviour
+    {
+        public Action<float> UpdateCallback;
+
+        private void Awake()
+        {
+            DontDestroyOnLoad(gameObject);
+        }
+
+        private void Update()
+        {
+            UpdateCallback?.Invoke(Time.deltaTime);
+        }
+    }
+}
