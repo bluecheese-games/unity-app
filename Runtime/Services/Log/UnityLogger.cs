@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024 Pierre Martin All rights reserved
+// Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
 using UnityEngine;
@@ -14,10 +14,10 @@ namespace BlueCheese.Unity.App.Services
 
         public UnityLogger()
         {
-            _prefix = $"[{typeof(TClass).Name}] ";
+            _prefix = $"<b><color=fff>[{typeof(TClass).Name}]</color></b> ";
         }
 
-        public void Log(string message, UnityEngine.Object context = null)
+        public void Log(string message, Object context = null)
         {
             if (LogTypes.HasFlag(LogType.Info))
             {
@@ -25,7 +25,7 @@ namespace BlueCheese.Unity.App.Services
             }
         }
 
-        public void LogWarning(string message, UnityEngine.Object context = null)
+        public void LogWarning(string message, Object context = null)
         {
             if (LogTypes.HasFlag(LogType.Warning))
             {
@@ -33,7 +33,7 @@ namespace BlueCheese.Unity.App.Services
             }
         }
 
-        public void LogError(string message, UnityEngine.Object context = null)
+        public void LogError(string message, Object context = null)
         {
             if (LogTypes.HasFlag(LogType.Error))
             {
@@ -41,7 +41,7 @@ namespace BlueCheese.Unity.App.Services
             }
         }
 
-        public void LogException(System.Exception exeption, UnityEngine.Object context = null)
+        public void LogException(System.Exception exeption, Object context = null)
         {
             if (LogTypes.HasFlag(LogType.Exception))
             {
