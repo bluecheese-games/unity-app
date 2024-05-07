@@ -1,4 +1,8 @@
-﻿using System;
+//
+// Copyright (c) 2024 BlueCheese Games All rights reserved
+//
+
+using System;
 
 namespace BlueCheese.Unity.App.Services
 {
