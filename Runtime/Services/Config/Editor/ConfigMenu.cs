@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-namespace BlueCheese.Unity.App.Services.Editor
+namespace BlueCheese.App.Services.Editor
 {
     public static class ConfigMenu
     {
@@ -11,7 +11,7 @@ namespace BlueCheese.Unity.App.Services.Editor
         {
             UnityEditor.EditorUtility.FocusProjectWindow();
             IAssetService assetService = new AssetService();
-            var assets = assetService.LoadAssetsFromResources<ConfigAsset>(Config.ConfigRessourceFolder);
+            var assets = assetService.LoadAssetsFromResources<ConfigAsset>("Configs");
             UnityEditor.AssetDatabase.OpenAsset(assets[0]);
         }
     }

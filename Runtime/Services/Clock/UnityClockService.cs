@@ -10,7 +10,7 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     public class UnityClockService : IClockService
     {

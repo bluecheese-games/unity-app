@@ -5,15 +5,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
-    public partial class Config
+    public class ConfigRegistry
     {
-        public const string ConfigRessourceFolder = "Config";
+        private static readonly Dictionary<string, ConfigItem> _items = new();
 
-        private readonly Dictionary<string, ConfigItem> _items = new Dictionary<string, ConfigItem>();
-
-        public Config(params ConfigAsset[] assets)
+        public ConfigRegistry(params ConfigAsset[] assets)
         {
             foreach (var asset in assets)
             {
@@ -21,9 +19,9 @@ namespace BlueCheese.Unity.App.Services
             }
         }
 
-        public void LoadAsset(ConfigAsset asset) => AddItems(asset.Items);
+        private void LoadAsset(ConfigAsset asset) => AddItems(asset.Items);
 
-        public void AddItems(params ConfigItem[] items)
+        private void AddItems(params ConfigItem[] items)
         {
             foreach (var item in items)
             {
@@ -31,7 +29,7 @@ namespace BlueCheese.Unity.App.Services
             }
         }
 
-        public void AddItem(ConfigItem item)
+        private void AddItem(ConfigItem item)
         {
             if (!_items.ContainsKey(item.Key))
             {
@@ -39,72 +37,72 @@ namespace BlueCheese.Unity.App.Services
             }
         }
 
-        public string GetStringValue(string key, string defaultValue = default)
+        public static string GetStringValue(string key, string defaultValue = default)
         {
             var item = GetItem(key);
             return item == null ? defaultValue : item.StringValue;
         }
 
-        public int GetIntValue(string key, int defaultValue = default)
+        public static int GetIntValue(string key, int defaultValue = default)
         {
             var item = GetItem(key);
             return item == null ? defaultValue : item.IntValue;
         }
 
-        public float GetFloatValue(string key, float defaultValue = default)
+        public static float GetFloatValue(string key, float defaultValue = default)
         {
             var item = GetItem(key);
             return item == null ? defaultValue : item.FloatValue;
         }
 
-        public bool GetBoolValue(string key, bool defaultValue = default)
+        public static bool GetBoolValue(string key, bool defaultValue = default)
         {
             var item = GetItem(key);
             return item == null ? defaultValue : item.BoolValue;
         }
 
-        public Object GetObjectValue(string key, Object defaultValue = default)
+        public static Object GetObjectValue(string key, Object defaultValue = default)
         {
             var item = GetItem(key);
             return item == null ? defaultValue : item.ObjectValue;
         }
 
-        public void SetStringValue(string key, string value)
+        public static void SetStringValue(string key, string value)
         {
             var item = GetItem(key, true);
             item.Type = ConfigItem.ValueType.String;
             item.StringValue = value;
         }
 
-        public void SetIntValue(string key, int value)
+        public static void SetIntValue(string key, int value)
         {
             var item = GetItem(key, true);
             item.Type = ConfigItem.ValueType.Int;
             item.IntValue = value;
         }
 
-        public void SetFloatValue(string key, float value)
+        public static void SetFloatValue(string key, float value)
         {
             var item = GetItem(key, true);
             item.Type = ConfigItem.ValueType.Float;
             item.FloatValue = value;
         }
 
-        public void SetBoolValue(string key, bool value)
+        public static void SetBoolValue(string key, bool value)
         {
             var item = GetItem(key, true);
             item.Type = ConfigItem.ValueType.Boolean;
             item.BoolValue = value;
         }
 
-        public void SetObjectValue(string key, Object value)
+        public static void SetObjectValue(string key, Object value)
         {
             var item = GetItem(key, true);
             item.Type = ConfigItem.ValueType.Object;
             item.ObjectValue = value;
         }
 
-        public ConfigItem GetItem(string key, bool createIfNotExists = false)
+        public static ConfigItem GetItem(string key, bool createIfNotExists = false)
         {
             if (!_items.ContainsKey(key))
             {

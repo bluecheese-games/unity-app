@@ -2,11 +2,11 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Unity.Core.Services;
+using BlueCheese.Core.Services;
 using System;
 using System.Threading.Tasks;
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     public delegate void TickEventHandler(float deltaTime);
 

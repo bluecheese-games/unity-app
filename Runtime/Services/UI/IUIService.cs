@@ -2,10 +2,10 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Unity.Core.Services;
+using BlueCheese.Core.Services;
 using UnityEngine;
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     public interface IUIService : IInitializable
     {

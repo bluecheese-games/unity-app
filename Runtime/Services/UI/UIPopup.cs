@@ -4,7 +4,7 @@
 
 using UnityEngine;
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     [RequireComponent(typeof(Canvas))]
     public class UIPopup : MonoBehaviour
