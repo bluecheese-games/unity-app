@@ -2,13 +2,13 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Unity.Core.Services;
+using BlueCheese.Core.Services;
 using Core.Utils;
 using System;
 using System.Threading.Tasks;
 using UnityEngine.Networking;
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     public class APIService : IAPIService
     {

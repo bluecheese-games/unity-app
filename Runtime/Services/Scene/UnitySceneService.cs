@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using Core.Utils;
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     public class UnitySceneService : ISceneService
     {

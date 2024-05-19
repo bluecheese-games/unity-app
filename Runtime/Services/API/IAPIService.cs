@@ -4,7 +4,7 @@
 
 using System.Threading.Tasks;
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     public interface IAPIService
     {

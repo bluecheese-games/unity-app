@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     public class ConfigService : IConfigService
     {
@@ -10,7 +10,7 @@ namespace BlueCheese.Unity.App.Services
 
         private bool _isInitialized;
 
-        public Config Config { get; private set; }
+        public ConfigRegistry Config { get; private set; }
 
         public ConfigService(IAssetService assetService)
         {
@@ -25,8 +25,8 @@ namespace BlueCheese.Unity.App.Services
             }
 
             // load all config assets from resources
-            var assets = _assetService.LoadAssetsFromResources<ConfigAsset>(Config.ConfigRessourceFolder);
-            Config = new Config(assets);
+            var assetsManager = _assetService.LoadAssetFromResources<ConfigAssetsManager>("Configs");
+            Config = new ConfigRegistry(assetsManager.Configs);
 
             _isInitialized = true;
         }

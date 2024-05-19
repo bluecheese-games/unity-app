@@ -2,12 +2,12 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Unity.Core.Services;
+using BlueCheese.Core.Services;
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     public interface IConfigService : IInitializable
     {
-        Config Config { get; }
+        ConfigRegistry Config { get; }
     }
 }

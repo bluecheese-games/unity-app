@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     public interface ISerializationService
     {

@@ -4,7 +4,7 @@
 
 using UnityEngine;
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     [CreateAssetMenu(menuName = "UI/ViewBank", fileName = "UIViewBank")]
     public class UIViewBank : ScriptableObject

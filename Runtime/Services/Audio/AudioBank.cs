@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     [CreateAssetMenu(fileName = "AudioBank", menuName = "Audio/Bank")]
     public class AudioBank : ScriptableObject

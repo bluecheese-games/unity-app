@@ -8,13 +8,12 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace BlueCheese.Unity.App.Services.Editor
+namespace BlueCheese.App.Services.Editor
 {
     [CustomEditor(typeof(ConfigAsset))]
     public class ConfigAssetEditor : UnityEditor.Editor
     {
         private SerializedProperty _itemsProperty;
-        private SerializedProperty _generatedFilePathProperty;
         private ReorderableList _reorderableList;
         private string _searchString;
         private bool _hasDuplicates;
@@ -24,7 +23,6 @@ namespace BlueCheese.Unity.App.Services.Editor
         void OnEnable()
         {
             _itemsProperty = serializedObject.FindProperty(nameof(ConfigAsset.Items));
-            _generatedFilePathProperty = serializedObject.FindProperty(nameof(ConfigAsset.GeneratedFolder));
 
             _reorderableList = new ReorderableList(serializedObject, _itemsProperty, true, true, true, true);
 
@@ -120,22 +118,6 @@ namespace BlueCheese.Unity.App.Services.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-
-            EditorGUILayout.BeginVertical("box");
-
-            bool fileExists = ((ConfigAsset)target).GeneratedFileExists;
-
-            GUI.enabled = !string.IsNullOrWhiteSpace(_generatedFilePathProperty.stringValue);
-            if (GUILayout.Button(fileExists ? "Update Config Code" : "Generate Config Code"))
-            {
-                ConfigAsset config = (ConfigAsset)target;
-                ConfigCodeGen.Generate(config);
-            }
-            GUI.enabled = !fileExists;
-            EditorGUILayout.PropertyField(_generatedFilePathProperty);
-            GUI.enabled = true;
-
-            EditorGUILayout.EndVertical();
 
             EditorGUILayout.Space();
 

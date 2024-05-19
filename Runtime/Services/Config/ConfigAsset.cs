@@ -5,17 +5,12 @@
 using System.IO;
 using UnityEngine;
 
-namespace BlueCheese.Unity.App.Services
+namespace BlueCheese.App.Services
 {
     [CreateAssetMenu(fileName = "Config_New", menuName = "Config/Asset")]
     public class ConfigAsset : ScriptableObject
     {
         public ConfigItem[] Items;
-        public string GeneratedFolder = "";
-
-        public string GeneratedFilePath => Path.Combine(Application.dataPath, GeneratedFolder, name + ".cs");
-
-        public bool GeneratedFileExists => File.Exists(GeneratedFilePath);
 
         private void OnValidate()
         {
@@ -34,7 +29,7 @@ namespace BlueCheese.Unity.App.Services
 
         private void UpdateGenFolder()
         {
-            if (GeneratedFolder == "")
+            /*if (GeneratedFolder == "")
             {
                 IAssetService assetService = new AssetService();
                 var assets = assetService.LoadAssetsFromResources<ConfigAsset>(Config.ConfigRessourceFolder);
@@ -42,7 +37,7 @@ namespace BlueCheese.Unity.App.Services
                 {
                     GeneratedFolder = assets[0].GeneratedFolder;
                 }
-            }
+            }*/
         }
     }
 }
