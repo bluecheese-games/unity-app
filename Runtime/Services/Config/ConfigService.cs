@@ -10,8 +10,6 @@ namespace BlueCheese.App.Services
 
         private bool _isInitialized;
 
-        public ConfigRegistry Config { get; private set; }
-
         public ConfigService(IAssetService assetService)
         {
             _assetService = assetService;
@@ -26,7 +24,7 @@ namespace BlueCheese.App.Services
 
             // load all config assets from resources
             var assetsManager = _assetService.FindAssetInResources<ConfigAssetsManager>();
-            Config = new ConfigRegistry(assetsManager.ConfigAssets);
+            ConfigRegistry.Instance.Load(assetsManager.ConfigAssets);
 
             _isInitialized = true;
         }
