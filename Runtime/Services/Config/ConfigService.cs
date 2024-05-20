@@ -25,8 +25,8 @@ namespace BlueCheese.App.Services
             }
 
             // load all config assets from resources
-            var assetsManager = _assetService.LoadAssetFromResources<ConfigAssetsManager>("Configs");
-            Config = new ConfigRegistry(assetsManager.Configs);
+            var assetsManager = _assetService.FindAssetInResources<ConfigAssetsManager>();
+            Config = new ConfigRegistry(assetsManager.ConfigAssets);
 
             _isInitialized = true;
         }

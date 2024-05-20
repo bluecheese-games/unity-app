@@ -14,20 +14,20 @@ namespace BlueCheese.App.Services
     {
         public string GeneratedScriptsFolder = "Assets/Scripts/Configs";
 
-        public ConfigAsset[] Configs;
+        public ConfigAsset[] ConfigAssets;
 
         [Button]
-        private void FindConfigs()
+        public void FindConfigAssets()
         {
-            Configs = AssetDatabase.FindAssets(string.Format("t:{0}", typeof(ConfigAsset)))
+            ConfigAssets = AssetDatabase.FindAssets(string.Format("t:{0}", typeof(ConfigAsset)))
                 .Select(guid => AssetDatabase.LoadAssetAtPath<ConfigAsset>(AssetDatabase.GUIDToAssetPath(guid)))
                 .ToArray();
         }
 
         [Button]
-        private void GenerateCode()
+        public void GenerateCode()
         {
-            foreach (var config in Configs)
+            foreach (var config in ConfigAssets)
             {
                 ConfigCodeGen.Generate(config, GeneratedScriptsFolder);
             }
