@@ -16,7 +16,7 @@ namespace BlueCheese.App.Services
     {
         public const string _gencodeStartString = "// GEN CODE START";
         public const string _gencodeEndString = "// GEN CODE END";
-        public const string _declarationTemplate = "public {0} {1} => ({0})ConfigRegistry.{2}(\"{1}\");";
+        public const string _declarationTemplate = "public {0} {1} => ({0})ConfigRegistry.Instance.{2}(\"{1}\");";
 
         public static void Generate(ConfigAsset asset, string folderPath)
         {
