@@ -8,6 +8,5 @@ namespace BlueCheese.App.Services
 {
     public interface IConfigService : IInitializable
     {
-        ConfigRegistry Config { get; }
     }
 }

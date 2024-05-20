@@ -12,7 +12,7 @@ namespace BlueCheese.App.Services
         private readonly Dictionary<string, ConfigItem> _items = new();
 
         private static ConfigRegistry _instance;
-        public ConfigRegistry Instance
+        public static ConfigRegistry Instance
         {
             get
             {
