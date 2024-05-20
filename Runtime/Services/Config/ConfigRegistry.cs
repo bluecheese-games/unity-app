@@ -9,9 +9,21 @@ namespace BlueCheese.App.Services
 {
     public class ConfigRegistry
     {
-        private static readonly Dictionary<string, ConfigItem> _items = new();
+        private readonly Dictionary<string, ConfigItem> _items = new();
 
-        public ConfigRegistry(params ConfigAsset[] assets)
+        private static ConfigRegistry _instance;
+        public ConfigRegistry Instance
+        {
+            get
+            {
+                _instance ??= new ConfigRegistry();
+                return _instance;
+            }
+        }
+
+        private ConfigRegistry() { }
+
+        public void Load(params ConfigAsset[] assets)
         {
             foreach (var asset in assets)
             {
@@ -37,72 +49,72 @@ namespace BlueCheese.App.Services
             }
         }
 
-        public static string GetStringValue(string key, string defaultValue = default)
+        public string GetStringValue(string key, string defaultValue = default)
         {
             var item = GetItem(key);
             return item == null ? defaultValue : item.StringValue;
         }
 
-        public static int GetIntValue(string key, int defaultValue = default)
+        public int GetIntValue(string key, int defaultValue = default)
         {
             var item = GetItem(key);
             return item == null ? defaultValue : item.IntValue;
         }
 
-        public static float GetFloatValue(string key, float defaultValue = default)
+        public float GetFloatValue(string key, float defaultValue = default)
         {
             var item = GetItem(key);
             return item == null ? defaultValue : item.FloatValue;
         }
 
-        public static bool GetBoolValue(string key, bool defaultValue = default)
+        public bool GetBoolValue(string key, bool defaultValue = default)
         {
             var item = GetItem(key);
             return item == null ? defaultValue : item.BoolValue;
         }
 
-        public static Object GetObjectValue(string key, Object defaultValue = default)
+        public Object GetObjectValue(string key, Object defaultValue = default)
         {
             var item = GetItem(key);
             return item == null ? defaultValue : item.ObjectValue;
         }
 
-        public static void SetStringValue(string key, string value)
+        public void SetStringValue(string key, string value)
         {
             var item = GetItem(key, true);
             item.Type = ConfigItem.ValueType.String;
             item.StringValue = value;
         }
 
-        public static void SetIntValue(string key, int value)
+        public void SetIntValue(string key, int value)
         {
             var item = GetItem(key, true);
             item.Type = ConfigItem.ValueType.Int;
             item.IntValue = value;
         }
 
-        public static void SetFloatValue(string key, float value)
+        public void SetFloatValue(string key, float value)
         {
             var item = GetItem(key, true);
             item.Type = ConfigItem.ValueType.Float;
             item.FloatValue = value;
         }
 
-        public static void SetBoolValue(string key, bool value)
+        public void SetBoolValue(string key, bool value)
         {
             var item = GetItem(key, true);
             item.Type = ConfigItem.ValueType.Boolean;
             item.BoolValue = value;
         }
 
-        public static void SetObjectValue(string key, Object value)
+        public void SetObjectValue(string key, Object value)
         {
             var item = GetItem(key, true);
             item.Type = ConfigItem.ValueType.Object;
             item.ObjectValue = value;
         }
 
-        public static ConfigItem GetItem(string key, bool createIfNotExists = false)
+        public ConfigItem GetItem(string key, bool createIfNotExists = false)
         {
             if (!_items.ContainsKey(key))
             {
