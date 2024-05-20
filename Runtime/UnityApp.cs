@@ -20,7 +20,7 @@ namespace BlueCheese.App
 
         private UnityApp() { }
 
-        public void Start()
+        public void Run()
         {
             ServiceContainer.Startup();
             Application.quitting += Stop;
