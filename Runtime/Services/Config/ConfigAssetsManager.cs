@@ -12,7 +12,7 @@ namespace BlueCheese.App.Services
     [CreateAssetMenu(fileName = "ConfigManager", menuName = "Config/Manager")]
     public class ConfigAssetsManager : ScriptableObject
     {
-        public string GeneratedScriptsFolder = "Assets/Scripts/Configs";
+        public string GeneratedScriptsFolder = "Scripts/Configs";
 
         public ConfigAsset[] ConfigAssets;
 
