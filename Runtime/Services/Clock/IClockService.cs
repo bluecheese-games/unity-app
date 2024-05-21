@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.Services;
+using BlueCheese.Core.ServiceLocator;
 using System;
 using System.Threading.Tasks;
 
