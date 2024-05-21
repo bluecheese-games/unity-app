@@ -14,6 +14,7 @@ namespace BlueCheese.App.Services
     {
         public struct Options : IOptions
         {
+            public bool LogRequests;
             public Uri BaseUri;
         }
 
@@ -36,7 +37,10 @@ namespace BlueCheese.App.Services
                 throw new BadUrlException(uri != null ? uri.AbsoluteUri : url);
             }
 
-            _logger.Log($"ApiService - GET: {uri}");
+            if (_options.LogRequests)
+            {
+                _logger.Log($"ApiService - GET: {uri}");
+            }
             var request = UnityWebRequest.Get(uri);
             await request.SendWebRequest();
             if (request.result == UnityWebRequest.Result.Success)
