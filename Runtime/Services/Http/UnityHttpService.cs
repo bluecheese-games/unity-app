@@ -10,19 +10,19 @@ using UnityEngine.Networking;
 
 namespace BlueCheese.App.Services
 {
-    public class APIService : IAPIService
+    public class UnityHttpService : IHttpService
     {
         public struct Options : IOptions
         {
             public Uri BaseUri;
         }
 
-        private readonly ILogger<APIService> _logger;
+        private readonly ILogger<UnityHttpService> _logger;
         private readonly ISerializationService _serializationService;
 
         private readonly Options _options = default;
 
-        public APIService(Options options, ILogger<APIService> loggerService, ISerializationService serializationService)
+        public UnityHttpService(Options options, ILogger<UnityHttpService> loggerService, ISerializationService serializationService)
         {
             _options = options;
             _logger = loggerService;
