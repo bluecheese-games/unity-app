@@ -9,6 +9,7 @@ namespace BlueCheese.App.Services
         public static UnityApp.Builder RegisterDefaultServices(this UnityApp.Builder builder)
         {
             builder.ServiceContainer.Register<IAudioService, DefaultAudioService>();
+            builder.ServiceContainer.Register<IRemoteConfigService, DefaultRemoteConfigService>();
             builder.ServiceContainer.Register<ILocalStorageService, PlayerPrefsService>();
             builder.ServiceContainer.Register<ISceneService, UnitySceneService>();
             builder.ServiceContainer.Register<IUIService, UIService>();
@@ -16,7 +17,7 @@ namespace BlueCheese.App.Services
             builder.ServiceContainer.Register<IAssetService, AssetService>();
             builder.ServiceContainer.Register<ISerializationService, JsonUtilityService>();
             builder.ServiceContainer.Register<IClockService, UnityClockService>();
-            builder.ServiceContainer.Register<IAPIService, APIService>();
+            builder.ServiceContainer.Register<IHttpService, UnityHttpService>();
             builder.ServiceContainer.Register<IGameObjectService, GameObjectService>();
             builder.ServiceContainer.Register<IPoolService, DefaultPoolService>();
             builder.ServiceContainer.Register<IErrorHandlingService, DefaultErrorHandlingService>();

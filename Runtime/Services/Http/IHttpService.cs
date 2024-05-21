@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BlueCheese.App.Services
 {
-    public interface IAPIService
+    public interface IHttpService
     {
         Task<T> GetAsync<T>(string url);
     }
