@@ -8,7 +8,6 @@ namespace BlueCheese.App.Services
     {
         public static UnityApp.Builder RegisterDefaultServices(this UnityApp.Builder builder)
         {
-            builder.ServiceContainer.Register<IConfigService, ConfigService>().AsNonLazy();
             builder.ServiceContainer.Register<IAudioService, DefaultAudioService>();
             builder.ServiceContainer.Register<ILocalStorageService, PlayerPrefsService>();
             builder.ServiceContainer.Register<ISceneService, UnitySceneService>();
