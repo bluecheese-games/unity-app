@@ -19,5 +19,11 @@ namespace BlueCheese.App.Services
         public void Destroy(GameObject obj, float delay = 0f) => GameObject.Destroy(obj, delay);
 
         public T Instantiate<T>(GameObject prefab) where T : Component => GameObject.Instantiate(prefab).GetComponent<T>();
+
+        public void DontDestroyOnLoad(GameObject obj) => GameObject.DontDestroyOnLoad(obj);
+
+        public T Find<T>(bool includeInactive = false) where T : Component => GameObject.FindFirstObjectByType<T>();
+
+        public T[] FindAll<T>(bool includeInactive = false) where T : Component => GameObject.FindObjectsOfType<T>();
     }
 }
