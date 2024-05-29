@@ -11,6 +11,7 @@ namespace BlueCheese.App.Services
             builder.ServiceContainer.Register<IAudioService, DefaultAudioService>();
             builder.ServiceContainer.Register<IRemoteConfigService, DefaultRemoteConfigService>();
             builder.ServiceContainer.Register<ILocalStorageService, PlayerPrefsService>();
+            builder.ServiceContainer.Register<ICacheService, MemoryCacheService>();
             builder.ServiceContainer.Register<ISceneService, UnitySceneService>();
             builder.ServiceContainer.Register<IUIService, UIService>();
             builder.ServiceContainer.Register<IInputService, DefaultInputService>();
