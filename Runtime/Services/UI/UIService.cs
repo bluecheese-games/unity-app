@@ -12,19 +12,19 @@ namespace BlueCheese.App.Services
     {
         private readonly IAssetService _assetService;
         private readonly IInputService _inputService;
-        private readonly IClockService _timeService;
+        private readonly IClockService _clockService;
         private readonly ILogger<UIService> _logger;
         private Dictionary<string, UIView> _viewPrefabs;
-        private List<UIView> _viewList = new List<UIView>();
+        private readonly List<UIView> _viewList = new();
         private UIView _currentView;
         private bool _isInitialized;
 
-        public UIService(IAssetService assetService, IInputService inputService, IClockService timeService, ILogger<UIService> loggerService)
+        public UIService(IAssetService assetService, IInputService inputService, IClockService clockService, ILogger<UIService> logger)
         {
             _assetService = assetService;
             _inputService = inputService;
-            _timeService = timeService;
-            _logger = loggerService;
+            _clockService = clockService;
+            _logger = logger;
         }
 
         public void Initialize()
@@ -36,7 +36,7 @@ namespace BlueCheese.App.Services
 
             LoadViewsInResources();
 
-            _timeService.OnTick += HandleTick;
+            _clockService.OnTick += HandleTick;
 
             _isInitialized = true;
         }
@@ -48,7 +48,7 @@ namespace BlueCheese.App.Services
                 return;
             }
 
-            if (_inputService.GetButtonDown("Cancel") || Input.GetKeyDown(KeyCode.Escape))
+            if (_inputService.GetButtonDown("Cancel") || _inputService.GetKeyDown(KeyCode.Escape))
             {
                 _currentView.HandleBackButton();
             }
