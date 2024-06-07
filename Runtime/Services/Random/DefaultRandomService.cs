@@ -14,7 +14,7 @@ namespace BlueCheese.App.Services
         {
             get
             {
-                return (float)_random.NextDouble();
+                return (float)GetRandom().NextDouble();
             }
         }
 

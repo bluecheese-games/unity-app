@@ -2,15 +2,25 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
+using UnityEngine;
+
 namespace BlueCheese.App.Services
 {
     public interface IInputService
     {
-        /// <summary>
-        /// Gets the button just pressed state of an Action.
-        /// </summary>
-        /// <param name="actionName">The Action name.</param>
-        /// <returns>The state.</returns>
+        // Buttons
+        bool GetButton(string actionName);
         bool GetButtonDown(string actionName);
+        bool GetButtonUp(string actionName);
+
+        // Keys
+        bool GetKey(KeyCode keyCode);
+        bool GetKeyDown(KeyCode keyCode);
+        bool GetKeyUp(KeyCode keyCode);
+
+        // Mouse
+        bool GetMouseButton(int button);
+        bool GetMouseButtonDown(int button);
+        bool GetMouseButtonUp(int button);
     }
 }

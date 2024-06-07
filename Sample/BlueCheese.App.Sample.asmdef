@@ -1,0 +1,17 @@
+{
+    "name": "BlueCheese.App.Sample",
+    "rootNamespace": "BlueCheese.App.Sample",
+    "references": [
+        "GUID:f6ecf9bcf81d8e245a50ec0ac247ad60",
+        "GUID:e5c6ae23fb900a946894d0e9dca31f1d"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
