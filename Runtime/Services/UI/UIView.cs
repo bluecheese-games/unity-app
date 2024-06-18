@@ -3,6 +3,7 @@
 //
 
 using BlueCheese.Core.ServiceLocator;
+using Core.Signals;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
@@ -19,6 +20,7 @@ namespace BlueCheese.App.Services
 
         [Injectable] private IUIService _uiService;
         [Injectable] private ILogger<UIView> _logger;
+        [Injectable] private IApp _app;
 
         private void Awake()
         {
@@ -40,7 +42,7 @@ namespace BlueCheese.App.Services
             _uiService.UnregisterView(this);
         }
 
-        public void HandleBackButton()
+        public async void HandleBackButton()
         {
             switch (_backBehaviour)
             {
@@ -54,9 +56,10 @@ namespace BlueCheese.App.Services
                     _onBack?.Invoke();
                     break;
                 case BackBehaviour.ExitApp:
-                    //TODO prompt dialog for validation
-                    _logger.Log("Exit app...");
-                    Application.Quit();
+                    _logger.Log("Exiting app...");
+                    await SignalAPI.PublishAsync(new ExitAppRequestSignal());
+                    _logger.Log("Exit app!");
+                    _app.Quit();
                     break;
             }
         }
