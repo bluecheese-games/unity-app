@@ -3,11 +3,12 @@
 //
 
 using BlueCheese.Core.ServiceLocator;
+using System;
 using UnityEngine;
 
 namespace BlueCheese.App
 {
-    public class UnityApp
+    public partial class UnityApp : IApp
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         private static void ReloadDomain()
@@ -17,6 +18,21 @@ namespace BlueCheese.App
 
         public ServiceContainer ServiceContainer { get; private set; }
 
+        public Environment Environment { get; private set; } = Environment.Development;
+
+        private Version _version;
+        public Version Version
+        {
+            get
+            {
+                if (_version == null)
+                {
+                    _version = new Version(Application.version);
+                }
+                return _version;
+            }
+        }
+
         private UnityApp() { }
 
         public void Run()
@@ -25,28 +41,15 @@ namespace BlueCheese.App
             Application.quitting += Stop;
         }
 
-        public void Stop()
+        public void Quit()
+        {
+            Application.Quit();
+        }
+
+        private void Stop()
         {
             Application.quitting -= Stop;
             ServiceContainer.Shutdown();
-        }
-
-        public class Builder
-        {
-            private readonly UnityApp _app = new();
-            public ServiceContainer ServiceContainer => _app.ServiceContainer;
-
-            public Builder()
-            {
-                _app.ServiceContainer = ServiceContainer.Default;
-            }
-
-            public Builder(ServiceContainer serviceContainer)
-            {
-                _app.ServiceContainer = serviceContainer;
-            }
-
-            public UnityApp Build() => _app;
         }
     }
 }

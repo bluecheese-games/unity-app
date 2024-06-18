@@ -13,8 +13,9 @@ namespace BlueCheese.App.Sample
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Execute()
         {
-            var builder = new UnityApp.Builder();
-            builder.RegisterDefaultServices();
+            var builder = new UnityApp.Builder()
+                .UseEnvironment(Environment.Development)
+                .RegisterDefaultServices();
             RegisterAppServices(builder.ServiceContainer);
             var app = builder.Build();
             app.Run();
