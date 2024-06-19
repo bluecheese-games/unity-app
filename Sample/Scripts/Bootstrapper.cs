@@ -8,10 +8,9 @@ using UnityEngine;
 
 namespace BlueCheese.App.Sample
 {
-    public static class Bootstrapper
+    public class Bootstrapper : MonoBehaviour
     {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void Execute()
+        private void Awake()
         {
             var builder = new UnityApp.Builder()
                 .UseEnvironment(Environment.Development)
