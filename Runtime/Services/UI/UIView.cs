@@ -4,6 +4,7 @@
 
 using BlueCheese.Core.ServiceLocator;
 using Core.Signals;
+using NaughtyAttributes;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
@@ -15,6 +16,7 @@ namespace BlueCheese.App.Services
     public class UIView : MonoBehaviour
     {
         [SerializeField] protected BackBehaviour _backBehaviour;
+        [ShowIf(nameof(BackBehaviour), BackBehaviour.InvokeEvent)]
         [SerializeField] protected UnityEvent _onBack;
         [SerializeField] private Button _focusButton;
 
