@@ -57,9 +57,13 @@ namespace BlueCheese.App.Services
                     break;
                 case BackBehaviour.ExitApp:
                     _logger.Log("Exiting app...");
-                    await SignalAPI.PublishAsync(new ExitAppRequestSignal());
-                    _logger.Log("Exit app!");
-                    _app.Quit();
+                    var signal = new ExitAppRequestSignal();
+                    await SignalAPI.PublishAsync(signal);
+                    if (!signal.IsCancelled)
+                    {
+                        _logger.Log("Exit app!");
+                        _app.Quit();
+                    }
                     break;
             }
         }

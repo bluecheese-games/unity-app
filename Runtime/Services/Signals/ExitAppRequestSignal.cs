@@ -6,6 +6,6 @@ namespace BlueCheese.App.Services
 {
     public class ExitAppRequestSignal
     {
-        public bool IsCanceled;
+        public bool IsCancelled;
     }
 }
