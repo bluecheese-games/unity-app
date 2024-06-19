@@ -2,6 +2,7 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace BlueCheese.App.Services
@@ -13,11 +14,13 @@ namespace BlueCheese.App.Services
         // TODO: fix domain reload
         private static int _topSortingOrder = 100;
 
-        [SerializeField] private PopupResult _result;
+        [SerializeField] private PopupResult _defaultResult;
+
+        public PopupResult Result => _result == PopupResult.None ? _defaultResult : _result;
 
         private Canvas _canvas;
-
-        public PopupResult Result => _result;
+        private PopupResult _result = PopupResult.None;
+        private bool _hidden = true;
 
         private void Awake()
         {
@@ -27,6 +30,7 @@ namespace BlueCheese.App.Services
         private void OnEnable()
         {
             _canvas.sortingOrder = ++_topSortingOrder;
+            _hidden = false;
         }
 
         private void OnDisable()
@@ -34,6 +38,15 @@ namespace BlueCheese.App.Services
             if (_canvas.sortingOrder >= _topSortingOrder)
             {
                 _topSortingOrder = _canvas.sortingOrder - 1;
+            }
+            _hidden = true;
+        }
+
+        public async Task WaitUntilHidden()
+        {
+            while(!_hidden)
+            {
+                await Task.Yield();
             }
         }
 
