@@ -13,7 +13,11 @@ namespace BlueCheese.App.Services
         // TODO: fix domain reload
         private static int _topSortingOrder = 100;
 
+        [SerializeField] private PopupResult _result;
+
         private Canvas _canvas;
+
+        public PopupResult Result => _result;
 
         private void Awake()
         {
@@ -32,5 +36,7 @@ namespace BlueCheese.App.Services
                 _topSortingOrder = _canvas.sortingOrder - 1;
             }
         }
+
+        public void SetResult(PopupResult result) => _result = result;
     }
 }
