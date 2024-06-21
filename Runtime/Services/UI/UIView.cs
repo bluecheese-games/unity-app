@@ -61,7 +61,11 @@ namespace BlueCheese.App.Services
                     _logger.Log("Exiting app...");
                     var signal = new ExitAppRequestSignal();
                     await SignalAPI.PublishAsync(signal);
-                    if (!signal.IsCancelled)
+                    if (signal.IsCancelled)
+                    {
+                        _logger.Log("Exit app cancelled");
+                    }
+                    else
                     {
                         _logger.Log("Exit app!");
                         _app.Quit();
