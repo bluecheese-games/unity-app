@@ -3,7 +3,6 @@
 //
 
 using BlueCheese.Core.ServiceLocator;
-using UnityEngine;
 
 namespace BlueCheese.App.Services
 {
@@ -13,8 +12,7 @@ namespace BlueCheese.App.Services
         /// Creates a UIView and returns it.
         /// </summary>
         /// <param name="viewName">The name of the view to create.</param>
-        /// <param name="parent">The parent of the view being created.</param>
-        UIView CreateView(string viewName, Transform parent = null);
+        UIView CreateView(string viewName);
 
         /// <summary>
         /// Register the UIView once it is enabled.

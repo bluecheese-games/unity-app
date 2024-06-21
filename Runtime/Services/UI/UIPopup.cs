@@ -16,10 +16,9 @@ namespace BlueCheese.App.Services
 
         [SerializeField] private PopupResult _defaultResult;
 
-        public PopupResult Result => _result == PopupResult.None ? _defaultResult : _result;
+        public PopupResult Result { get; private set; }
 
         private Canvas _canvas;
-        private PopupResult _result = PopupResult.None;
         private bool _hidden = true;
 
         private void Awake()
@@ -31,6 +30,7 @@ namespace BlueCheese.App.Services
         {
             _canvas.sortingOrder = ++_topSortingOrder;
             _hidden = false;
+            Result = _defaultResult;
         }
 
         private void OnDisable()
@@ -50,12 +50,11 @@ namespace BlueCheese.App.Services
             }
         }
 
-        public void SetResult(PopupResult result) => _result = result;
+        public void SetResult(PopupResult result) => Result = result;
         public void SetResult_None() => SetResult(PopupResult.None);
         public void SetResult_Ok() => SetResult(PopupResult.Ok);
         public void SetResult_Cancel() => SetResult(PopupResult.Cancel);
         public void SetResult_Yes() => SetResult(PopupResult.Yes);
         public void SetResult_No() => SetResult(PopupResult.No);
-
     }
 }

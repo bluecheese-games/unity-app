@@ -12,12 +12,14 @@ namespace BlueCheese.App.Services
         /// Loads a scene.
         /// </summary>
         /// <param name="sceneName">The name of the scene to load.</param>
-        void Load(string sceneName);
+        /// <param name="payload">Any payload to carry on to the next scene.</param>
+        void Load(string sceneName, object payload = null);
 
         /// <summary>
         /// Asyncronously loads a scene.
         /// </summary>
         /// <param name="sceneName">The name of the scene to load.</param>
-        Task LoadAsync(string sceneName);
+        /// <param name="payload">Any payload to carry on to the next scene.</param>
+        Task LoadAsync(string sceneName, object payload = null);
     }
 }
