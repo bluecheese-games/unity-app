@@ -4,15 +4,22 @@
 
 namespace BlueCheese.App.Services
 {
-    public struct EnterSceneSignal
+    public readonly struct EnterSceneSignal
     {
-        public string Name;
-        public object Payload;
+        public readonly string SceneName;
+        public readonly string PreviousSceneName;
+        private readonly object _payload;
 
-        public EnterSceneSignal(string name, object payload = null)
+        public EnterSceneSignal(string sceneName, string previousSceneName, object payload = null)
         {
-            Name = name;
-            Payload = payload;
+            SceneName = sceneName;
+            PreviousSceneName = previousSceneName;
+            _payload = payload;
+        }
+
+        public readonly T GetPayload<T>()
+        {
+            return (T)_payload;
         }
     }
 }
