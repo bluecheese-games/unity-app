@@ -16,7 +16,7 @@ namespace BlueCheese.App.Services
     public class UIView : MonoBehaviour
     {
         [SerializeField] protected BackBehaviour _backBehaviour;
-        [ShowIf(nameof(BackBehaviour), BackBehaviour.InvokeEvent)]
+        [ShowIf(nameof(_backBehaviour), BackBehaviour.InvokeEvent)]
         [SerializeField] protected UnityEvent _onBack;
         [SerializeField] private Button _focusButton;
 
