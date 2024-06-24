@@ -51,8 +51,7 @@ namespace BlueCheese.App.Services
         }
 
         public void SetResult(PopupResult result) => Result = result;
-        public void SetResult_None() => SetResult(PopupResult.None);
-        public void SetResult_Ok() => SetResult(PopupResult.Ok);
-        public void SetResult_Cancel() => SetResult(PopupResult.Cancel);
+        public void Ok() => SetResult(PopupResult.Ok);
+        public void Cancel() => SetResult(PopupResult.Cancel);
     }
 }
