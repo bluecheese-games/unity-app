@@ -12,7 +12,5 @@ namespace BlueCheese.App.Services
         None,
         Ok,
         Cancel,
-        Yes,
-        No,
     }
 }
