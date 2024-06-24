@@ -8,7 +8,7 @@ using UnityEngine;
 namespace BlueCheese.App.Services
 {
     [RequireComponent(typeof(Canvas))]
-    public class UIPopup : MonoBehaviour
+    public class Popup : MonoBehaviour
     {
         // Save the top sorting order
         // TODO: fix domain reload
