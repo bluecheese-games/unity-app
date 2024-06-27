@@ -7,11 +7,16 @@ using UnityEngine;
 
 namespace BlueCheese.App.Services
 {
-    [RequireComponent(typeof(Canvas))]
+    [RequireComponent(typeof(Canvas), typeof(UIView))]
     public class Popup : MonoBehaviour
     {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ReloadDomain()
+        {
+            _topSortingOrder = 100;
+        }
+
         // Save the top sorting order
-        // TODO: fix domain reload
         private static int _topSortingOrder = 100;
 
         [SerializeField] private PopupResult _defaultResult;
@@ -19,17 +24,17 @@ namespace BlueCheese.App.Services
         public PopupResult Result { get; private set; }
 
         private Canvas _canvas;
-        private bool _hidden = true;
+        private UIView _uiView;
 
         private void Awake()
         {
             _canvas = GetComponent<Canvas>();
+            _uiView = GetComponent<UIView>();
         }
 
         private void OnEnable()
         {
             _canvas.sortingOrder = ++_topSortingOrder;
-            _hidden = false;
             Result = _defaultResult;
         }
 
@@ -39,18 +44,24 @@ namespace BlueCheese.App.Services
             {
                 _topSortingOrder = _canvas.sortingOrder - 1;
             }
-            _hidden = true;
         }
 
-        public async Task WaitUntilHidden()
+        public async Task<PopupResult> ShowAsync()
         {
-            while(!_hidden)
+            gameObject.SetActive(true);
+            while(gameObject.activeSelf)
             {
                 await Task.Yield();
             }
+            return Result;
         }
 
-        public void SetResult(PopupResult result) => Result = result;
+        public void SetResult(PopupResult result)
+        {
+            Result = result;
+            _uiView.Hide();
+        }
+
         public void Ok() => SetResult(PopupResult.Ok);
         public void Cancel() => SetResult(PopupResult.Cancel);
     }
