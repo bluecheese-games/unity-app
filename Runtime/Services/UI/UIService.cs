@@ -13,19 +13,15 @@ namespace BlueCheese.App.Services
     {
         private readonly IAssetService _assetService;
         private readonly IPoolService _poolService;
-        private readonly IInputService _inputService;
-        private readonly IClockService _clockService;
         private Dictionary<string, GameObject> _viewPrefabs;
         private readonly List<UIView> _viewList = new();
         private UIView _currentView;
         private bool _isInitialized;
 
-        public UIService(IAssetService assetService, IPoolService poolService, IInputService inputService, IClockService clockService)
+        public UIService(IAssetService assetService, IPoolService poolService)
         {
             _assetService = assetService;
             _poolService = poolService;
-            _inputService = inputService;
-            _clockService = clockService;
         }
 
         public void Initialize()
@@ -37,22 +33,7 @@ namespace BlueCheese.App.Services
 
             LoadViewsInResources();
 
-            _clockService.OnTick += HandleTick;
-
             _isInitialized = true;
-        }
-
-        private void HandleTick(float deltaTime)
-        {
-            if (_currentView == null)
-            {
-                return;
-            }
-
-            if (_inputService.GetButtonDown("Cancel") || _inputService.GetKeyDown(KeyCode.Escape))
-            {
-                _currentView.HandleBackButton();
-            }
         }
 
         private void LoadViewsInResources()
@@ -83,18 +64,23 @@ namespace BlueCheese.App.Services
         public void RegisterView(UIView view)
         {
             _viewList.Add(view);
-            CheckCurrentView();
+            UpdateCurrentView();
         }
 
         public void UnregisterView(UIView view)
         {
             _viewList.Remove(view);
             _poolService.Despawn(view.gameObject);
-            CheckCurrentView();
+            UpdateCurrentView();
         }
 
-        private void CheckCurrentView()
+        private void UpdateCurrentView()
         {
+            if (_currentView != null)
+            {
+                _currentView.Focus(false);
+            }
+
             if (_viewList.Count == 0)
             {
                 _currentView = null;
@@ -104,7 +90,7 @@ namespace BlueCheese.App.Services
                 _currentView = _viewList.Last();
 
                 // Focus current view
-                _currentView.Focus();
+                _currentView.Focus(true);
             }
         }
     }

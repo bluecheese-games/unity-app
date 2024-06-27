@@ -3,80 +3,48 @@
 //
 
 using BlueCheese.Core.ServiceLocator;
-using Core.Signals;
-using NaughtyAttributes;
-using System;
+using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace BlueCheese.App.Services
 {
+    [RequireComponent(typeof(BackHandler))]
     public class UIView : MonoBehaviour
     {
-        [SerializeField] protected BackBehaviour _backBehaviour;
-        [ShowIf(nameof(_backBehaviour), BackBehaviour.InvokeEvent)]
-        [SerializeField] protected UnityEvent _onBack;
-        [SerializeField] private Button _focusButton;
+        [SerializeField] private Button _defaultButton;
 
-        [Injectable] private IUIService _uiService;
-        [Injectable] private ILogger<UIView> _logger;
-        [Injectable] private IApp _app;
+        [Injectable] private IUIService _ui;
+
+        private BackHandler _backHandler;
+
+        public bool HasFocus { get; private set; }
 
         private void Awake()
         {
             ServiceContainer.Default.Inject(this);
+            _backHandler = GetComponent<BackHandler>();
 
-            if (_focusButton == null)
+            if (_defaultButton == null)
             {
-                _focusButton = GetComponentInChildren<Button>();
+                _defaultButton = GetComponentInChildren<Button>();
             }
         }
 
         private void OnEnable()
         {
-            _uiService.RegisterView(this);
+            _ui.RegisterView(this);
         }
 
         private void OnDisable()
         {
-            _uiService.UnregisterView(this);
-        }
-
-        public async void HandleBackButton()
-        {
-            switch (_backBehaviour)
-            {
-                case BackBehaviour.HideView:
-                    Hide();
-                    break;
-                case BackBehaviour.DestroyView:
-                    Destroy();
-                    break;
-                case BackBehaviour.InvokeEvent:
-                    _onBack?.Invoke();
-                    break;
-                case BackBehaviour.ExitApp:
-                    _logger.Log("Exiting app...");
-                    var signal = new ExitAppRequestSignal();
-                    await SignalAPI.PublishAsync(signal);
-                    if (signal.IsCancelled)
-                    {
-                        _logger.Log("Exit app cancelled");
-                    }
-                    else
-                    {
-                        _logger.Log("Exit app!");
-                        _app.Quit();
-                    }
-                    break;
-            }
+            _ui.UnregisterView(this);
         }
 
         public void CreateUIView(string viewName)
         {
-            _uiService.CreateView(viewName);
+            _ui.CreateView(viewName);
         }
 
         public virtual void Show()
@@ -89,39 +57,36 @@ namespace BlueCheese.App.Services
             gameObject.SetActive(false);
         }
 
-        public void Focus()
+        public void Focus(bool focus)
         {
-            GameObject target = gameObject;
-            if (_focusButton != null)
-            {
-                target = _focusButton.gameObject;
-            }
+            HasFocus = focus;
 
-            if (target != null && EventSystem.current != null)
+            if (focus)
             {
-                EventSystem.current.SetSelectedGameObject(target);
+                GameObject target = gameObject;
+                if (_defaultButton != null)
+                {
+                    target = _defaultButton.gameObject;
+                }
+
+                if (target != null && EventSystem.current != null)
+                {
+                    EventSystem.current.SetSelectedGameObject(target);
+                }
             }
         }
+
+        public async Task HandleBackButton() => await _backHandler.HandleBackButton();
 
         public virtual void Destroy()
         {
             Destroy(gameObject);
-            _uiService = null;
+            _ui = null;
         }
 
         private void OnDestroy()
         {
-            _uiService = null;
-        }
-
-        [Serializable]
-        public enum BackBehaviour
-        {
-            None,
-            HideView,
-            DestroyView,
-            InvokeEvent,
-            ExitApp,
+            _ui = null;
         }
     }
 }
