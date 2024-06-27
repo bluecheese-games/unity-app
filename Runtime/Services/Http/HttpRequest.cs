@@ -11,8 +11,8 @@ namespace BlueCheese.App.Services
     public abstract class HttpRequest
     {
         public string Url { get; protected set; }
-        public Dictionary<string, string> Headers { get; protected set; }
-        public Dictionary<string, string> Parameters { get; protected set; }
+        public Dictionary<string, string> Headers { get; protected set; } = new();
+        public Dictionary<string, string> Parameters { get; protected set; } = new();
 
         protected HttpRequest(string url)
         {
