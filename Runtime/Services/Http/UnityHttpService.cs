@@ -5,6 +5,7 @@
 using BlueCheese.Core.ServiceLocator;
 using Core.Utils;
 using System;
+using System.Net;
 using System.Threading.Tasks;
 using UnityEngine.Networking;
 
@@ -19,58 +20,87 @@ namespace BlueCheese.App.Services
         }
 
         private readonly ILogger<UnityHttpService> _logger;
-        private readonly ISerializationService _serializationService;
-
+        private readonly IJsonService _json;
         private readonly Options _options = default;
 
-        public UnityHttpService(Options options, ILogger<UnityHttpService> loggerService, ISerializationService serializationService)
+        public UnityHttpService(Options options, ILogger<UnityHttpService> loggerService, IJsonService json)
         {
             _options = options;
             _logger = loggerService;
-            _serializationService = serializationService;
+            _json = json;
         }
 
-        public async Task<T> GetAsync<T>(string url)
+        public async Task<HttpResponse<T>> GetAsync<T>(HttpRequest request)
         {
-            if (!Uri.TryCreate(_options.BaseUri, url, out var uri) || !uri.IsWellFormedOriginalString())
+            if (!request.TryGetUri(_options.BaseUri, out var uri))
             {
-                throw new BadUrlException(uri != null ? uri.AbsoluteUri : url);
+                return HttpResponse<T>.Failure($"Bad Url: {request}", HttpStatusCode.BadRequest);
             }
 
             if (_options.LogRequests)
             {
-                _logger.Log($"ApiService - GET: {uri}");
+                _logger.Log($"GET: {uri}");
             }
-            var request = UnityWebRequest.Get(uri);
-            await request.SendWebRequest();
-            if (request.result == UnityWebRequest.Result.Success)
+            var webRequest = UnityWebRequest.Get(uri);
+            BuildHeaders(request, webRequest);
+            await webRequest.SendWebRequest();
+            return HandleResponse<T>(webRequest);
+        }
+
+        public async Task<HttpResponse<T>> PostAsync<T>(HttpRequest request)
+        {
+            if (!request.TryGetUri(_options.BaseUri, out var uri))
             {
-                string responseJson = request.downloadHandler.text;
+                return HttpResponse<T>.Failure($"Bad Url: {request}", HttpStatusCode.BadRequest);
+            }
+
+            if (_options.LogRequests)
+            {
+                _logger.Log($"POST: {uri}");
+            }
+            var webRequest = UnityWebRequest.Post(uri, request.Parameters);
+            BuildHeaders(request, webRequest);
+            await webRequest.SendWebRequest();
+            return HandleResponse<T>(webRequest);
+        }
+
+        private static void BuildHeaders(HttpRequest request, UnityWebRequest webRequest)
+        {
+            foreach (var kvp in request.Headers)
+            {
+                webRequest.SetRequestHeader(kvp.Key, kvp.Value);
+            }
+        }
+
+        private HttpResponse<T> HandleResponse<T>(UnityWebRequest webRequest)
+        {
+            var statusCode = (HttpStatusCode)webRequest.responseCode;
+            if (webRequest.result == UnityWebRequest.Result.Success)
+            {
+                string responseJson = webRequest.downloadHandler.text;
                 try
                 {
                     _logger.Log(responseJson);
-                    T data = _serializationService.JsonDeserialize<T>(responseJson);
-                    return data;
+                    T data = _json.Deserialize<T>(responseJson);
+                    return HttpResponse<T>.Success(data, responseJson, statusCode);
                 }
                 catch (Exception e)
                 {
-                    throw e;
+                    if (_options.LogRequests)
+                    {
+                        _logger.LogError($"Failed to parse response:\n----------\n{responseJson}\n----------");
+                    }
+                    return HttpResponse<T>.Failure(e.Message, HttpStatusCode.UnprocessableEntity);
                 }
             }
             else
             {
-                throw new Exception($"Request failed with error: {request.error} ({request.url})");
+                if (_options.LogRequests)
+                {
+                    _logger.LogError($"Request failed with error: {webRequest.error} ({webRequest.url})");
+                }
+                return HttpResponse<T>.Failure(webRequest.error, statusCode);
             }
-        }
-    }
-
-    public class BadUrlException : Exception
-    {
-        public string Url { get; }
-
-        public BadUrlException(string url) : base($"Bad Url: {url}")
-        {
-            Url = url;
         }
     }
 }
