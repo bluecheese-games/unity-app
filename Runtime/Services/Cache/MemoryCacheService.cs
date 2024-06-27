@@ -4,42 +4,52 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace BlueCheese.App.Services
 {
     public class MemoryCacheService : ICacheService
     {
-        private readonly ConcurrentDictionary<string, string> _items = new();
+        private readonly ConcurrentDictionary<string, CacheEntry> _entries = new();
 
-        public bool Exists(string key) => _items.ContainsKey(key);
+        public IReadOnlyDictionary<string, CacheEntry> GetEntries() => _entries;
 
-        public string Get(string key) => _items.TryGetValue(key, out var value) ? value : null;
+        public bool Exists(string key) => TryGet(key, out _);
 
-        public Task<string> GetAsync(string key) => Task.FromResult(Get(key));
-
-        public string GetOrCreate(string key, Func<string> getCallback) => _items.GetOrAdd(key, _ => getCallback());
-
-        public async Task<string> GetOrCreateAsync(string key, Func<Task<string>> createCallback)
+        public CacheEntry Get(string key)
         {
-            if (_items.TryGetValue(key, out var existingValue))
+            if (TryGet(key, out var entry))
             {
-                return existingValue;
+                return entry;
+            }
+            return null;
+        }
+
+        public CacheEntry GetOrCreate(string key, Func<string> getCallback)
+        {
+            if (!TryGet(key, out var entry))
+            {
+                entry = getCallback();
+            }
+            return entry;
+        }
+
+        public CacheEntry Set(string key, string value) => _entries[key] = value;
+
+        public bool TryGet(string key, out CacheEntry entry)
+        {
+            if (!_entries.TryGetValue(key, out entry))
+            {
+                return false;
             }
 
-            string newValue = await createCallback();
-
-            return _items.GetOrAdd(key, newValue);
+            if (entry.IsExpired)
+            {
+                _entries.TryRemove(key, out _);
+                entry = null;
+                return false;
+            }
+            return true;
         }
-
-        public void Set(string key, string value) => _items[key] = value;
-
-        public Task SetAsync(string key, string value)
-        {
-            Set(key, value);
-            return Task.CompletedTask;
-        }
-
-        public bool TryGet(string key, out string value) => _items.TryGetValue(key, out value);
     }
 }

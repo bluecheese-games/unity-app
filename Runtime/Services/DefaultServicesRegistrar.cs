@@ -16,7 +16,7 @@ namespace BlueCheese.App.Services
             builder.ServiceContainer.Register<IUIService, UIService>();
             builder.ServiceContainer.Register<IInputService, DefaultInputService>();
             builder.ServiceContainer.Register<IAssetService, AssetService>();
-            builder.ServiceContainer.Register<ISerializationService, JsonUtilityService>();
+            builder.ServiceContainer.Register<IJsonService, JsonUtilityService>();
             builder.ServiceContainer.Register<IClockService, UnityClockService>();
             builder.ServiceContainer.Register<IHttpService, UnityHttpService>();
             builder.ServiceContainer.Register<IGameObjectService, GameObjectService>();

@@ -12,6 +12,9 @@ namespace BlueCheese.App.Sample
     {
         private void Awake()
         {
+            // Make sure this is called before all other scripts
+            // => Use the Unity Script Execution Order
+            // => Or put it in a static method with the RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad) attribute
             var builder = new UnityApp.Builder()
                 .UseEnvironment(Environment.Development)
                 .RegisterDefaultServices();

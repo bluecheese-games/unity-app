@@ -9,11 +9,11 @@ namespace BlueCheese.App.Services
 {
     public class PlayerPrefsService : ILocalStorageService
     {
-        private readonly ISerializationService _serializationService;
+        private readonly IJsonService _json;
 
-        public PlayerPrefsService(ISerializationService serializationService)
+        public PlayerPrefsService(IJsonService json)
         {
-            _serializationService = serializationService;
+            _json = json;
         }
 
         public void WriteValue<T>(string key, T value = default)
@@ -30,7 +30,7 @@ namespace BlueCheese.App.Services
                     PlayerPrefs.SetString(key, stringValue);
                     break;
                 default:
-                    PlayerPrefs.SetString(key, _serializationService.JsonSerialize(value));
+                    PlayerPrefs.SetString(key, _json.Serialize(value));
                     break;
             }
         }
@@ -47,7 +47,7 @@ namespace BlueCheese.App.Services
                 TypeCode.Int32 => (T)Convert.ChangeType(PlayerPrefs.GetInt(key), typeof(T)),
                 TypeCode.Single => (T)Convert.ChangeType(PlayerPrefs.GetFloat(key), typeof(T)),
                 TypeCode.String => (T)Convert.ChangeType(PlayerPrefs.GetString(key), typeof(T)),
-                _ => _serializationService.JsonDeserialize<T>(PlayerPrefs.GetString(key)),
+                _ => _json.Deserialize<T>(PlayerPrefs.GetString(key)),
             };
         }
     }

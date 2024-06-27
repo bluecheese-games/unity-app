@@ -3,7 +3,7 @@
 //
 
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace BlueCheese.App.Services
 {
@@ -11,14 +11,14 @@ namespace BlueCheese.App.Services
     {
         bool Exists(string key);
 
-        string Get(string key);
-        Task<string> GetAsync(string key);
-        bool TryGet(string key, out string value);
+        CacheEntry Get(string key);
 
-        void Set(string key, string value);
-        Task SetAsync(string key, string value);
+        bool TryGet(string key, out CacheEntry entry);
 
-        string GetOrCreate(string key, Func<string> getCallback);
-        Task<string> GetOrCreateAsync(string key, Func<Task<string>> getCallback);
+        CacheEntry Set(string key, string value);
+
+        CacheEntry GetOrCreate(string key, Func<string> getCallback);
+
+        IReadOnlyDictionary<string, CacheEntry> GetEntries();
     }
 }
