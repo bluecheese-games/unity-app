@@ -30,7 +30,7 @@ namespace BlueCheese.App.Services
             _json = json;
         }
 
-        public async Task<HttpResponse<T>> GetAsync<T>(HttpRequest request)
+        public async Task<HttpResponse<T>> GetAsync<T>(HttpGetRequest request)
         {
             if (!request.TryGetUri(_options.BaseUri, out var uri))
             {
@@ -47,7 +47,7 @@ namespace BlueCheese.App.Services
             return HandleResponse<T>(webRequest);
         }
 
-        public async Task<HttpResponse<T>> PostAsync<T>(HttpRequest request)
+        public async Task<HttpResponse<T>> PostAsync<T>(HttpPostRequest request)
         {
             if (!request.TryGetUri(_options.BaseUri, out var uri))
             {
