@@ -8,7 +8,7 @@ namespace BlueCheese.App.Services
 {
     public interface IHttpService
     {
-        Task<HttpResponse<T>> GetAsync<T>(HttpRequest request);
-        Task<HttpResponse<T>> PostAsync<T>(HttpRequest request);
+        Task<HttpResponse<T>> GetAsync<T>(HttpGetRequest request);
+        Task<HttpResponse<T>> PostAsync<T>(HttpPostRequest request);
     }
 }
