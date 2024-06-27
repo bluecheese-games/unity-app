@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 
 namespace BlueCheese.App.Services
@@ -25,43 +24,25 @@ namespace BlueCheese.App.Services
             return Uri.TryCreate(baseUri, Url, out uri) && uri.IsWellFormedOriginalString();
         }
 
-        public class Builder
+        public HttpRequest WithHeader(string key, string value)
         {
-            private readonly HttpRequest _request;
+            Headers[key] = value;
+            return this;
+        }
 
-            public Builder(string url, HttpMethod method)
-            {
-                if (method == HttpMethod.Get)
-                {
-                    _request = new HttpGetRequest(url);
-                }
-                else
-                {
-                    _request = new HttpPostRequest(url);
-                }
-            }
-
-            public Builder WithHeader(string key, string value)
-            {
-                _request.Headers[key] = value;
-                return this;
-            }
-
-            public Builder WithParameter(string key, string value)
-            {
-                _request.Parameters[key] = value;
-                return this;
-            }
-
-            public HttpRequest Build() => _request;
+        public HttpRequest WithParameter(string key, string value)
+        {
+            Parameters[key] = value;
+            return this;
         }
     }
 
     public class HttpGetRequest : HttpRequest
     {
-        public HttpGetRequest(string url) : base(url) { }
+        private HttpGetRequest(string url) : base(url) { }
 
         public static implicit operator HttpGetRequest(string url) => new(url);
+        public static HttpGetRequest Create(string url) => new(url);
 
         public override bool TryGetUri(Uri baseUri, out Uri uri)
         {
@@ -92,8 +73,10 @@ namespace BlueCheese.App.Services
 
     public class HttpPostRequest : HttpRequest
     {
-        public HttpPostRequest(string url) : base(url) { }
+        private HttpPostRequest(string url) : base(url) { }
 
         public static implicit operator HttpPostRequest(string url) => new(url);
+
+        public static HttpPostRequest Create(string url) => new(url);
     }
 }
