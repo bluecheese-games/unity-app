@@ -3,6 +3,7 @@
 //
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BlueCheese.App.Services
 {
@@ -10,6 +11,6 @@ namespace BlueCheese.App.Services
     {
         public Dictionary<string, object> GetValues() => new();
 
-        public void Fetch() { }
+        public async Task FetchAsync() => await Task.CompletedTask;
     }
 }
