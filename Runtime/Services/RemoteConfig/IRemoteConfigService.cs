@@ -3,6 +3,7 @@
 //
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BlueCheese.App.Services
 {
@@ -16,6 +17,6 @@ namespace BlueCheese.App.Services
         /// <summary>
         /// Ask the provider to fetch the remote config values
         /// </summary>
-        void Fetch();
+        Task FetchAsync();
     }
 }
