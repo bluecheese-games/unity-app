@@ -6,7 +6,7 @@ using System.Net;
 
 namespace BlueCheese.App.Services
 {
-    public class HttpResponse<T>
+    public class HttpResponse<T> : IHttpResponse
     {
         public bool IsSuccess { get; private set; }
         public string JsonData { get; private set; }

@@ -8,7 +8,7 @@ using System.Text;
 
 namespace BlueCheese.App.Services
 {
-    public abstract class HttpRequest
+    public abstract class HttpRequest : IHttpRequest
     {
         public string Url { get; protected set; }
         public Dictionary<string, string> Headers { get; protected set; } = new();
