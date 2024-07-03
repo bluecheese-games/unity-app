@@ -5,7 +5,7 @@
 using System;
 using UnityEditor;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public class EditorPrefsService : ILocalStorageService
     {

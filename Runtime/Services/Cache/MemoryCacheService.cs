@@ -6,7 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public class MemoryCacheService : ICacheService
     {

@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using Core.Utils;
 using Core.Signals;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public class UnitySceneService : ISceneService
     {

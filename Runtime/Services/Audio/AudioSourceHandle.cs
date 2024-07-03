@@ -5,7 +5,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     [RequireComponent(typeof(AudioSource))]
     public class AudioSourceHandle : MonoBehaviour, IRecyclable

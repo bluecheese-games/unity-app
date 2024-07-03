@@ -4,7 +4,7 @@
 
 using BlueCheese.Core.ServiceLocator;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public interface IAudioService : IInitializable
     {

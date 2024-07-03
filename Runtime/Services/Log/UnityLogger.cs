@@ -4,7 +4,7 @@
 
 using UnityEngine;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public class UnityLogger<TClass> : ILogger<TClass> where TClass : class
     {

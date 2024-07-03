@@ -4,7 +4,7 @@
 
 using System;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     [Serializable]
     public struct MusicOptions

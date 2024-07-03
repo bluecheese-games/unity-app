@@ -4,7 +4,7 @@
 
 using Unity.Plastic.Newtonsoft.Json;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public class NewtonSoftJsonService : IJsonService
     {
