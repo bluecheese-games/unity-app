@@ -17,17 +17,17 @@ namespace BlueCheese.App.Services
         public event TickEventHandler OnTick;
         public event Action OnTickSecond;
 
-        private readonly IAssetService _assetService;
+        private readonly IGameObjectService _gameObjectService;
 
-        private bool _isInitialized;
+		private bool _isInitialized;
         private float _time = 0f;
 
-        public UnityClockService(IAssetService assetService)
-        {
-            _assetService = assetService;
-        }
+		public UnityClockService(IGameObjectService gameObjectService)
+		{
+			_gameObjectService = gameObjectService;
+		}
 
-        public DateTime Now => DateTime.Now;
+		public DateTime Now => DateTime.Now;
 
         public void Initialize()
         {
@@ -36,7 +36,7 @@ namespace BlueCheese.App.Services
                 return;
             }
 
-            ClockUpdater updater = _assetService.Instantiate<ClockUpdater>(null, nameof(ClockUpdater));
+            ClockUpdater updater = _gameObjectService.CreateObject<ClockUpdater>();
             updater.UpdateCallback = HandleUpdate;
 
             _isInitialized = true;
