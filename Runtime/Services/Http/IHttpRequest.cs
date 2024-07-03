@@ -12,7 +12,7 @@ namespace BlueCheese.App.Services
         Dictionary<string, string> Parameters { get; }
         string Url { get; }
 
-        HttpRequest WithHeader(string key, string value);
-        HttpRequest WithParameter(string key, string value);
+        HttpRequest AddHeader(string key, string value);
+        HttpRequest AddParameter(string key, string value);
     }
 }
