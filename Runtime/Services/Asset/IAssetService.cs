@@ -14,6 +14,5 @@ namespace BlueCheese.App.Services
         T[] LoadAssetsFromResources<T>(string path) where T : Object;
         T FindAssetInResources<T>() where T : Object;
         T[] FindAssetsInResources<T>() where T : Object;
-        T Instantiate<T>(T prefab = null, string name = null, Transform parent = null) where T : Component;
     }
 }

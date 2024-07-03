@@ -8,9 +8,9 @@ namespace BlueCheese.App.Services
 {
     public class GameObjectService : IGameObjectService
     {
-        public GameObject CreateEmptyObject() => new GameObject();
+        public GameObject CreateEmptyObject() => new();
 
-        public T CreateObject<T>() where T : Component => new GameObject().AddComponent<T>();
+        public T CreateObject<T>() where T : Component => new GameObject(nameof(T)).AddComponent<T>();
 
         public GameObject Instantiate(GameObject prefab) => GameObject.Instantiate(prefab);
 
@@ -22,8 +22,8 @@ namespace BlueCheese.App.Services
 
         public void DontDestroyOnLoad(GameObject obj) => GameObject.DontDestroyOnLoad(obj);
 
-        public T Find<T>(bool includeInactive = false) where T : Component => GameObject.FindFirstObjectByType<T>();
+        public T Find<T>(bool includeInactive = false) where T : Component => GameObject.FindFirstObjectByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude);
 
-        public T[] FindAll<T>(bool includeInactive = false) where T : Component => GameObject.FindObjectsOfType<T>();
+        public T[] FindAll<T>(bool includeInactive = false) where T : Component => GameObject.FindObjectsOfType<T>(includeInactive);
     }
 }

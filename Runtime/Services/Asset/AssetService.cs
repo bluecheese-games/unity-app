@@ -38,17 +38,5 @@ namespace BlueCheese.App.Services
         {
             return Resources.FindObjectsOfTypeAll<T>();
         }
-
-        public T Instantiate<T>(T prefab = null, string name = null, Transform parent = null) where T : Component
-        {
-            T instance = prefab != null ? Object.Instantiate(prefab, parent) : new GameObject().AddComponent<T>();
-
-            if (!string.IsNullOrEmpty(name))
-            {
-                instance.name = name;
-            }
-
-            return instance;
-        }
     }
 }
