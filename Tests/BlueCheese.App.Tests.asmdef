@@ -4,7 +4,8 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "BlueCheese.App"
+        "BlueCheese.App",
+        "BlueCheese.Core"
     ],
     "includePlatforms": [
         "Editor"

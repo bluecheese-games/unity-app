@@ -12,6 +12,13 @@ namespace BlueCheese.App.Services
     {
         private readonly ConcurrentDictionary<string, CacheEntry> _entries = new();
 
+        private readonly IClockService _clock;
+
+        public MemoryCacheService(IClockService clock)
+		{
+			_clock = clock;
+		}
+
         public IReadOnlyDictionary<string, CacheEntry> GetEntries() => _entries;
 
         public bool Exists(string key) => TryGet(key, out _);
@@ -25,16 +32,16 @@ namespace BlueCheese.App.Services
             return null;
         }
 
-        public CacheEntry GetOrCreate(string key, Func<string> getCallback)
+        public CacheEntry GetOrCreate(string key, Func<string> createFunc)
         {
             if (!TryGet(key, out var entry))
             {
-                entry = getCallback();
+                entry = CacheEntry.Create(createFunc(), () => _clock.Now);
             }
             return entry;
         }
 
-        public CacheEntry Set(string key, string value) => _entries[key] = value;
+        public CacheEntry Set(string key, string value) => _entries[key] = CacheEntry.Create(value, () => _clock.Now);
 
         public bool TryGet(string key, out CacheEntry entry)
         {

@@ -24,13 +24,13 @@ namespace BlueCheese.App.Services
             return Uri.TryCreate(baseUri, Url, out uri) && uri.IsWellFormedOriginalString();
         }
 
-        public HttpRequest WithHeader(string key, string value)
+        public HttpRequest AddHeader(string key, string value)
         {
             Headers[key] = value;
             return this;
         }
 
-        public HttpRequest WithParameter(string key, string value)
+        public HttpRequest AddParameter(string key, string value)
         {
             Parameters[key] = value;
             return this;
