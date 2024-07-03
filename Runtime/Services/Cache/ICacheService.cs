@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public interface ICacheService
     {

@@ -1,4 +1,3 @@
-using BlueCheese.App.Services;
 using BlueCheese.Core.ServiceLocator;
 using System;
 

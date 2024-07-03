@@ -2,7 +2,6 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.App.Services;
 using BlueCheese.Core.ServiceLocator;
 using UnityEngine;
 
@@ -22,7 +21,7 @@ namespace BlueCheese.App.Sample
 
         private void Awake()
         {
-            ServiceContainer.Default.Inject(this);
+            Services.Inject(this);
 
             _pool.Initialize(_spawnedPrefab, new()
             {

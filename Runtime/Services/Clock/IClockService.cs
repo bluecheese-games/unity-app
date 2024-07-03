@@ -6,7 +6,7 @@ using BlueCheese.Core.ServiceLocator;
 using System;
 using System.Threading.Tasks;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public delegate void TickEventHandler(float deltaTime);
 

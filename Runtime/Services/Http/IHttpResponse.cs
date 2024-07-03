@@ -4,7 +4,7 @@
 
 using System.Net;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public interface IHttpResponse
     {

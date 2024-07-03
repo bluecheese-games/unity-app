@@ -8,10 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using UnityEditor.PackageManager.Requests;
 using UnityEngine.Networking;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public class UnityHttpService : IHttpService
     {
@@ -24,7 +23,7 @@ namespace BlueCheese.App.Services
             public Options UseMiddleware<T>() where T : IHttpMiddleware
             {
                 Middlewares ??= new List<IHttpMiddleware>();
-                Middlewares.Add(ServiceContainer.Default.Instantiate<T>());
+                Middlewares.Add(Services.Instantiate<T>());
                 return this;
             }
         }

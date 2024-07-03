@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Core.Utils;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public class AssetService : IAssetService
     {

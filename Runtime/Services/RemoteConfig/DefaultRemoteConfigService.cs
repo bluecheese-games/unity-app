@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public class DefaultRemoteConfigService : IRemoteConfigService
     {

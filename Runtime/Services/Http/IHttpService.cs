@@ -4,7 +4,7 @@
 
 using System.Threading.Tasks;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public interface IHttpService
     {

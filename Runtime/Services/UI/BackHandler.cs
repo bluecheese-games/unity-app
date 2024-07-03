@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     [RequireComponent(typeof(UIView))]
     public class BackHandler : MonoBehaviour
@@ -27,7 +27,7 @@ namespace BlueCheese.App.Services
 
         private void Awake()
         {
-            ServiceContainer.Default.Inject(this);
+            Services.Inject(this);
             _uiView = GetComponent<UIView>();
         }
 

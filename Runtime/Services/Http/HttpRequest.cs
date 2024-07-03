@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BlueCheese.App.Services
+namespace BlueCheese.App
 {
     public abstract class HttpRequest : IHttpRequest
     {
