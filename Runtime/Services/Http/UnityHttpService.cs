@@ -20,10 +20,10 @@ namespace BlueCheese.App
             public Uri BaseUri;
             public IList<IHttpMiddleware> Middlewares;
 
-            public Options UseMiddleware<T>() where T : IHttpMiddleware
+            public Options UseMiddleware<T>(T middleware) where T : IHttpMiddleware
             {
                 Middlewares ??= new List<IHttpMiddleware>();
-                Middlewares.Add(Services.Instantiate<T>());
+                Middlewares.Add(middleware);
                 return this;
             }
         }
