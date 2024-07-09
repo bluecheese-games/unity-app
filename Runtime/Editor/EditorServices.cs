@@ -26,7 +26,8 @@ namespace BlueCheese.App.Editor
 			container.Register<IJsonService, JsonUtilityService>();
 			container.Register<ILocalStorageService, EditorPrefsService>();
 			container.Register(typeof(ILogger<>), typeof(UnityLogger<>));
-			container.Register<IHttpService, UnityHttpService>();
+			container.Register<IHttpService, HttpService>();
+			container.Register<IHttpClient, UnityWebRequestHttpClient>();
 
 			container.Startup();
 			return container;
