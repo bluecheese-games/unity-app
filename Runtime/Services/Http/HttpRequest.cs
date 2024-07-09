@@ -39,10 +39,9 @@ namespace BlueCheese.App
 
     public class HttpGetRequest : HttpRequest
     {
-        private HttpGetRequest(string url) : base(url) { }
+        public HttpGetRequest(string url) : base(url) { }
 
         public static implicit operator HttpGetRequest(string url) => new(url);
-        public static HttpGetRequest Create(string url) => new(url);
 
         public override bool TryGetUri(Uri baseUri, out Uri uri)
         {
@@ -73,10 +72,8 @@ namespace BlueCheese.App
 
     public class HttpPostRequest : HttpRequest
     {
-        private HttpPostRequest(string url) : base(url) { }
+        public HttpPostRequest(string url) : base(url) { }
 
         public static implicit operator HttpPostRequest(string url) => new(url);
-
-        public static HttpPostRequest Create(string url) => new(url);
     }
 }
