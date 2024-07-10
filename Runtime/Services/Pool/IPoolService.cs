@@ -17,7 +17,7 @@ namespace BlueCheese.App
         /// <summary>
         /// Initializes the pool with the given component type and options.
         /// </summary>
-        void Initialize<T>(PoolOptions options = default);
+        void Initialize<T>(PoolOptions options = default) where T : Component;
 
         /// <summary>
         /// Spawns an instance of the given prefab.

@@ -9,6 +9,8 @@ namespace BlueCheese.App.Sample
 {
     public class Bootstrapper : MonoBehaviour
     {
+        [SerializeField] private AudioBank _audioBank;
+
         private void Awake()
         {
             // Make sure this is called before all other scripts
@@ -22,9 +24,14 @@ namespace BlueCheese.App.Sample
             app.Run();
         }
 
-        private static void RegisterAppServices(ServiceContainer container)
+        private void RegisterAppServices(ServiceContainer container)
         {
-            // Register your app services here
-        }
+			// Register your app services here
+			container.Register<IAudioService, AudioService>()
+                .WithOptions(() => new AudioService.Options
+				{
+                    AudioBanks = new[] { _audioBank }
+				});
+		}
     }
 }

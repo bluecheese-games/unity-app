@@ -27,14 +27,14 @@ namespace BlueCheese.App
         /// Plays a sound.
         /// </summary>
         /// <param name="name">The sound name.</param>
-        void PlaySound(string name);
+        bool PlaySound(string name);
 
         /// <summary>
         /// Plays a sound with options.
         /// </summary>
         /// <param name="name">The sound name.</param>
         /// <param name="options">The sound options.</param>
-        void PlaySound(string name, SoundOptions options);
+        bool PlaySound(string name, SoundOptions options);
 
         /// <summary>
         /// Stops a playing sound.
@@ -44,17 +44,23 @@ namespace BlueCheese.App
         void StopSound(string name, float fadeDuration = 0f);
 
         /// <summary>
-        /// Plays a music.
+        /// Stops all playing sounds.
         /// </summary>
-        /// <param name="name">The music name.</param>
-        void PlayMusic(string name);
+        /// <param name="fadeDuration"></param>
+        void StopAllSounds(float fadeDuration = 0f);
 
-        /// <summary>
-        /// Plays a music with options.
-        /// </summary>
-        /// <param name="name">The music name.</param>
-        /// <param name="options">The music options.</param>
-        void PlayMusic(string name, MusicOptions options);
+		/// <summary>
+		/// Plays a music.
+		/// </summary>
+		/// <param name="name">The music name.</param>
+		bool PlayMusic(string name);
+
+		/// <summary>
+		/// Plays a music with options.
+		/// </summary>
+		/// <param name="name">The music name.</param>
+		/// <param name="options">The music options.</param>
+		bool PlayMusic(string name, MusicOptions options);
 
         /// <summary>
         /// Stops a playing music.
@@ -62,5 +68,5 @@ namespace BlueCheese.App
         /// <param name="name">The music name.</param>
         /// <param name="fadeDuration">The fade out duration in seconds.</param>
         void StopMusic(string name, float fadeDuration = 0f);
-    }
+	}
 }

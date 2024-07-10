@@ -287,5 +287,4 @@ namespace BlueCheese.Tests.Services
 			HandleResponseCallCount++;
 		}
 	}
-
 }

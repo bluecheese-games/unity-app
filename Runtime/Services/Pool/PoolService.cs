@@ -8,13 +8,13 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-	public class DefaultPoolService : IPoolService
+	public class PoolService : IPoolService
 	{
 		private readonly Dictionary<int, Pool> _pools = new();
 		private readonly IGameObjectService _gameObjectService;
 		private readonly IClockService _clockService;
 
-		public DefaultPoolService(IGameObjectService gameObjectService, IClockService clockService)
+		public PoolService(IGameObjectService gameObjectService, IClockService clockService)
 		{
 			_gameObjectService = gameObjectService;
 			_clockService = clockService;
@@ -23,7 +23,7 @@ namespace BlueCheese.App
 		public void Initialize(GameObject prefab, PoolOptions options = default)
 			=> GetOrCreatePool(prefab.GetHashCode(), prefab: prefab, options: options);
 
-		public void Initialize<T>(PoolOptions options = default)
+		public void Initialize<T>(PoolOptions options = default) where T : Component
 			=> GetOrCreatePool(typeof(T).GetHashCode(), componentType: typeof(T), options: options);
 
 		public T Spawn<T>() where T : Component => GetOrCreatePool<T>().Spawn().GetComponent<T>();
@@ -181,7 +181,7 @@ namespace BlueCheese.App
 
 	public class PoolInstance : MonoBehaviour
 	{
-		internal DefaultPoolService.Pool Pool { get; set; }
+		internal PoolService.Pool Pool { get; set; }
 		private IRecyclable[] _recyclables;
 
 		private void Awake()
