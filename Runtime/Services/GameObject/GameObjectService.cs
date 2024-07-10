@@ -10,7 +10,7 @@ namespace BlueCheese.App
     {
         public GameObject CreateEmptyObject() => new();
 
-        public T CreateObject<T>() where T : Component => new GameObject(nameof(T)).AddComponent<T>();
+        public T CreateObject<T>() where T : Component => new GameObject(typeof(T).Name).AddComponent<T>();
 
         public GameObject Instantiate(GameObject prefab) => GameObject.Instantiate(prefab);
 

@@ -7,12 +7,10 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-    public interface IAssetService
+	public interface IAssetLoaderService
     {
         T LoadAssetFromResources<T>(string path) where T : Object;
         Task<T> LoadAssetFromResourcesAsync<T>(string path) where T : Object;
         T[] LoadAssetsFromResources<T>(string path) where T : Object;
-        T FindAssetInResources<T>() where T : Object;
-        T[] FindAssetsInResources<T>() where T : Object;
     }
 }

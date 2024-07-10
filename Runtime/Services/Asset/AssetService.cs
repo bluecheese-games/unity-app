@@ -8,7 +8,7 @@ using Core.Utils;
 
 namespace BlueCheese.App
 {
-    public class AssetService : IAssetService
+    public class AssetService : IAssetLoaderService, IAssetFinderService
     {
         public T LoadAssetFromResources<T>(string path) where T : Object
         {

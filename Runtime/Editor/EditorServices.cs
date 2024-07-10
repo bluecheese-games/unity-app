@@ -21,7 +21,8 @@ namespace BlueCheese.App.Editor
 			var container = new ServiceContainer();
 
 			// Register the services that are specific to the editor
-			container.Register<IAssetService, AssetService>();
+			container.Register<IAssetLoaderService, AssetService>();
+			container.Register<IAssetFinderService, AssetService>();
 			container.Register<IGameObjectService, GameObjectService>();
 			container.Register<IJsonService, JsonUtilityService>();
 			container.Register<ILocalStorageService, EditorPrefsService>();
