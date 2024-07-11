@@ -15,3 +15,4 @@ MonoBehaviour:
   Items:
   - Name: SphereSpawn
     Clip: {fileID: 8300000, guid: 06a4ec99eb23a804ca2178269fca64b5, type: 3}
+    Volume: 0.2
