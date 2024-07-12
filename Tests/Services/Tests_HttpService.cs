@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using System;
+using BlueCheese.Core.ServiceLocator;
 
 namespace BlueCheese.Tests.Services
 {
@@ -16,7 +17,6 @@ namespace BlueCheese.Tests.Services
 	{
 		private FakeHttpClient _fakeHttpClient;
 		private FakeLogger<HttpService> _fakeLogger;
-		private FakeJsonService _fakeJsonService;
 		private HttpService _httpService;
 
 		[SetUp]
@@ -24,9 +24,15 @@ namespace BlueCheese.Tests.Services
 		{
 			_fakeHttpClient = new FakeHttpClient();
 			_fakeLogger = new FakeLogger<HttpService>();
-			_fakeJsonService = new FakeJsonService();
 			var options = new HttpService.Options { BaseUri = new Uri("http://example.com") };
-			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger, _fakeJsonService);
+			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
+			ServiceContainer.Default.Register<IJsonService, NewtonSoftJsonService>();
+		}
+
+		[TearDown]
+		public void TearDown()
+		{
+			ServiceContainer.Default.Reset();
 		}
 
 		[Test]
@@ -34,17 +40,16 @@ namespace BlueCheese.Tests.Services
 		{
 			// Arrange
 			var request = new HttpGetRequest("test");
-			var expectedResponse = new IHttpClient.Result(true, "{\"key\":\"value\"}", 200);
-			var expectedData = new { key = "value" };
+			var expectedResponse = new IHttpClient.Result(true, "{\"Key\":\"value\"}", 200);
+			var expectedData = new FakeData { Key = "value" };
 			_fakeHttpClient.GetAsyncResult = expectedResponse;
-			_fakeJsonService.DeserializeResult = expectedData;
 
 			// Act
-			var response = await _httpService.GetAsync<dynamic>(request);
+			var response = await _httpService.GetAsync(request);
 
 			// Assert
 			Assert.IsTrue(response.IsSuccess);
-			Assert.AreEqual(expectedData, response.Data);
+			Assert.AreEqual(expectedData, response.GetData<FakeData>());
 			Assert.AreEqual(expectedResponse.Content, response.JsonData);
 			Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 		}
@@ -56,7 +61,7 @@ namespace BlueCheese.Tests.Services
 			var request = new HttpGetRequest("invalid url");
 
 			// Act
-			var response = await _httpService.GetAsync<dynamic>(request);
+			var response = await _httpService.GetAsync(request);
 
 			// Assert
 			Assert.IsFalse(response.IsSuccess);
@@ -69,17 +74,16 @@ namespace BlueCheese.Tests.Services
 		{
 			// Arrange
 			var request = new HttpPostRequest("test");
-			var expectedResponse = new IHttpClient.Result(true, "{\"key\":\"value\"}", 200);
-			var expectedData = new { key = "value" };
+			var expectedResponse = new IHttpClient.Result(true, "{\"Key\":\"value\"}", 200);
+			var expectedData = new FakeData { Key = "value" };
 			_fakeHttpClient.PostAsyncResult = expectedResponse;
-			_fakeJsonService.DeserializeResult = expectedData;
 
 			// Act
-			var response = await _httpService.PostAsync<dynamic>(request);
+			var response = await _httpService.PostAsync(request);
 
 			// Assert
 			Assert.IsTrue(response.IsSuccess);
-			Assert.AreEqual(expectedData, response.Data);
+			Assert.AreEqual(expectedData, response.GetData<FakeData>());
 			Assert.AreEqual(expectedResponse.Content, response.JsonData);
 			Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 		}
@@ -91,7 +95,7 @@ namespace BlueCheese.Tests.Services
 			var request = new HttpPostRequest("invalid url");
 
 			// Act
-			var response = await _httpService.PostAsync<dynamic>(request);
+			var response = await _httpService.PostAsync(request);
 
 			// Assert
 			Assert.IsFalse(response.IsSuccess);
@@ -104,21 +108,20 @@ namespace BlueCheese.Tests.Services
 		{
 			// Arrange
 			var request = new HttpGetRequest("http://test");
-			var expectedResponse = new IHttpClient.Result(true, "{\"key\":\"value\"}", 200);
-			var expectedData = new { key = "value" };
+			var expectedResponse = new IHttpClient.Result(true, "{\"Key\":\"value\"}", 200);
+			var expectedData = new FakeData { Key = "value" };
 			_fakeHttpClient.GetAsyncResult = expectedResponse;
-			_fakeJsonService.DeserializeResult = expectedData;
 			var middleware1 = new FakeHttpMiddleware();
 			var middleware2 = new FakeHttpMiddleware();
 			var options = new HttpService.Options { Middlewares = new List<IHttpMiddleware> { middleware1, middleware2 } };
-			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger, _fakeJsonService);
+			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
 
 			// Act
-			var response = await _httpService.GetAsync<dynamic>(request);
+			var response = await _httpService.GetAsync(request);
 
 			// Assert
 			Assert.IsTrue(response.IsSuccess);
-			Assert.AreEqual(expectedData, response.Data);
+			Assert.AreEqual(expectedData, response.GetData<FakeData>());
 			Assert.AreEqual(expectedResponse.Content, response.JsonData);
 			Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 			Assert.AreEqual(1, middleware1.HandleRequestCallCount);
@@ -135,10 +138,10 @@ namespace BlueCheese.Tests.Services
 			var expectedResponse = new IHttpClient.Result(false, "Error message", 500);
 			_fakeHttpClient.GetAsyncResult = expectedResponse;
 			var options = new HttpService.Options { BaseUri = new Uri("http://example.com") };
-			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger, _fakeJsonService);
+			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
 
 			// Act
-			var response = await _httpService.GetAsync<dynamic>(request);
+			var response = await _httpService.GetAsync(request);
 
 			// Assert
 			Assert.IsFalse(response.IsSuccess);
@@ -154,10 +157,10 @@ namespace BlueCheese.Tests.Services
 			var expectedResponse = new IHttpClient.Result(false, "Error message", 500);
 			_fakeHttpClient.PostAsyncResult = expectedResponse;
 			var options = new HttpService.Options { BaseUri = new Uri("http://example.com") };
-			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger, _fakeJsonService);
+			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
 
 			// Act
-			var response = await _httpService.PostAsync<dynamic>(request);
+			var response = await _httpService.PostAsync(request);
 
 			// Assert
 			Assert.IsFalse(response.IsSuccess);
@@ -173,10 +176,10 @@ namespace BlueCheese.Tests.Services
 			var expectedResponse = new IHttpClient.Result(false, "Error message", 500);
 			_fakeHttpClient.GetAsyncResult = expectedResponse;
 			var options = new HttpService.Options { BaseUri = new Uri("http://example.com"), LogRequests = true };
-			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger, _fakeJsonService);
+			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
 
 			// Act
-			var response = await _httpService.GetAsync<dynamic>(request);
+			var response = await _httpService.GetAsync(request);
 
 			// Assert
 			Assert.AreEqual(1, _fakeLogger.LogErrorCallCount);
@@ -191,14 +194,19 @@ namespace BlueCheese.Tests.Services
 			var expectedResponse = new IHttpClient.Result(false, "Error message", 500);
 			_fakeHttpClient.PostAsyncResult = expectedResponse;
 			var options = new HttpService.Options { BaseUri = new Uri("http://example.com"), LogRequests = true };
-			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger, _fakeJsonService);
+			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
 
 			// Act
-			var response = await _httpService.PostAsync<dynamic>(request);
+			var response = await _httpService.PostAsync(request);
 
 			// Assert
 			Assert.AreEqual(1, _fakeLogger.LogErrorCallCount);
 			Assert.AreEqual($"Request failed with error: {expectedResponse.Content}", _fakeLogger.LastLogErrorMessage);
+		}
+
+		private struct FakeData
+		{
+			public string Key;
 		}
 	}
 
@@ -254,23 +262,6 @@ namespace BlueCheese.Tests.Services
 			LastLogException = exeption;
 		}
 	}
-
-
-	public class FakeJsonService : IJsonService
-	{
-		public dynamic DeserializeResult { get; set; }
-
-		public string Serialize<T>(T obj)
-		{
-			throw new NotImplementedException();
-		}
-
-		public T Deserialize<T>(string str)
-		{
-			return (T)DeserializeResult;
-		}
-	}
-
 
 	public class FakeHttpMiddleware : IHttpMiddleware
 	{

@@ -2,39 +2,44 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
+using BlueCheese.Core.ServiceLocator;
 using System.Net;
 
 namespace BlueCheese.App
 {
-    public class HttpResponse<T> : IHttpResponse
+    public class HttpResponse : IHttpResponse
     {
         public bool IsSuccess { get; private set; }
         public string JsonData { get; private set; }
-        public T Data { get; private set; }
         public HttpStatusCode StatusCode { get; private set; }
         public string ErrorMessage { get; private set; }
 
         private HttpResponse() { }
 
-        public static HttpResponse<T> Success(T data, string jsonData, HttpStatusCode statusCode = HttpStatusCode.OK) => new()
+        public T GetData<T>() => Services.Get<IJsonService>().Deserialize<T>(JsonData);
+
+        public static IHttpResponse Success(string jsonData, HttpStatusCode statusCode = HttpStatusCode.OK) => new HttpResponse()
         {
             IsSuccess = true,
-            Data = data,
             JsonData = jsonData,
             StatusCode = statusCode,
             ErrorMessage = null,
         };
 
-        public static HttpResponse<T> Failure(string errorMessage, HttpStatusCode statusCode) => new()
+        public static IHttpResponse Failure(string errorMessage, HttpStatusCode statusCode) => new HttpResponse()
         {
             IsSuccess = false,
-            Data = default,
             JsonData = null,
             StatusCode = statusCode,
             ErrorMessage = errorMessage,
         };
 
-        public static implicit operator T(HttpResponse<T> httpResponse) => httpResponse.Data;
-        public static implicit operator string(HttpResponse<T> httpResponse) => httpResponse.JsonData;
+        public static IHttpResponse FromResult(IHttpClient.Result result) => new HttpResponse()
+		{
+			IsSuccess = result.IsSuccess,
+			JsonData = result.IsSuccess ? result.Content : null,
+			StatusCode = (HttpStatusCode)result.StatusCode,
+			ErrorMessage = result.IsSuccess ? null : result.Content,
+		};
     }
 }
