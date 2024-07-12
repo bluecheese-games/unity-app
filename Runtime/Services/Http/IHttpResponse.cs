@@ -12,5 +12,7 @@ namespace BlueCheese.App
         bool IsSuccess { get; }
         string JsonData { get; }
         HttpStatusCode StatusCode { get; }
-    }
+
+		T GetData<T>();
+	}
 }

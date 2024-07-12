@@ -6,8 +6,8 @@ using BlueCheese.Core.ServiceLocator;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
-using UnityEngine.Networking;
 
 namespace BlueCheese.App
 {
@@ -17,7 +17,7 @@ namespace BlueCheese.App
 		{
 			public bool LogRequests;
 			public Uri BaseUri;
-			public IList<IHttpMiddleware> Middlewares;
+			public List<IHttpMiddleware> Middlewares;
 
 			public Options UseMiddleware<T>(T middleware) where T : IHttpMiddleware
 			{
@@ -29,129 +29,68 @@ namespace BlueCheese.App
 
 		private readonly IHttpClient _httpClient;
 		private readonly ILogger<HttpService> _logger;
-		private readonly IJsonService _json;
 		private readonly Options _options = default;
-		private readonly IList<IHttpMiddleware> _middlewares = null;
+		private readonly List<IHttpMiddleware> _middlewares = new();
 
-		public HttpService(Options options, IHttpClient httpClient, ILogger<HttpService> loggerService, IJsonService json)
+		public HttpService(Options options, IHttpClient httpClient, ILogger<HttpService> loggerService)
 		{
 			_options = options;
 			_httpClient = httpClient;
 			_logger = loggerService;
-			_json = json;
 
-			_middlewares = _options.Middlewares;
+			if (_options.Middlewares != null)
+			{
+				_middlewares.AddRange(_options.Middlewares);
+			}
 		}
 
-		public async Task<HttpResponse<T>> GetAsync<T>(HttpRequest request)
+		public async Task<IHttpResponse> GetAsync(IHttpRequest request) => await ProcessRequestAsync(request, HttpMethod.Get);
+
+		public async Task<IHttpResponse> PostAsync(IHttpRequest request) => await ProcessRequestAsync(request, HttpMethod.Post);
+
+		private async Task<IHttpResponse> ProcessRequestAsync(IHttpRequest request, HttpMethod method)
 		{
 			if (!request.TryGetUri(_options.BaseUri, out var uri))
 			{
-				return HttpResponse<T>.Failure($"Bad Url: {request.Url}", HttpStatusCode.BadRequest);
+				return HttpResponse.Failure($"Bad Url: {request.Url}", HttpStatusCode.BadRequest);
 			}
 
-			HandleMiddlewaresRequest(request);
+			_middlewares?.ForEach(middleware => middleware.HandleRequest(request));
 
 			if (_options.LogRequests)
 			{
-				_logger.Log($"GET: {uri}");
+				_logger.Log($"{method}: {uri}");
 			}
 
-			var result = await _httpClient.GetAsync(uri, request.Headers);
-
-			var httpResponse = CreateHttpResponse<T>(result);
-
-			HandleMiddlewaresResponse(httpResponse);
-
-			return httpResponse;
-		}
-
-		public async Task<HttpResponse<T>> PostAsync<T>(HttpRequest request)
-		{
-			if (!request.TryGetUri(_options.BaseUri, out var uri))
+			IHttpClient.Result result;
+			if (method == HttpMethod.Get)
 			{
-				return HttpResponse<T>.Failure($"Bad Url: {request.Url}", HttpStatusCode.BadRequest);
+				result = await _httpClient.GetAsync(uri, request.Headers);
 			}
-
-			HandleMiddlewaresRequest(request);
-
-			if (_options.LogRequests)
+			else if (method == HttpMethod.Post)
 			{
-				_logger.Log($"POST: {uri}");
-			}
-
-			var result = await _httpClient.PostAsync(uri, request.Headers, request.Parameters);
-			var httpResponse = CreateHttpResponse<T>(result);
-
-			HandleMiddlewaresResponse(httpResponse);
-
-			return httpResponse;
-		}
-
-		private void HandleMiddlewaresRequest(HttpRequest request)
-		{
-			if (_middlewares == null || _middlewares.Count == 0)
-			{
-				return;
-			}
-
-			foreach (var middleware in _middlewares)
-			{
-				middleware.HandleRequest(request);
-			}
-		}
-
-		private void HandleMiddlewaresResponse(IHttpResponse response)
-		{
-			if (_middlewares == null || _middlewares.Count == 0)
-			{
-				return;
-			}
-
-			foreach (var middleware in _middlewares)
-			{
-				middleware.HandleResponse(response);
-			}
-		}
-
-		private static void BuildHeaders(HttpRequest request, UnityWebRequest webRequest)
-		{
-			foreach (var kvp in request.Headers)
-			{
-				webRequest.SetRequestHeader(kvp.Key, kvp.Value);
-			}
-		}
-
-		private HttpResponse<T> CreateHttpResponse<T>(IHttpClient.Result result)
-		{
-			var statusCode = (HttpStatusCode)result.StatusCode;
-			if (result.IsSuccess)
-			{
-				string responseJson = result.Content;
-
-				try
-				{
-					_logger.Log(responseJson);
-					T data = _json.Deserialize<T>(responseJson);
-					return HttpResponse<T>.Success(data, responseJson, statusCode);
-				}
-				catch (Exception e)
-				{
-					if (_options.LogRequests)
-					{
-						_logger.LogError($"Failed to parse response:\n----------\n{responseJson}\n----------");
-					}
-					return HttpResponse<T>.Failure(e.Message, HttpStatusCode.UnprocessableEntity);
-				}
+				result = await _httpClient.PostAsync(uri, request.Headers, request.Parameters);
 			}
 			else
 			{
-				if (_options.LogRequests)
-				{
-					_logger.LogError($"Request failed with error: {result.Content}");
-				}
-				return HttpResponse<T>.Failure(result.Content, statusCode);
+				throw new NotSupportedException($"Unsupported HTTP method: {method}");
 			}
+
+			var httpResponse = HttpResponse.FromResult(result);
+
+			_middlewares?.ForEach(middleware => middleware.HandleResponse(httpResponse));
+
+			if (_options.LogRequests && !result.IsSuccess)
+			{
+				_logger.LogError($"Request failed with error: {result.Content}");
+			}
+
+			return httpResponse;
+		}
+
+		public void RegisterMiddleware<T>(T middleware) where T : IHttpMiddleware
+		{
+			_middlewares.Add(middleware);
 		}
 	}
 }

@@ -8,7 +8,8 @@ namespace BlueCheese.App
 {
     public interface IHttpService
     {
-        Task<HttpResponse<T>> GetAsync<T>(HttpRequest request);
-        Task<HttpResponse<T>> PostAsync<T>(HttpRequest request);
-    }
+        Task<IHttpResponse> GetAsync(IHttpRequest request);
+        Task<IHttpResponse> PostAsync(IHttpRequest request);
+		void RegisterMiddleware<T>(T middleware) where T : IHttpMiddleware;
+	}
 }
