@@ -19,12 +19,22 @@ namespace BlueCheese.App
             SignalAPI.Publish(new EnterSceneSignal(sceneName, exitingSceneName, payload));
         }
 
-        public async Task LoadAsync(string sceneName, object payload = null)
+		public async Task LoadAsync(string sceneName, object payload = null)
         {
             string exitingSceneName = SceneManager.GetActiveScene().name;
             await SignalAPI.PublishAsync(new ExitSceneSignal(exitingSceneName, sceneName, payload));
             await SceneManager.LoadSceneAsync(sceneName);
             await SignalAPI.PublishAsync(new EnterSceneSignal(sceneName, exitingSceneName, payload));
-        }
-    }
+		}
+
+		public async Task LoadAdditiveAsync(string sceneName)
+		{
+            await SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+		}
+
+		public async Task UnloadAsync(string sceneName)
+		{
+            await SceneManager.UnloadSceneAsync(sceneName);
+		}
+	}
 }
