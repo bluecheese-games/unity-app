@@ -21,5 +21,17 @@ namespace BlueCheese.App
         /// <param name="sceneName">The name of the scene to load.</param>
         /// <param name="payload">Any payload to carry on to the next scene.</param>
         Task LoadAsync(string sceneName, object payload = null);
+
+        /// <summary>
+        /// Loads a scene additively.
+        /// </summary>
+        /// <param name="sceneName">The name of the scene to load.</param>
+        Task LoadAdditiveAsync(string sceneName);
+
+        /// <summary>
+        /// Unloads a scene.
+        /// </summary>
+        /// <param name="sceneName">The name of the scene to unload.</param>
+        Task UnloadAsync(string sceneName);
     }
 }
