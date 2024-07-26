@@ -11,7 +11,14 @@ namespace BlueCheese.App.Editor
 		{
 			get
 			{
-				_editorServiceContainer ??= InitializeEditorContainer();
+				try
+				{
+					_editorServiceContainer ??= InitializeEditorContainer();
+				}
+				catch (Exception e)
+				{
+					UnityEngine.Debug.LogError("Failed to initialize the editor service container : " + e);
+				}
 				return _editorServiceContainer;
 			}
 		}
@@ -29,6 +36,9 @@ namespace BlueCheese.App.Editor
 			container.Register(typeof(ILogger<>), typeof(UnityLogger<>));
 			container.Register<IHttpService, HttpService>();
 			container.Register<IHttpClient, UnityWebRequestHttpClient>();
+			container.Register<ILocalizationService, LocalizationService>();
+			container.Register<ITranslationService, TranslationService>();
+			container.Register<IApp, EditorApp>();
 
 			container.Startup();
 			return container;
@@ -142,5 +152,4 @@ namespace BlueCheese.App.Editor
 			return EditorServiceContainer.Inject(instance, includeBaseClasses);
 		}
 	}
-
 }

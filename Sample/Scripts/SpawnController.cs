@@ -9,6 +9,7 @@ namespace BlueCheese.App.Sample
 {
 	public class SpawnController : MonoBehaviour
 	{
+		[SerializeField] private LocalizedText _counterText;
 		[SerializeField] private GameObject _spawnedPrefab;
 		[SerializeField] private float _spawnForce = 3f;
 		[SerializeField] private float _spawnLifetime = 5f;
@@ -19,6 +20,8 @@ namespace BlueCheese.App.Sample
 		[Injectable] private IInputService _input;
 		[Injectable] private IAudioService _audio;
 		[Injectable] private ILogger<SpawnController> _logger;
+
+		private int _counter = 0;
 
 		private void Awake()
 		{
@@ -53,6 +56,9 @@ namespace BlueCheese.App.Sample
 			_audio.PlaySound("SphereSpawn");
 
 			_pool.Despawn(spawnedInstance, _spawnLifetime);
+
+			_counter++;
+			_counterText.SetParameter(0, _counter.ToString());
 		}
 	}
 }
