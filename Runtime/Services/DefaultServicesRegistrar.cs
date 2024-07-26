@@ -30,6 +30,8 @@ namespace BlueCheese.App
             builder.ServiceContainer.Register<IErrorHandlingService, DefaultErrorHandlingService>();
             builder.ServiceContainer.Register<ITrackingService, DebugTrackingService>();
             builder.ServiceContainer.Register<IRandomService, DefaultRandomService>().AsTransient();
+            builder.ServiceContainer.Register<ILocalizationService, LocalizationService>();
+            builder.ServiceContainer.Register<ITranslationService, TranslationService>();
             builder.ServiceContainer.Register(typeof(ILogger<>), typeof(UnityLogger<>));
             return builder;
         }
