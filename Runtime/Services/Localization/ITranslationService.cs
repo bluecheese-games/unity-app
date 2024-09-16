@@ -1,11 +1,12 @@
 ﻿using BlueCheese.Core.ServiceLocator;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace BlueCheese.App
 {
 	public interface ITranslationService : IInitializable
 	{
-		void AddTranslations(Locale locale, Dictionary<string, string> translations);
+		void AddTranslations(SystemLanguage language, Dictionary<string, string> translations);
 		string Translate(TranslationKey key);
 	}
 }

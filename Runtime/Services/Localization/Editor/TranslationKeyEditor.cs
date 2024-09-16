@@ -1,5 +1,4 @@
 using UnityEditor;
-using UnityEditor.Search;
 using UnityEngine;
 
 namespace BlueCheese.App.Editor

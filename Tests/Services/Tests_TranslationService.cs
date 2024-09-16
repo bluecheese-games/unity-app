@@ -22,11 +22,11 @@ namespace BlueCheese.Tests.Services
 			_localStorage = new FakeLocalStorageService();
 			_options = new LocalizationService.Options
 			{
-				DefaultLocale = new Locale(SystemLanguage.English, "US"),
-				SupportedLocales = new List<Locale>
+				DefaultLanguage = SystemLanguage.English,
+				SupportedLanguages = new List<SystemLanguage>
 				{
-					new(SystemLanguage.English, "US"),
-					new(SystemLanguage.French, "FR")
+					SystemLanguage.English,
+					SystemLanguage.French
 				}
 			};
 			_localizationService = new LocalizationService(_localStorage, _options);
@@ -37,71 +37,71 @@ namespace BlueCheese.Tests.Services
 		public void SetCurrentLocale_UpdatesCurrentLocale()
 		{
 			// Arrange
-			var expectedLocale = new Locale(SystemLanguage.Spanish, "ES");
+			var expectedLanguage = SystemLanguage.Spanish;
 
 			// Act
-			_localizationService.SetCurrentLocale(expectedLocale);
+			_localizationService.SetCurrentLanguage(expectedLanguage);
 
 			// Assert
-			Assert.AreEqual(expectedLocale, _localizationService.CurrentLocale);
-			Assert.AreEqual(expectedLocale.ToString(), _localStorage.ReadValue<string>("CurrentLocale"));
+			Assert.AreEqual(expectedLanguage, _localizationService.CurrentLanguage);
+			Assert.AreEqual(expectedLanguage.ToString(), _localStorage.ReadValue<string>("CurrentLanguage"));
 		}
 
 		[Test]
 		public void Initialize_SetsDeviceLocale()
 		{
 			// Arrange
-			var expectedDeviceLocale = new Locale(Application.systemLanguage, RegionInfo.CurrentRegion.TwoLetterISORegionName);
+			var expectedDeviceLanguage = Application.systemLanguage;
 
 			// Act
 			_localizationService.Initialize();
 
 			// Assert
-			Assert.AreEqual(expectedDeviceLocale, _localizationService.DeviceLocale);
+			Assert.AreEqual(expectedDeviceLanguage, _localizationService.DeviceLanguage);
 		}
 
 		[Test]
 		public void Initialize_SetsDefaultLocale()
 		{
 			// Arrange
-			var expectedDefaultLocale = _options.DefaultLocale;
+			var expectedDefaultLanguage = _options.DefaultLanguage;
 
 			// Act
 			_localizationService.Initialize();
 
 			// Assert
-			Assert.AreEqual(expectedDefaultLocale, _localizationService.DefaultLocale);
+			Assert.AreEqual(expectedDefaultLanguage, _localizationService.DefaultLanguage);
 		}
 
 		[Test]
 		public void Initialize_SetsCurrentLocaleToDeviceLocale_WhenDeviceLocaleIsSupported()
 		{
 			// Arrange
-			var expectedCurrentLocale = _localizationService.DeviceLocale;
+			var expectedCurrentLanguage = _localizationService.DeviceLanguage;
 
 			// Act
 			_localizationService.Initialize();
 
 			// Assert
-			Assert.AreEqual(expectedCurrentLocale, _localizationService.CurrentLocale);
+			Assert.AreEqual(expectedCurrentLanguage, _localizationService.CurrentLanguage);
 		}
 
 		[Test]
 		public void Initialize_SetsCurrentLocaleToDefaultLocale_WhenDeviceLocaleIsNotSupported()
 		{
 			// Arrange
-			_options.SupportedLocales = new List<Locale>
+			_options.SupportedLanguages = new List<SystemLanguage>
 			{
-				new(SystemLanguage.Spanish, "ES")
+				SystemLanguage.Spanish
 			};
 			_localizationService = new LocalizationService(_localStorage, _options);
-			var expectedCurrentLocale = _options.DefaultLocale;
+			var expectedCurrentLanguage = _options.DefaultLanguage;
 
 			// Act
 			_localizationService.Initialize();
 
 			// Assert
-			Assert.AreEqual(expectedCurrentLocale, _localizationService.CurrentLocale);
+			Assert.AreEqual(expectedCurrentLanguage, _localizationService.CurrentLanguage);
 		}
 	}
 
@@ -209,14 +209,14 @@ namespace BlueCheese.Tests.Services
 		public void Translate_ReturnsSingularTranslation_WhenPluralValueIs1()
 		{
 			// Arrange
-			var locale = new Locale(SystemLanguage.English, "US");
+			var language = SystemLanguage.English;
 			var translations = new Dictionary<string, string>
 			{
 				{ "apples", "{0} apple" },
 				{ "apples_plural", "{0} apples" }
 			};
-			_localization.SetCurrentLocale(locale);
-			_translationService.AddTranslations(locale, translations);
+			_localization.SetCurrentLanguage(language);
+			_translationService.AddTranslations(language, translations);
 			var key = new TranslationKey("apples", new string[] { "1" }, "apples_plural");
 
 			// Act
@@ -230,14 +230,14 @@ namespace BlueCheese.Tests.Services
 		public void Translate_ReturnsPluralTranslation_WhenPluralValueIsGreaterThan1()
 		{
 			// Arrange
-			var locale = new Locale(SystemLanguage.English, "US");
+			var language = SystemLanguage.English;
 			var translations = new Dictionary<string, string>
 			{
 				{ "apples", "{0} apple" },
 				{ "apples_plural", "{0} apples" }
 			};
-			_localization.SetCurrentLocale(locale);
-			_translationService.AddTranslations(locale, translations);
+			_localization.SetCurrentLanguage(language);
+			_translationService.AddTranslations(language, translations);
 			var key = new TranslationKey("apples", new string[] { "2" }, "apples_plural");
 
 			// Act
@@ -251,13 +251,13 @@ namespace BlueCheese.Tests.Services
 		public void Translate_ReturnsTranslation_WithStringKey()
 		{
 			// Arrange
-			var locale = new Locale(SystemLanguage.English, "US");
+			var language = SystemLanguage.English;
 			var translations = new Dictionary<string, string>
 			{
 				{ "apple", "I love apples" }
 			};
-			_localization.SetCurrentLocale(locale);
-			_translationService.AddTranslations(locale, translations);
+			_localization.SetCurrentLanguage(language);
+			_translationService.AddTranslations(language, translations);
 
 			// Act
 			var translation = _translationService.Translate("apple");
@@ -268,200 +268,20 @@ namespace BlueCheese.Tests.Services
 
 		private class MockLocalizationService : ILocalizationService
 		{
-			private Locale _currentLocale;
+			private SystemLanguage _currentLanguage;
 
-			public Locale CurrentLocale => _currentLocale;
+			public SystemLanguage CurrentLanguage => _currentLanguage;
 
-			public Locale DeviceLocale => throw new System.NotImplementedException();
+			public SystemLanguage DeviceLanguage => throw new System.NotImplementedException();
 
-			public Locale DefaultLocale => throw new System.NotImplementedException();
+			public SystemLanguage DefaultLanguage => throw new System.NotImplementedException();
 
 			public void Initialize() { }
 
-			public void SetCurrentLocale(Locale locale)
+			public void SetCurrentLanguage(SystemLanguage language)
 			{
-				_currentLocale = locale;
+				_currentLanguage = language;
 			}
-		}
-	}
-
-	[TestFixture]
-	public class Tests_Locale
-	{
-		[Test]
-		public void Constructor_SetsLanguageAndCountryCode()
-		{
-			// Arrange
-			var language = SystemLanguage.French;
-			var countryCode = "FR";
-
-			// Act
-			var locale = new Locale(language, countryCode);
-
-			// Assert
-			Assert.AreEqual(language, locale.Language);
-			Assert.AreEqual(countryCode, locale.CountryCode);
-		}
-
-		[Test]
-		public void Constructor_WhenCountryCodeIsNull()
-		{
-			// Arrange
-			var language = SystemLanguage.French;
-
-			// Act
-			var locale = new Locale(language);
-
-			// Assert
-			Assert.AreEqual(language, locale.Language);
-			Assert.IsNull(locale.CountryCode);
-		}
-
-		[Test]
-		public void Constructor_WhenCountryCodeIsEmpty()
-		{
-			// Arrange
-			var language = SystemLanguage.French;
-
-			// Act
-			var locale = new Locale(language, "");
-
-			// Assert
-			Assert.AreEqual(language, locale.Language);
-			Assert.IsNull(locale.CountryCode);
-		}
-
-		[Test]
-		public void Constructor_WhenCountryCodeIsWhitespace()
-		{
-			// Arrange
-			var language = SystemLanguage.French;
-
-			// Act
-			var locale = new Locale(language, " ");
-
-			// Assert
-			Assert.AreEqual(language, locale.Language);
-			Assert.IsNull(locale.CountryCode);
-		}
-
-		[Test]
-		public void LanguageCode_ReturnsCorrectCode()
-		{
-			// Arrange
-			var language = SystemLanguage.French;
-			var countryCode = "FR";
-			var locale = new Locale(language, countryCode);
-			var expectedLanguageCode = "fr";
-
-			// Act
-			var languageCode = locale.LanguageCode;
-
-			// Assert
-			Assert.AreEqual(expectedLanguageCode, languageCode);
-		}
-
-		[Test]
-		public void ToString_ReturnsCorrectFormat()
-		{
-			// Arrange
-			var language = SystemLanguage.French;
-			var countryCode = "FR";
-			var locale = new Locale(language, countryCode);
-			var expectedString = "fr-FR";
-
-			// Act
-			var stringRepresentation = locale.ToString();
-
-			// Assert
-			Assert.AreEqual(expectedString, stringRepresentation);
-		}
-
-		[Test]
-		public void ImplicitConversion_StringToLocale()
-		{
-			// Arrange
-			var localeString = "fr-FR";
-			var expectedLanguage = SystemLanguage.French;
-			var expectedCountryCode = "FR";
-
-			// Act
-			Locale locale = localeString;
-
-			// Assert
-			Assert.AreEqual(expectedLanguage, locale.Language);
-			Assert.AreEqual(expectedCountryCode, locale.CountryCode);
-		}
-
-		[Test]
-		public void ImplicitConversion_StringToLocale_WithoutCountryCode()
-		{
-			// Arrange
-			var localeString = "fr";
-			var expectedLanguage = SystemLanguage.French;
-
-			// Act
-			Locale locale = localeString;
-
-			// Assert
-			Assert.AreEqual(expectedLanguage, locale.Language);
-			Assert.IsNull(locale.CountryCode);
-		}
-
-		[Test]
-		public void ImplicitConversion_LocaleToString()
-		{
-			// Arrange
-			var language = SystemLanguage.French;
-			var countryCode = "FR";
-			var locale = new Locale(language, countryCode);
-			var expectedString = "fr-FR";
-
-			// Act
-			string stringRepresentation = locale;
-
-			// Assert
-			Assert.AreEqual(expectedString, stringRepresentation);
-		}
-
-		[Test]
-		public void Locale_Equality()
-		{
-			// Arrange
-			var locale1 = new Locale(SystemLanguage.French, "FR");
-			var locale2 = new Locale(SystemLanguage.French, "FR");
-			var locale3 = new Locale(SystemLanguage.English, "US");
-			var locale4 = new Locale(SystemLanguage.French, "CA");
-			var locale5 = new Locale(SystemLanguage.French);
-
-			var localFromString1 = (Locale)"fr-FR";
-			var localFromString2 = (Locale)"fr";
-
-			var localFromLanguage = (Locale)SystemLanguage.French;
-
-			// Act / Assert
-			Assert.AreEqual(locale1, locale2);
-			Assert.AreNotEqual(locale1, locale3);
-			Assert.AreNotEqual(locale1, locale4);
-			Assert.AreNotEqual(locale1, locale5);
-			Assert.AreEqual(locale1, localFromString1);
-			Assert.AreEqual(locale5, localFromString2);
-			Assert.AreNotEqual(locale1, localFromLanguage);
-			Assert.AreEqual(locale5 , localFromLanguage);
-			Assert.AreEqual(localFromLanguage, localFromString2);
-
-			Assert.IsTrue(locale1 == locale2);
-			Assert.IsFalse(locale1 != locale2);
-			Assert.IsTrue(locale1 == "fr-FR");
-			Assert.IsFalse(locale1 != "fr-FR");
-			Assert.IsTrue(locale5 == "fr");
-			Assert.IsFalse(locale5 != "fr");
-			Assert.IsTrue(locale5 == SystemLanguage.French);
-			Assert.IsFalse(locale5 != SystemLanguage.French);
-			Assert.IsTrue(localFromLanguage == "fr");
-			Assert.IsFalse(localFromLanguage != "fr");
-			Assert.IsTrue(localFromLanguage == locale5);
-			Assert.IsFalse(localFromLanguage != locale5);
 		}
 	}
 }
