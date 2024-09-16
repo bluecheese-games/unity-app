@@ -140,7 +140,7 @@ namespace BlueCheese.Tests.Services
 				{ "apples_plural", "pommes" }
 			};
 			translationTable.Add(translations);
-			var key = new TranslationKey("apples", new object[] { 2 }, "apples_plural");
+			var key = new TranslationKey("apples", new string[] { "2" }, "apples_plural");
 
 			// Act
 			var result = translationTable.TryGet(key, out var singular, out var plural);
@@ -162,7 +162,7 @@ namespace BlueCheese.Tests.Services
 				{ "apples_plural", "pommes" }
 			};
 			translationTable.Add(translations);
-			var key = new TranslationKey("apples", new object[] { "2" }, "apples_plural");
+			var key = new TranslationKey("apples", new string[] { "2" }, "apples_plural");
 
 			// Act
 			var result = translationTable.TryGet(key, out var singular, out var plural);
@@ -217,7 +217,7 @@ namespace BlueCheese.Tests.Services
 			};
 			_localization.SetCurrentLocale(locale);
 			_translationService.AddTranslations(locale, translations);
-			var key = new TranslationKey("apples", new object[] { 1 }, "apples_plural");
+			var key = new TranslationKey("apples", new string[] { "1" }, "apples_plural");
 
 			// Act
 			var translation = _translationService.Translate(key);
@@ -238,7 +238,7 @@ namespace BlueCheese.Tests.Services
 			};
 			_localization.SetCurrentLocale(locale);
 			_translationService.AddTranslations(locale, translations);
-			var key = new TranslationKey("apples", new object[] { 2 }, "apples_plural");
+			var key = new TranslationKey("apples", new string[] { "2" }, "apples_plural");
 
 			// Act
 			var translation = _translationService.Translate(key);

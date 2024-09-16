@@ -4,9 +4,9 @@ namespace BlueCheese.App
 {
 	public class TranslationService : ITranslationService
 	{
-		private readonly ILocalizationService _localization;
-		private readonly IAssetLoaderService _assetLoader;
-		private readonly Dictionary<Locale, TranslationTable> _translations = new();
+		protected readonly ILocalizationService _localization;
+		protected readonly IAssetLoaderService _assetLoader;
+		protected readonly Dictionary<Locale, TranslationTable> _translations = new();
 
 		public TranslationService(ILocalizationService localization, IAssetLoaderService assetLoader)
 		{
@@ -21,6 +21,8 @@ namespace BlueCheese.App
 			{
 				translationAsset.Load(this);
 			}
+
+			Translator.Initialize(this);
 		}
 
 		public void AddTranslations(Locale locale, Dictionary<string, string> translations)
@@ -72,6 +74,27 @@ namespace BlueCheese.App
 			}
 			translation = null;
 			return false;
+		}
+	}
+
+	public class EditorTranslationService : TranslationService
+	{
+		public EditorTranslationService(ILocalizationService localization, IAssetLoaderService assetLoader) : base(localization, assetLoader) { }
+
+		public IReadOnlyList<string> GetAllKeys()
+		{
+			// Get all keys from all translation tables, combine, remove duplicates, sort by key and return
+			var keys = new HashSet<string>();
+			foreach (var table in _translations.Values)
+			{
+				foreach (var key in table.GetKeys())
+				{
+					keys.Add(key);
+				}
+			}
+			var sortedKeys = new List<string>(keys);
+			sortedKeys.Sort();
+			return sortedKeys;
 		}
 	}
 }
