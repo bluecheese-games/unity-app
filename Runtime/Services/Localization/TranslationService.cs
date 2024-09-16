@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace BlueCheese.App
 {
@@ -6,7 +7,7 @@ namespace BlueCheese.App
 	{
 		protected readonly ILocalizationService _localization;
 		protected readonly IAssetLoaderService _assetLoader;
-		protected readonly Dictionary<Locale, TranslationTable> _translations = new();
+		protected readonly Dictionary<SystemLanguage, TranslationTable> _translations = new();
 
 		public TranslationService(ILocalizationService localization, IAssetLoaderService assetLoader)
 		{
@@ -25,34 +26,24 @@ namespace BlueCheese.App
 			Translator.Initialize(this);
 		}
 
-		public void AddTranslations(Locale locale, Dictionary<string, string> translations)
+		public void AddTranslations(SystemLanguage language, Dictionary<string, string> translations)
 		{
-			if (!_translations.TryGetValue(locale, out var table))
+			if (!_translations.TryGetValue(language, out var table))
 			{
 				table = new TranslationTable();
-				_translations[locale] = table;
+				_translations[language] = table;
 			}
 			table.Add(translations);
 		}
 
 		public string Translate(TranslationKey key)
 		{
-			if (TryTranslate(_localization.CurrentLocale, key, out var translation))
-			{
-				// Found translation for current locale
-				return translation;
-			}
-			else if (TryTranslate(_localization.CurrentLocale.Language, key, out translation))
+			if (TryTranslate(_localization.CurrentLanguage, key, out var translation))
 			{
 				// Found translation for current language
 				return translation;
 			}
-			else if (TryTranslate(_localization.DefaultLocale, key, out translation))
-			{
-				// Found translation for default locale
-				return translation;
-			}
-			else if (TryTranslate(_localization.DefaultLocale.Language, key, out translation))
+			else if (TryTranslate(_localization.DefaultLanguage, key, out translation))
 			{
 				// Found translation for default language
 				return translation;
@@ -62,9 +53,9 @@ namespace BlueCheese.App
 			return key.Key;
 		}
 
-		private bool TryTranslate(Locale locale, TranslationKey key, out string translation)
+		private bool TryTranslate(SystemLanguage language, TranslationKey key, out string translation)
 		{
-			if (_translations.TryGetValue(locale, out var table))
+			if (_translations.TryGetValue(language, out var table))
 			{
 				if (table.TryGet(key, out var singular, out var plural))
 				{

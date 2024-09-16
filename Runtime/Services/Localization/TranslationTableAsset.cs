@@ -28,7 +28,7 @@ namespace BlueCheese.App
 					var value = _translations[langIndex][keyIndex];
 					translations.Add(key, value);
 				}
-				translationService.AddTranslations(lang.ToLocale(), translations);
+				translationService.AddTranslations(lang.Language, translations);
 			}
 		}
 
@@ -39,7 +39,7 @@ namespace BlueCheese.App
 				for (int i = 0; i < _languages.Length; i++)
 				{
 					LanguageData locale = _languages[i];
-					string name = $"{locale.Language} ({(string.IsNullOrEmpty(locale.CountryCode) ? "All" : locale.CountryCode)})";
+					string name = $"{locale.Language}";
 					if (i == 0) name += " (Default)";
 					locale.Name = name;
 				}
@@ -51,11 +51,12 @@ namespace BlueCheese.App
 					if (i >= _languages.Length) continue;
 
 					Translations translations = _translations[i];
-					translations.Lang = _languages[i].ToLocale();
+					translations.Lang = _languages[i].Language.ToString();
 				}
 			}
 		}
 
+		[ContextMenu("Refresh")]
 		private void Refresh()
 		{
 			ITranslationService translationService = EditorServices.Get<ITranslationService>();
@@ -69,9 +70,6 @@ namespace BlueCheese.App
 			public string Name;
 
 			public SystemLanguage Language = SystemLanguage.English;
-			public string CountryCode;
-
-			public Locale ToLocale() => new(Language, CountryCode);
 		}
 
 		[Serializable]

@@ -14,10 +14,10 @@ namespace BlueCheese.App
 
 		private void Start()
 		{
-			SignalAPI.Subscribe<ChangeLocaleSignal>(OnLocaleChanged, this);
+			SignalAPI.Subscribe<ChangeLanguageSignal>(OnLocaleChanged, this);
 		}
 
-		private void OnLocaleChanged(ChangeLocaleSignal signal)
+		private void OnLocaleChanged(ChangeLanguageSignal signal)
 		{
 			_needsUpdate = true;
 		}

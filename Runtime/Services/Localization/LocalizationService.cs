@@ -1,5 +1,6 @@
 ﻿using BlueCheese.Core.ServiceLocator;
 using Core.Signals;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace BlueCheese.App
 {
 	public class LocalizationService : ILocalizationService
 	{
-		private const string _currentLocaleKey = "CurrentLocale";
+		private const string _currentLanguageKey = "CurrentLanguage";
 
 		private readonly ILocalStorageService _localStorage;
 		private readonly Options _options;
@@ -19,48 +20,51 @@ namespace BlueCheese.App
 			_options = options;
 		}
 
-		public Locale DeviceLocale { get; private set; }
-		public Locale DefaultLocale { get; private set; }
-		public Locale CurrentLocale { get; private set; }
+		public SystemLanguage DeviceLanguage { get; private set; }
+		public SystemLanguage DefaultLanguage { get; private set; }
+		public SystemLanguage CurrentLanguage { get; private set; }
 
 		public void Initialize()
 		{
-			DeviceLocale = new Locale(Application.systemLanguage, RegionInfo.CurrentRegion.TwoLetterISORegionName);
-			DefaultLocale = _options.DefaultLocale;
-			CurrentLocale = _localStorage.ReadValue<string>(_currentLocaleKey, IsSupported(DeviceLocale) ? DeviceLocale : DefaultLocale);
+			DeviceLanguage = Application.systemLanguage;
+			DefaultLanguage = _options.DefaultLanguage;
+
+			// Load current language from local storage
+			var backupValue = IsSupported(DeviceLanguage) ? DeviceLanguage.ToString() : DefaultLanguage.ToString();
+			CurrentLanguage = Enum.Parse<SystemLanguage>(_localStorage.ReadValue(_currentLanguageKey, backupValue));
 		}
 
-		private bool IsSupported(Locale locale)
+		private bool IsSupported(SystemLanguage language)
 		{
-			if (_options.SupportedLocales == null || _options.SupportedLocales.Count == 0)
+			if (_options.SupportedLanguages == null || _options.SupportedLanguages.Count == 0)
 			{
-				// If no supported locales are specified, all locales are considered supported
+				// If no supported languages are specified, all languages are considered supported
 				return true;
 			}
-			return _options.SupportedLocales.Contains(locale);
+			return _options.SupportedLanguages.Contains(language);
 		}
 
-		public void SetCurrentLocale(Locale locale)
+		public void SetCurrentLanguage(SystemLanguage language)
 		{
-			if (locale != CurrentLocale)
+			if (language != CurrentLanguage)
 			{
-				CurrentLocale = locale;
-				_localStorage.WriteValue(_currentLocaleKey, CurrentLocale.ToString());
-				SignalAPI.Publish(new ChangeLocaleSignal(CurrentLocale));
+				CurrentLanguage = language;
+				_localStorage.WriteValue(_currentLanguageKey, CurrentLanguage.ToString());
+				SignalAPI.Publish(new ChangeLanguageSignal(CurrentLanguage));
 			}
 		}
 
 		public class Options : IOptions
 		{
-			public Locale DefaultLocale = "en-US";
-			public List<Locale> SupportedLocales;
+			public SystemLanguage DefaultLanguage = SystemLanguage.English;
+			public List<SystemLanguage> SupportedLanguages;
 		}
 	}
 
-	public readonly struct ChangeLocaleSignal
+	public readonly struct ChangeLanguageSignal
 	{
-		public ChangeLocaleSignal(Locale locale) => Locale = locale;
+		public ChangeLanguageSignal(SystemLanguage language) => Language = language;
 
-		public readonly Locale Locale { get; }
+		public readonly SystemLanguage Language { get; }
 	}
 }
