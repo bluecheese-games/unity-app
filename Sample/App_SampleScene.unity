@@ -407,10 +407,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _text: {fileID: 949288741}
-  _key: sample.counter
-  _pluralKey: sample.counter.plural
-  _parameters:
-  - 0
+  _translationKey:
+    _key: sample.counter
+    _pluralKey: sample.counter.plural
+    _parameters:
+    - 0
 --- !u!114 &949288741
 MonoBehaviour:
   m_ObjectHideFlags: 0
