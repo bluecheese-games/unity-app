@@ -3,6 +3,7 @@
 //
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,12 +13,10 @@ namespace BlueCheese.App
 	{
 		private readonly Dictionary<int, Pool> _pools = new();
 		private readonly IGameObjectService _gameObjectService;
-		private readonly IClockService _clockService;
 
-		public PoolService(IGameObjectService gameObjectService, IClockService clockService)
+		public PoolService(IGameObjectService gameObjectService)
 		{
 			_gameObjectService = gameObjectService;
-			_clockService = clockService;
 		}
 
 		public void Initialize(GameObject prefab, PoolOptions options = default)
@@ -32,7 +31,10 @@ namespace BlueCheese.App
 
 		public void Despawn(GameObject instance, float delay = 0f)
 		{
-			_clockService.InvokeAsync(() => DespawnInstance(instance), delay);
+			if (instance.TryGetComponent<PoolInstance>(out var poolInstance))
+			{
+				poolInstance.Despawn(delay);
+			}
 		}
 
 		public void Remove(GameObject instance)
@@ -40,15 +42,6 @@ namespace BlueCheese.App
 			if (instance.TryGetComponent<PoolInstance>(out var poolInstance))
 			{
 				poolInstance.Pool.Remove(instance);
-			}
-		}
-
-		private void DespawnInstance(GameObject instance)
-		{
-			if (instance.TryGetComponent<PoolInstance>(out var poolInstance))
-			{
-				instance.SetActive(false);
-				poolInstance.Pool.Despawn(instance);
 			}
 		}
 
@@ -99,7 +92,9 @@ namespace BlueCheese.App
 				{
 					for (int i = 0; i < options.InitialCapacity; i++)
 					{
-						Despawn(SpawnNewInstance());
+						var instance = SpawnNewInstance();
+						instance.SetActive(false);
+						Add(instance);
 					}
 				}
 			}
@@ -161,9 +156,8 @@ namespace BlueCheese.App
 				}
 			}
 
-			public void Despawn(GameObject instance)
+			public void Add(GameObject instance)
 			{
-				instance.SetActive(false);
 				_items.Add(instance);
 			}
 
@@ -183,6 +177,7 @@ namespace BlueCheese.App
 	{
 		internal PoolService.Pool Pool { get; set; }
 		private IRecyclable[] _recyclables;
+		private Coroutine _despawnCoroutine;
 
 		private void Awake()
 		{
@@ -195,6 +190,34 @@ namespace BlueCheese.App
 			{
 				recyclable.Recycle();
 			}
+		}
+
+		public void Despawn(float delay)
+		{
+			if (delay <= 0f)
+			{
+				Despawn();
+			}
+			else
+			{
+				if (_despawnCoroutine != null)
+				{
+					StopCoroutine(_despawnCoroutine);
+				}
+				_despawnCoroutine = StartCoroutine(DespawnRoutine(delay));
+			}
+		}
+
+		private IEnumerator DespawnRoutine(float delay)
+		{
+			yield return new WaitForSeconds(delay);
+			Despawn();
+		}
+
+		public void Despawn()
+		{
+			gameObject.SetActive(false);
+			Pool.Add(gameObject);
 		}
 
 		private void OnDestroy()
