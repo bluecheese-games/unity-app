@@ -36,7 +36,8 @@ namespace BlueCheese.App.Editor
 			container.Register(typeof(ILogger<>), typeof(UnityLogger<>));
 			container.Register<IHttpService, HttpService>();
 			container.Register<IHttpClient, UnityWebRequestHttpClient>();
-			container.Register<ILocalizationService, LocalizationService>();
+			container.Register<ILocalizationService, LocalizationService>()
+				.WithOptions(() => LocalizationService.Options.FromResourcesOrDefault());
 			container.Register<ITranslationService, EditorTranslationService>();
 			container.Register<IApp, EditorApp>();
 
