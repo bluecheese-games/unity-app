@@ -10,22 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2cb85d8671558d14596cc86b32de4b29, type: 3}
-  m_Name: TranslationTable
+  m_Name: DefaultTranslationTable
   m_EditorClassIdentifier: 
-  _languages:
-  - Name: French (Default)
-    Language: 14
-  - Name: English
-    Language: 10
   _keys:
   - sample.counter
   - sample.counter.plural
   _translations:
-  - Lang: French
-    Entries:
-    - "{0} sph\xE8re"
-    - "{0} sph\xE8res"
-  - Lang: English
-    Entries:
-    - '{0} sphere'
-    - '{0} spheres'
+  - Language: 14
+    Items:
+    - "Sph\xE8re : {0}"
+    - "Sph\xE8res : {0}"
+  - Language: 10
+    Items:
+    - 'Sphere: {0}'
+    - 'Spheres: {0}'

@@ -2,7 +2,6 @@
 using Core.Signals;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using UnityEngine;
 
 namespace BlueCheese.App
@@ -54,10 +53,19 @@ namespace BlueCheese.App
 			}
 		}
 
+		[Serializable]
 		public class Options : IOptions
 		{
 			public SystemLanguage DefaultLanguage = SystemLanguage.English;
 			public List<SystemLanguage> SupportedLanguages;
+
+			public static Options Default = new();
+
+			public static Options FromResourcesOrDefault(string path = "LocalizationSettings")
+			{
+				var settings = Resources.Load<LocalizationSettingsAsset>(path);
+				return settings != null ? settings.Options : Default;
+			}
 		}
 	}
 

@@ -1,5 +1,4 @@
-﻿using BlueCheese.App.Editor;
-using Core.Signals;
+﻿using Core.Signals;
 using TMPro;
 using UnityEngine;
 
@@ -14,10 +13,10 @@ namespace BlueCheese.App
 
 		private void Start()
 		{
-			SignalAPI.Subscribe<ChangeLanguageSignal>(OnLocaleChanged, this);
+			SignalAPI.Subscribe<ChangeLanguageSignal>(OnChangeLanguage, this);
 		}
 
-		private void OnLocaleChanged(ChangeLanguageSignal signal)
+		private void OnChangeLanguage(ChangeLanguageSignal signal)
 		{
 			_needsUpdate = true;
 		}
@@ -37,7 +36,7 @@ namespace BlueCheese.App
 			_needsUpdate = true;
 		}
 
-		private void UpdateText()
+		public void UpdateText()
 		{
 			if (_text == null)
 			{

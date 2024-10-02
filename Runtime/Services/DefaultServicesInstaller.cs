@@ -4,7 +4,7 @@
 
 namespace BlueCheese.App
 {
-    public static class DefaultServicesRegistrar
+    public static class DefaultServicesInstaller
     {
         public static UnityApp.Builder RegisterDefaultServices(this UnityApp.Builder builder)
         {
@@ -30,7 +30,8 @@ namespace BlueCheese.App
             builder.ServiceContainer.Register<IErrorHandlingService, DefaultErrorHandlingService>();
             builder.ServiceContainer.Register<ITrackingService, DebugTrackingService>();
             builder.ServiceContainer.Register<IRandomService, DefaultRandomService>().AsTransient();
-            builder.ServiceContainer.Register<ILocalizationService, LocalizationService>();
+            builder.ServiceContainer.Register<ILocalizationService, LocalizationService>()
+                .WithOptions(() => LocalizationService.Options.FromResourcesOrDefault());
             builder.ServiceContainer.Register<ITranslationService, TranslationService>();
             builder.ServiceContainer.Register(typeof(ILogger<>), typeof(UnityLogger<>));
             return builder;
