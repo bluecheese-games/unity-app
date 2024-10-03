@@ -1,4 +1,7 @@
+using BlueCheese.Core.Editor;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using static UnityEditor.PlayerSettings.Switch;
@@ -16,7 +19,7 @@ namespace BlueCheese.App.Editor
 
 		private TranslationTableAsset _asset;
 		private Vector2 _scrollPosition;
-		private SystemLanguage _languageToAdd;
+		private int _languageToAddIndex;
 		private string _keyToAdd;
 		private bool _needsRefresh;
 		private string _filterText;
@@ -47,37 +50,20 @@ namespace BlueCheese.App.Editor
 
 		private void DrawFilter()
 		{
-			var searchIcon = EditorGUIUtility.Load("d_Search Icon") as Texture2D;
-			var clearIcon = EditorGUIUtility.Load("CrossIcon") as Texture2D;
-			var style = new GUIStyle(EditorStyles.toolbar)
-			{
-				stretchWidth = true,
-				fixedHeight = 28
-			};
-
-			EditorGUILayout.BeginHorizontal(style);
-			EditorGUILayout.LabelField(new GUIContent(searchIcon), GUILayout.Width(30), GUILayout.Height(24));
-			_filterText = EditorGUILayout.TextField(_filterText, GUILayout.ExpandWidth(true), GUILayout.Height(22));
-			/*if (GUILayout.Button(new GUIContent(clearIcon), GUILayout.Width(30)))
-			{
-				_filterText = "";
-			}*/
-			EditorGUILayout.EndHorizontal();
+			_filterText = EditorGUIHelper.DrawTextfieldWithIcon(_filterText, EditorIcon.Search);
+			EditorGUILayout.Separator();
 		}
 
 		private void DrawHeader()
 		{
-			var deleteIcon = EditorGUIUtility.Load("TreeEditor.Trash") as Texture2D;
-			var addIcon = EditorGUIUtility.Load("d_Toolbar Plus") as Texture2D;
-
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField("Key", EditorStyles.boldLabel, GUILayout.Width(_columnWidth));
 			foreach (var language in _asset.Languages)
 			{
 				EditorGUILayout.LabelField(language.ToString(), EditorStyles.boldLabel, GUILayout.Width(_columnWidth - 33));
-				if (GUILayout.Button(new GUIContent(deleteIcon), GUILayout.Width(30)))
+				if (GUILayout.Button(new GUIContent(EditorIcon.Trash), GUILayout.Width(30)))
 				{
-					if (EditorUtility.DisplayDialog("Delete Language", $"Are you sure you want to delete the language {language}?", "Yes", "No"))
+					if (EditorUtility.DisplayDialog("Delete Language", $"Are you sure you want to delete translations for the language {language}?", "Yes", "No"))
 					{
 						Undo.RecordObject(_asset, "Delete Language");
 						_asset.RemoveLanguage(language);
@@ -88,24 +74,45 @@ namespace BlueCheese.App.Editor
 
 			var enumStyle = new GUIStyle(EditorStyles.popup)
 			{
-
 				fixedHeight = 20
 			};
 
-			_languageToAdd = (SystemLanguage)EditorGUILayout.EnumPopup(_languageToAdd, enumStyle, GUILayout.Width(_columnWidth - 33));
-			if (GUILayout.Button(new GUIContent(addIcon), GUILayout.Width(30)))
+			var localizationService = EditorServices.Get<ILocalizationService>();
+			List<string> languageNames = localizationService.SupportedLanguages
+				.Except(_asset.Languages)
+				.Select(x => x.ToString())
+				.ToList();
+
+			languageNames.Insert(0, "Add Language...");
+
+			if (languageNames.Count == 0)
 			{
-				if (_asset.Languages.Contains(_languageToAdd))
+				EditorGUILayout.EndHorizontal();
+				return;
+			}
+
+			_languageToAddIndex = EditorGUILayout.Popup(_languageToAddIndex, languageNames.ToArray(), enumStyle, GUILayout.Width(_columnWidth - 33));
+
+			if(_languageToAddIndex == 0)
+			{
+				GUI.enabled = false;
+			}
+			if (GUILayout.Button(new GUIContent(EditorIcon.Plus), GUILayout.Width(30)))
+			{
+				Language languageToAdd = Enum.Parse<Language>(languageNames[_languageToAddIndex]);
+				if (_asset.Languages.Contains(languageToAdd))
 				{
 					EditorUtility.DisplayDialog("Error", "Language already exists", "Ok");
 				}
 				else
 				{
 					Undo.RecordObject(_asset, "Add Language");
-					_asset.AddLanguage(_languageToAdd);
+					_asset.AddLanguage(languageToAdd);
 					_needsRefresh = true;
+					_languageToAddIndex = 0;
 				}
 			}
+			GUI.enabled = true;
 
 			EditorGUILayout.EndHorizontal();
 		}
@@ -114,6 +121,8 @@ namespace BlueCheese.App.Editor
 		{
 			for (int keyIndex = 0; keyIndex < _asset.Keys.Count; keyIndex++)
 			{
+				string key = _asset.Keys[keyIndex];
+
 				EditorGUILayout.BeginHorizontal();
 				string newKey = EditorGUILayout.TextField(_asset.Keys[keyIndex], GUILayout.Width(_columnWidth));
 				if (newKey != _asset.Keys[keyIndex])

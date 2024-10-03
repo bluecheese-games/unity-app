@@ -1,3 +1,4 @@
+using BlueCheese.Core.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,9 +21,9 @@ namespace BlueCheese.App.Editor
 		private void DrawTranslationKeyProperty(SerializedProperty property)
 		{
 			EditorGUILayout.BeginVertical("box");
-			EditorGUI.indentLevel++;
 			DrawKey(property);
 			DrawPluralKey(property);
+			EditorGUI.indentLevel++;
 			DrawParameters(property);
 			EditorGUI.indentLevel--;
 			EditorGUILayout.EndVertical();
@@ -40,18 +41,14 @@ namespace BlueCheese.App.Editor
 			bool keyExists = EditorServices.Get<ITranslationService>().Translate(keyProperty.stringValue) != keyProperty.stringValue;
 
 			EditorGUILayout.BeginHorizontal();
-			var searchIcon = EditorGUIUtility.Load("Search On Icon") as Texture2D;
-			var existIcon = EditorGUIUtility.Load("d_Valid") as Texture2D;
-			EditorGUILayout.PropertyField(keyProperty, new GUIContent("Key"));
-			var icon = keyExists ? existIcon : searchIcon;
-			if (keyExists) GUI.color = Color.green;
-			if (GUILayout.Button(new GUIContent(icon), GUILayout.Width(40), GUILayout.Height(20)))
+			EditorGUILayout.PrefixLabel(new GUIContent("Key"));
+			keyProperty.stringValue = EditorGUIHelper.DrawTextfieldWithIcon(keyProperty.stringValue, keyExists ? EditorIcon.Valid : null, Color.green);
+			if (GUILayout.Button(new GUIContent(EditorIcon.Search), GUILayout.Width(40), GUILayout.Height(20)))
 			{
 				// Search for key
 				SearchTranslationKeyWindow.Open(key => _keyToSet = key);
 			}
 			EditorGUILayout.EndHorizontal();
-			GUI.color = Color.white;
 		}
 
 		private void DrawPluralKey(SerializedProperty property)
@@ -63,23 +60,19 @@ namespace BlueCheese.App.Editor
 				_pluralKeyToSet = null;
 			}
 
-			var searchIcon = EditorGUIUtility.Load("Search On Icon") as Texture2D;
-			var existIcon = EditorGUIUtility.Load("d_Valid") as Texture2D;
 			if (!string.IsNullOrEmpty(pluralKeyProperty.stringValue))
 			{
 				bool keyExists = EditorServices.Get<ITranslationService>().Translate(pluralKeyProperty.stringValue) != pluralKeyProperty.stringValue;
 
 				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.PropertyField(pluralKeyProperty, new GUIContent("Plural Key"));
-				var icon = keyExists ? existIcon : searchIcon;
-				if (keyExists) GUI.color = Color.green;
-				if (GUILayout.Button(new GUIContent(icon), GUILayout.Width(40), GUILayout.Height(20)))
+				EditorGUILayout.PrefixLabel(new GUIContent("Plural Key"));
+				pluralKeyProperty.stringValue = EditorGUIHelper.DrawTextfieldWithIcon(pluralKeyProperty.stringValue, keyExists ? EditorIcon.Valid : null, Color.green);
+				if (GUILayout.Button(new GUIContent(EditorIcon.Search), GUILayout.Width(40), GUILayout.Height(20)))
 				{
 					// Search for key
 					SearchTranslationKeyWindow.Open(key => _pluralKeyToSet = key);
 				}
 				EditorGUILayout.EndHorizontal();
-				GUI.color = Color.white;
 			}
 			else
 			{

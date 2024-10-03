@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BlueCheese.Core.Editor;
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -31,8 +32,6 @@ namespace BlueCheese.App.Editor
 
 		private void OnGUI()
 		{
-			var searchIcon = EditorGUIUtility.Load("Search On Icon") as Texture2D;
-
 			var keyStyle = new GUIStyle(EditorStyles.textField)
 			{
 				hover = new GUIStyleState
@@ -41,11 +40,8 @@ namespace BlueCheese.App.Editor
 				},
 			};
 
-			EditorGUILayout.BeginHorizontal();
-			GUILayout.Label(searchIcon, GUILayout.Width(25), GUILayout.Height(20));
 			GUI.SetNextControlName("search-text");
-			_searchText = EditorGUILayout.TextField(_searchText);
-			EditorGUILayout.EndHorizontal();
+			_searchText = EditorGUIHelper.DrawTextfieldWithIcon(_searchText, EditorIcon.Search);
 
 			if (_keys != null)
 			{

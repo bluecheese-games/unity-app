@@ -16,24 +16,26 @@ namespace BlueCheese.App
 		public LocalizationService(ILocalStorageService localStorage, Options options)
 		{
 			_localStorage = localStorage;
-			_options = options;
+			_options = options ?? Options.Default;
 		}
 
-		public SystemLanguage DeviceLanguage { get; private set; }
-		public SystemLanguage DefaultLanguage { get; private set; }
-		public SystemLanguage CurrentLanguage { get; private set; }
+		public Language DeviceLanguage { get; private set; }
+		public Language DefaultLanguage { get; private set; }
+		public Language CurrentLanguage { get; private set; }
+
+		public IReadOnlyList<Language> SupportedLanguages => _options.SupportedLanguages;
 
 		public void Initialize()
 		{
-			DeviceLanguage = Application.systemLanguage;
+			DeviceLanguage = LangUtilities.GetLanguage(Application.systemLanguage);
 			DefaultLanguage = _options.DefaultLanguage;
 
 			// Load current language from local storage
 			var backupValue = IsSupported(DeviceLanguage) ? DeviceLanguage.ToString() : DefaultLanguage.ToString();
-			CurrentLanguage = Enum.Parse<SystemLanguage>(_localStorage.ReadValue(_currentLanguageKey, backupValue));
+			CurrentLanguage = Enum.Parse<Language>(_localStorage.ReadValue(_currentLanguageKey, backupValue));
 		}
 
-		private bool IsSupported(SystemLanguage language)
+		private bool IsSupported(Language language)
 		{
 			if (_options.SupportedLanguages == null || _options.SupportedLanguages.Count == 0)
 			{
@@ -43,7 +45,7 @@ namespace BlueCheese.App
 			return _options.SupportedLanguages.Contains(language);
 		}
 
-		public void SetCurrentLanguage(SystemLanguage language)
+		public void SetCurrentLanguage(Language language)
 		{
 			if (language != CurrentLanguage)
 			{
@@ -56,8 +58,8 @@ namespace BlueCheese.App
 		[Serializable]
 		public class Options : IOptions
 		{
-			public SystemLanguage DefaultLanguage = SystemLanguage.English;
-			public List<SystemLanguage> SupportedLanguages;
+			public Language DefaultLanguage = Language.English;
+			public List<Language> SupportedLanguages;
 
 			public static Options Default = new();
 
@@ -71,8 +73,8 @@ namespace BlueCheese.App
 
 	public readonly struct ChangeLanguageSignal
 	{
-		public ChangeLanguageSignal(SystemLanguage language) => Language = language;
+		public ChangeLanguageSignal(Language language) => Language = language;
 
-		public readonly SystemLanguage Language { get; }
+		public readonly Language Language { get; }
 	}
 }

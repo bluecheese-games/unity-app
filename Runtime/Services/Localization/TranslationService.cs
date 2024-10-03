@@ -7,7 +7,7 @@ namespace BlueCheese.App
 	{
 		protected readonly ILocalizationService _localization;
 		protected readonly IAssetLoaderService _assetLoader;
-		protected readonly Dictionary<SystemLanguage, TranslationTable> _translations = new();
+		protected readonly Dictionary<Language, TranslationTable> _translations = new();
 
 		public TranslationService(ILocalizationService localization, IAssetLoaderService assetLoader)
 		{
@@ -26,7 +26,7 @@ namespace BlueCheese.App
 			Translator.Initialize(this);
 		}
 
-		public void AddTranslations(SystemLanguage language, Dictionary<string, string> translations)
+		public void AddTranslations(Language language, Dictionary<string, string> translations)
 		{
 			if (!_translations.TryGetValue(language, out var table))
 			{
@@ -53,7 +53,7 @@ namespace BlueCheese.App
 			return key.Key;
 		}
 
-		private bool TryTranslate(SystemLanguage language, TranslationKey key, out string translation)
+		private bool TryTranslate(Language language, TranslationKey key, out string translation)
 		{
 			if (_translations.TryGetValue(language, out var table))
 			{
