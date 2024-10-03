@@ -1,14 +1,16 @@
 using BlueCheese.Core.ServiceLocator;
-using UnityEngine;
+using System.Collections.Generic;
 
 namespace BlueCheese.App
 {
 	public interface ILocalizationService : IInitializable
 	{
-		SystemLanguage DeviceLanguage { get; }
-		SystemLanguage DefaultLanguage { get; }
-		SystemLanguage CurrentLanguage { get; }
+		Language DeviceLanguage { get; }
+		Language DefaultLanguage { get; }
+		Language CurrentLanguage { get; }
 
-		void SetCurrentLanguage(SystemLanguage language);
+		IReadOnlyList<Language> SupportedLanguages { get; }
+
+		void SetCurrentLanguage(Language language);
 	}
 }

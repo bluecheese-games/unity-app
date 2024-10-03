@@ -18,7 +18,7 @@ namespace BlueCheese.App
 			{
 				if (langIndex >= _translations.Count) continue;
 
-				SystemLanguage lang = Languages[langIndex];
+				Language lang = Languages[langIndex];
 				var translations = new Dictionary<string, string>();
 				for (int keyIndex = 0; keyIndex < _keys.Count; keyIndex++)
 				{
@@ -39,35 +39,35 @@ namespace BlueCheese.App
 			Load(translationService);
 		}
 
-		public List<SystemLanguage> Languages => _translations.Select(t => t.Language).ToList();
+		public List<Language> Languages => _translations.Select(t => t.Language).ToList();
 
 		public List<string> Keys => _keys;
 
-		private Translations GetTranslations(SystemLanguage language)
+		private Translations GetTranslations(Language language)
 		{
 			return _translations.FirstOrDefault(t => t.Language == language);
 		} 
 
-		public string GetTranslation(SystemLanguage language, string key)
+		public string GetTranslation(Language language, string key)
 		{
 			int keyIndex = _keys.IndexOf(key);
 			if (keyIndex == -1) return null;
 			return GetTranslations(language)[keyIndex];
 		}
 
-		public void SetTranslation(SystemLanguage language, string key, string value)
+		public void SetTranslation(Language language, string key, string value)
 		{
 			int keyIndex = _keys.IndexOf(key);
 			if (keyIndex == -1) return;
 			GetTranslations(language)[keyIndex] = value;
 		}
 
-		public void AddLanguage(SystemLanguage language)
+		public void AddLanguage(Language language)
 		{
 			_translations.Add(new Translations(language, _keys.Count));
 		}
 
-		public void RemoveLanguage(SystemLanguage language)
+		public void RemoveLanguage(Language language)
 		{
 			int langIndex = Languages.IndexOf(language);
 			if (langIndex == -1) return;
@@ -113,10 +113,10 @@ namespace BlueCheese.App
 		[Serializable]
 		public class Translations
 		{
-			public SystemLanguage Language;
+			public Language Language;
 			public List<string> Items;
 
-			public Translations(SystemLanguage language, int capacity)
+			public Translations(Language language, int capacity)
 			{
 				Language = language;
 				Items = new List<string>(capacity);

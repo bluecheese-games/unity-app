@@ -22,11 +22,11 @@ namespace BlueCheese.Tests.Services
 			_localStorage = new FakeLocalStorageService();
 			_options = new LocalizationService.Options
 			{
-				DefaultLanguage = SystemLanguage.English,
-				SupportedLanguages = new List<SystemLanguage>
+				DefaultLanguage = Language.English,
+				SupportedLanguages = new List<Language>
 				{
-					SystemLanguage.English,
-					SystemLanguage.French
+					Language.English,
+					Language.French
 				}
 			};
 			_localizationService = new LocalizationService(_localStorage, _options);
@@ -37,7 +37,7 @@ namespace BlueCheese.Tests.Services
 		public void SetCurrentLocale_UpdatesCurrentLocale()
 		{
 			// Arrange
-			var expectedLanguage = SystemLanguage.Spanish;
+			var expectedLanguage = Language.Spanish;
 
 			// Act
 			_localizationService.SetCurrentLanguage(expectedLanguage);
@@ -51,7 +51,7 @@ namespace BlueCheese.Tests.Services
 		public void Initialize_SetsDeviceLocale()
 		{
 			// Arrange
-			var expectedDeviceLanguage = Application.systemLanguage;
+			var expectedDeviceLanguage = LangUtilities.GetLanguage(Application.systemLanguage);
 
 			// Act
 			_localizationService.Initialize();
@@ -90,9 +90,9 @@ namespace BlueCheese.Tests.Services
 		public void Initialize_SetsCurrentLocaleToDefaultLocale_WhenDeviceLocaleIsNotSupported()
 		{
 			// Arrange
-			_options.SupportedLanguages = new List<SystemLanguage>
+			_options.SupportedLanguages = new List<Language>
 			{
-				SystemLanguage.Spanish
+				Language.Spanish
 			};
 			_localizationService = new LocalizationService(_localStorage, _options);
 			var expectedCurrentLanguage = _options.DefaultLanguage;
@@ -209,7 +209,7 @@ namespace BlueCheese.Tests.Services
 		public void Translate_ReturnsSingularTranslation_WhenPluralValueIs1()
 		{
 			// Arrange
-			var language = SystemLanguage.English;
+			var language = Language.English;
 			var translations = new Dictionary<string, string>
 			{
 				{ "apples", "{0} apple" },
@@ -230,7 +230,7 @@ namespace BlueCheese.Tests.Services
 		public void Translate_ReturnsPluralTranslation_WhenPluralValueIsGreaterThan1()
 		{
 			// Arrange
-			var language = SystemLanguage.English;
+			var language = Language.English;
 			var translations = new Dictionary<string, string>
 			{
 				{ "apples", "{0} apple" },
@@ -251,7 +251,7 @@ namespace BlueCheese.Tests.Services
 		public void Translate_ReturnsTranslation_WithStringKey()
 		{
 			// Arrange
-			var language = SystemLanguage.English;
+			var language = Language.English;
 			var translations = new Dictionary<string, string>
 			{
 				{ "apple", "I love apples" }
@@ -268,17 +268,19 @@ namespace BlueCheese.Tests.Services
 
 		private class MockLocalizationService : ILocalizationService
 		{
-			private SystemLanguage _currentLanguage;
+			private Language _currentLanguage;
 
-			public SystemLanguage CurrentLanguage => _currentLanguage;
+			public Language CurrentLanguage => _currentLanguage;
 
-			public SystemLanguage DeviceLanguage => throw new System.NotImplementedException();
+			public Language DeviceLanguage => throw new System.NotImplementedException();
 
-			public SystemLanguage DefaultLanguage => throw new System.NotImplementedException();
+			public Language DefaultLanguage => throw new System.NotImplementedException();
+
+			public IReadOnlyList<Language> SupportedLanguages => throw new System.NotImplementedException();
 
 			public void Initialize() { }
 
-			public void SetCurrentLanguage(SystemLanguage language)
+			public void SetCurrentLanguage(Language language)
 			{
 				_currentLanguage = language;
 			}

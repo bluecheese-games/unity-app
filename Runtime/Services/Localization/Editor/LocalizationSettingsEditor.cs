@@ -1,3 +1,6 @@
+using BlueCheese.Core.Editor;
+using System;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,7 +14,7 @@ namespace BlueCheese.App.Editor
 
 		private LocalizationSettingsAsset _settings => (LocalizationSettingsAsset)target;
 
-		private SystemLanguage _newLanguage;
+		private int _newLanguageIndex;
 		private string _searchText;
 
 		private void OnEnable()
@@ -51,10 +54,8 @@ namespace BlueCheese.App.Editor
 		private void DrawSupportedLanguages()
 		{
 			DrawTitle("Supported Languages");
-			SystemLanguage currentLanguage = EditorServices.Get<ILocalizationService>().CurrentLanguage;
+			Language currentLanguage = EditorServices.Get<ILocalizationService>().CurrentLanguage;
 
-			var trashIcon = EditorGUIUtility.IconContent("TreeEditor.Trash").image;
-			var addIcon = EditorGUIUtility.IconContent("Toolbar Plus").image;
 			float columnsWidth = (EditorGUIUtility.currentViewWidth - 70) / 3;
 			var enumPopupStyle = new GUIStyle(EditorStyles.popup)
 			{
@@ -65,12 +66,13 @@ namespace BlueCheese.App.Editor
 			if (!_settings.SupportedLanguages.Contains(_settings.DefaultLanguage))
 			{
 				_supportedLanguagesProperty.InsertArrayElementAtIndex(0);
-				_supportedLanguagesProperty.GetArrayElementAtIndex(0).enumValueIndex = (int)_newLanguage;
+				_supportedLanguagesProperty.GetArrayElementAtIndex(0).enumValueIndex = (int)_settings.DefaultLanguage;
 			}
 
 			EditorGUILayout.BeginVertical("box");
-			foreach (var language in _settings.SupportedLanguages)
+			for (int i = 0; i < _supportedLanguagesProperty.arraySize; i++)
 			{
+				var language = (Language)_supportedLanguagesProperty.GetArrayElementAtIndex(i).enumValueIndex;
 				EditorGUILayout.BeginHorizontal();
 				EditorGUILayout.LabelField(language.ToString(), EditorStyles.boldLabel, GUILayout.Width(columnsWidth));
 				if (language != _settings.DefaultLanguage)
@@ -98,10 +100,9 @@ namespace BlueCheese.App.Editor
 					EditorGUILayout.LabelField("[Current]", GUILayout.Width(columnsWidth));
 				}
 
-				if (GUILayout.Button(trashIcon, GUILayout.Width(30)))
+				if (GUILayout.Button(EditorIcon.Trash, GUILayout.Width(30)))
 				{
-					int index = _settings.SupportedLanguages.IndexOf(language);
-					_supportedLanguagesProperty.DeleteArrayElementAtIndex(index);
+					_supportedLanguagesProperty.DeleteArrayElementAtIndex(i);
 					break;
 				}
 				EditorGUILayout.EndHorizontal();
@@ -109,14 +110,23 @@ namespace BlueCheese.App.Editor
 			EditorGUILayout.EndVertical();
 
 			EditorGUILayout.BeginHorizontal();
-			_newLanguage = (SystemLanguage)EditorGUILayout.EnumPopup(_newLanguage, enumPopupStyle, GUILayout.Width(columnsWidth));
-			GUI.enabled = _newLanguage != SystemLanguage.Unknown && !_settings.SupportedLanguages.Contains(_newLanguage);
-			if (GUILayout.Button(new GUIContent(addIcon, "Add language"), GUILayout.Width(30)))
+			string[] languageNames = Enum.GetValues(typeof(Language))
+				.Cast<Language>()
+				.Except(_settings.SupportedLanguages)
+				.Except(new[] { Language.Unknown })
+				.Select(x => x.ToString())
+				.Distinct()
+				.ToArray();
+
+			_newLanguageIndex = EditorGUILayout.Popup(_newLanguageIndex, languageNames, enumPopupStyle, GUILayout.Width(columnsWidth));
+			if (GUILayout.Button(new GUIContent(EditorIcon.Plus, "Add language"), GUILayout.Width(30)))
 			{
+				string languageName = languageNames[_newLanguageIndex];
+				Language newLanguage = Enum.Parse<Language>(languageName);
 				_supportedLanguagesProperty.InsertArrayElementAtIndex(_supportedLanguagesProperty.arraySize);
-				_supportedLanguagesProperty.GetArrayElementAtIndex(_supportedLanguagesProperty.arraySize - 1).enumValueIndex = (int)_newLanguage;
+				_supportedLanguagesProperty.GetArrayElementAtIndex(_supportedLanguagesProperty.arraySize - 1).enumValueIndex = (int)newLanguage;
+				_newLanguageIndex = 0;
 			}
-			GUI.enabled = true;
 			EditorGUILayout.EndHorizontal();
 		}
 
