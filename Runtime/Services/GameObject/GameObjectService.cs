@@ -8,7 +8,7 @@ namespace BlueCheese.App
 {
     public class GameObjectService : IGameObjectService
     {
-        public GameObject CreateEmptyObject() => new();
+        public GameObject CreateEmptyObject(string name = null) => new(name);
 
         public T CreateObject<T>() where T : Component => new GameObject(typeof(T).Name).AddComponent<T>();
 

@@ -3,27 +3,26 @@
 //
 
 using BlueCheese.Core.ServiceLocator;
+using System;
 using System.Collections;
 using UnityEngine;
 
 namespace BlueCheese.App
 {
 	[RequireComponent(typeof(AudioSource))]
-	public class AudioPlayer : MonoBehaviour, IRecyclable, IAudioPlayer
+	public class AudioPlayer : MonoBehaviour, IRecyclable
 	{
-		[Injectable] private IAudioService _audio;
-		[Injectable] private IPoolService _pool;
-
 		private AudioSource _audioSource;
 		private Transform _target;
 		private Vector3 _offset;
 
-		public AudioItem PlayingItem { get; private set; }
+		public event Action<AudioPlayer> OnSoundFinished;
+
+		virtual public AudioItem PlayingItem { get; protected set; }
 		public bool IsPlaying => PlayingItem != null;
 
 		private void Awake()
 		{
-			Services.Inject(this);
 			_audioSource = GetComponent<AudioSource>();
 			DontDestroyOnLoad(gameObject);
 		}
@@ -46,15 +45,17 @@ namespace BlueCheese.App
 			}
 		}
 
-		public bool PlaySound(AudioItem item, SoundOptions options)
+		virtual public bool PlaySound(AudioItem item, SoundOptions options)
 		{
 			if (!Application.isPlaying || _audioSource == null || !item.IsValid)
 			{
 				return false;
 			}
 
+			var audioService = Services.Get<IAudioService>();
+
 			_audioSource.clip = item.Clip;
-			_audioSource.volume = item.Volume * options.Volume * _audio.MasterSoundVolume;
+			_audioSource.volume = item.Volume * options.Volume * audioService.MasterSoundVolume;
 			_audioSource.loop = options.Loop;
 			_audioSource.pitch = options.Pitch;
 			_audioSource.spatialize = options.Spacial.IsSpacialized;
@@ -80,15 +81,17 @@ namespace BlueCheese.App
 			return true;
 		}
 
-		public bool PlayMusic(AudioItem item, MusicOptions options)
+		virtual public bool PlayMusic(AudioItem item, MusicOptions options)
 		{
 			if (!Application.isPlaying || _audioSource == null || !item.IsValid)
 			{
 				return false;
 			}
 
+			var audioService = Services.Get<IAudioService>();
+
 			_audioSource.clip = item.Clip;
-			_audioSource.volume = item.Volume * options.Volume * _audio.MasterSoundVolume;
+			_audioSource.volume = item.Volume * options.Volume * audioService.MasterSoundVolume;
 			_audioSource.loop = true;
 			_audioSource.spatialize = false;
 			_audioSource.Play();
@@ -97,7 +100,7 @@ namespace BlueCheese.App
 			return true;
 		}
 
-		public void Stop(float fadeDuration)
+		virtual public void Stop(float fadeDuration)
 		{
 			if (!Application.isPlaying || !IsPlaying || _audioSource == null)
 			{
@@ -114,14 +117,14 @@ namespace BlueCheese.App
 			}
 		}
 
-		private void Stop(bool despawn = true)
+		private void Stop(bool raiseEvent = true)
 		{
 			PlayingItem = null;
 			_audioSource.Stop();
 			_target = null;
-			if (despawn)
+			if (raiseEvent)
 			{
-				_pool.Despawn(gameObject);
+				OnSoundFinished?.Invoke(this);
 			}
 		}
 

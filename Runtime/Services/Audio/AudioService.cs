@@ -14,25 +14,26 @@ namespace BlueCheese.App
 		private const string _masterMusicVolumePrefKey = "master_music_volume";
 
 		private readonly ILocalStorageService _localStorage;
-		private readonly IPoolService _pool;
+		private readonly IPoolService _poolService;
 		private readonly IAssetLoaderService _assetLoader;
 		private readonly Options _options;
 
 		private string _currentMusic = null;
 		private string _whenReadyMusicName;
 		private MusicOptions _whenReadyMusicOptions;
+		private IPool _audioPlayerPool;
 
-		private readonly List<IAudioPlayer> _audioPlayers = new();
+		private readonly List<AudioPlayer> _audioPlayers = new();
 		private readonly Dictionary<string, AudioItem> _audioItems = new();
 
 		public AudioService(ILocalStorageService localStorage, IPoolService pool, IAssetLoaderService assetLoader, Options options)
 		{
 			_localStorage = localStorage;
-			_pool = pool;
+			_poolService = pool;
 			_assetLoader = assetLoader;
 			_options = options;
 
-			_options.AudioPlayerFactory ??= GetAvailablePlayer;
+			_options.AudioPlayerFactory ??= () => GetAvailablePlayer();
 		}
 
 		public void Initialize()
@@ -40,6 +41,7 @@ namespace BlueCheese.App
 			if (!IsReady)
 			{
 				LoadAudioBanks();
+				InitializeAudioPool();
 
 				IsReady = true;
 
@@ -49,6 +51,16 @@ namespace BlueCheese.App
 					PlayMusic(_whenReadyMusicName, _whenReadyMusicOptions);
 				}
 			}
+		}
+
+		private void InitializeAudioPool()
+		{
+			_audioPlayerPool = _poolService.Initialize<AudioPlayer>(new PoolOptions()
+			{
+				InitialCapacity = _options.AudioPoolCapacity,
+				DontDestroyOnLoad = true,
+				UseContainer = true,
+			});
 		}
 
 		private void LoadAudioBanks()
@@ -199,14 +211,21 @@ namespace BlueCheese.App
 			return null;
 		}
 
-		private IAudioPlayer GetAvailablePlayer()
+		private AudioPlayer GetAvailablePlayer()
 		{
-			IAudioPlayer player = _pool.Spawn<AudioPlayer>();
+			AudioPlayer player = _audioPlayerPool.Spawn<AudioPlayer>();
 			if (!_audioPlayers.Contains(player))
 			{
 				_audioPlayers.Add(player);
+				player.OnSoundFinished += HandleSoundFinished;
 			}
 			return player;
+		}
+
+		private void HandleSoundFinished(AudioPlayer audioPlayer)
+		{
+			_audioPlayers.Remove(audioPlayer);
+			_audioPlayerPool.Despawn(audioPlayer);
 		}
 
 		public struct Options : IOptions
@@ -214,7 +233,7 @@ namespace BlueCheese.App
 			/// <summary>
 			/// Custom audio player factory.
 			/// </summary>
-			public Func<IAudioPlayer> AudioPlayerFactory;
+			public Func<AudioPlayer> AudioPlayerFactory;
 
 			/// <summary>
 			/// Directly provided audio banks.
@@ -225,6 +244,11 @@ namespace BlueCheese.App
 			/// The resource path where audio banks are located.
 			/// </summary>
 			public string AudioBankResourcePath;
+
+			/// <summary>
+			/// The AudioPlayer pool size.
+			/// </summary>
+			public int AudioPoolCapacity;
 		}
 	}
 }

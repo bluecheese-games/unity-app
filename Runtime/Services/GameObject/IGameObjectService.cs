@@ -8,7 +8,7 @@ namespace BlueCheese.App
 {
     public interface IGameObjectService
     {
-        GameObject CreateEmptyObject();
+        GameObject CreateEmptyObject(string name = null);
         T CreateObject<T>() where T : Component;
         void Destroy(GameObject obj, float delay = 0);
         GameObject Instantiate(GameObject prefab);

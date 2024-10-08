@@ -4,6 +4,7 @@
 
 using BlueCheese.Core.ServiceLocator;
 using UnityEngine;
+using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
 
 namespace BlueCheese.App.Sample
 {
@@ -14,38 +15,45 @@ namespace BlueCheese.App.Sample
 		[SerializeField] private float _spawnForce = 3f;
 		[SerializeField] private float _spawnLifetime = 5f;
 
-		[Injectable] private IPoolService _pool;
+		[Injectable] private IPoolService _poolService;
 		[Injectable] private IRandomService _random;
 		[Injectable] private IClockService _clock;
 		[Injectable] private IInputService _input;
 		[Injectable] private IAudioService _audio;
 		[Injectable] private ILogger<SpawnController> _logger;
 
-		private int _counter = 0;
+		private IPool _pool;
 
 		private void Awake()
 		{
 			Services.Inject(this);
 
-			_pool.Initialize(_spawnedPrefab, new()
+			_pool = _poolService.Initialize(_spawnedPrefab, new()
 			{
-				InitialCapacity = 10
+				InitialCapacity = 10,
+				UseContainer = true,
 			});
 			_clock.OnTickSecond += Spawn;
 		}
 
 		private void Update()
 		{
-			if (_input.GetButtonDown("Fire1"))
+			if (_input.GetButtonDown("Jump"))
 			{
 				Spawn();
 			}
+			if (_input.GetButtonDown("Fire2"))
+			{
+				_pool.Destroy();
+			}
+
+			_counterText.SetParameter(0, _pool.UsedItems.Count.ToString());
 		}
 
 		private void Spawn()
 		{
 			_logger.Log("Spawn", this);
-			var spawnedInstance = _pool.Spawn(_spawnedPrefab);
+			var spawnedInstance = _pool.Spawn();
 			spawnedInstance.transform.SetPositionAndRotation(transform.position, transform.rotation);
 			if (spawnedInstance.TryGetComponent<Rigidbody>(out var rb))
 			{
@@ -56,9 +64,6 @@ namespace BlueCheese.App.Sample
 			_audio.PlaySound("SphereSpawn");
 
 			_pool.Despawn(spawnedInstance, _spawnLifetime);
-
-			_counter++;
-			_counterText.SetParameter(0, _counter.ToString());
 		}
 	}
 }
