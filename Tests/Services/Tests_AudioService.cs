@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
-using static UnityEditor.Progress;
 
 namespace BlueCheese.Tests.Services
 {
@@ -21,7 +20,8 @@ namespace BlueCheese.Tests.Services
 		public void SetUp()
 		{
 			var localStorage = new FakeLocalStorageService();
-			var pool = new FakePoolService();
+			var gameObjectService = new FakeGameObjectService();
+			var pool = new PoolService(gameObjectService);
 			var assetLoader = new FakeAssetLoaderService();
 			var audioBank = ScriptableObject.CreateInstance<AudioBank>();
 			audioBank.Items = new List<AudioItem>()
@@ -32,7 +32,7 @@ namespace BlueCheese.Tests.Services
 			};
 			var options = new AudioService.Options()
 			{
-				AudioPlayerFactory = () => new FakeAudioPlayer(),
+				AudioPlayerFactory = () => new GameObject().AddComponent<FakeAudioPlayer>(),
 				AudioBanks = new[] { audioBank }
 			};
 			_audioService = new AudioService(localStorage, pool, assetLoader, options);
@@ -92,28 +92,63 @@ namespace BlueCheese.Tests.Services
 		}
 	}
 
-	public class FakeAudioPlayer : IAudioPlayer
+	public class FakeAudioPlayer : AudioPlayer
 	{
-		public AudioItem PlayingItem { get; private set; }
+		override public AudioItem PlayingItem { get; protected set; }
 
-		public bool PlayMusic(AudioItem item, MusicOptions options)
+		override public bool PlayMusic(AudioItem item, MusicOptions options)
 		{
 			if (item == null || !item.IsValid) return false;
 			PlayingItem = item;
 			return true;
 		}
 
-		public bool PlaySound(AudioItem item, SoundOptions options)
+		override public bool PlaySound(AudioItem item, SoundOptions options)
 		{
 			if (item == null || !item.IsValid) return false;
 			PlayingItem = item;
 			return true;
 		}
 
-		public void Stop(float fadeDuration)
+		override public void Stop(float fadeDuration)
 		{
 			PlayingItem = null;
 		}
+	}
+
+	public class FakeGameObjectService : IGameObjectService
+	{
+		public GameObject CreateEmptyObject(string name = null) => new(name);
+
+		public T CreateObject<T>() where T : Component => new GameObject().AddComponent<T>();
+
+		public void Destroy(GameObject obj, float delay = 0)
+		{
+			// Do nothing
+		}
+
+		public void DontDestroyOnLoad(GameObject obj)
+		{
+			// Do nothing
+		}
+
+		public T Find<T>(bool includeInactive = false) where T : Component
+		{
+			// Do nothing
+			return default;
+		}
+
+		public T[] FindAll<T>(bool includeInactive = false) where T : Component
+		{
+			// Do nothing
+			return new T[0];
+		}
+
+		public GameObject Instantiate(GameObject prefab) => Object.Instantiate(prefab);
+
+		public T Instantiate<T>(T prefab) where T : Component => Object.Instantiate(prefab);
+
+		public T Instantiate<T>(GameObject prefab) where T : Component => Object.Instantiate(prefab).GetComponent<T>();
 	}
 
 	public class FakeLocalStorageService : ILocalStorageService
@@ -127,22 +162,24 @@ namespace BlueCheese.Tests.Services
 
 	public class FakePoolService : IPoolService
 	{
-		public void Despawn(GameObject instance, float delay = 0) { }
-
-		public void Initialize(GameObject prefab, PoolOptions options = default) { }
-
-		public void Initialize<T>(PoolOptions options = default) where T : Component { }
-
-		public void Remove(GameObject instance) { }
-
-		public GameObject Spawn(GameObject prefab)
+		public IPool GetOrCreatePool(GameObject prefab)
 		{
-			return Object.Instantiate(prefab);
+			throw new System.NotImplementedException();
 		}
 
-		public T Spawn<T>() where T : Component
+		public IPool GetOrCreatePool<T>() where T : Component
 		{
-			return new GameObject().AddComponent<T>();
+			throw new System.NotImplementedException();
+		}
+
+		public IPool Initialize(GameObject prefab, PoolOptions options = default)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		public IPool Initialize<T>(PoolOptions options = default) where T : Component
+		{
+			throw new System.NotImplementedException();
 		}
 	}
 

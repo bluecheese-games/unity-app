@@ -12,7 +12,7 @@ namespace BlueCheese.App
     public class UIService : IUIService
     {
         private readonly IAssetLoaderService _assetLoader;
-        private readonly IPoolService _pool;
+        private readonly IPoolService _poolService;
         private Dictionary<string, GameObject> _viewPrefabs;
         private readonly List<UIView> _viewList = new();
         private UIView _currentView;
@@ -21,7 +21,7 @@ namespace BlueCheese.App
         public UIService(IAssetLoaderService asserLoader, IPoolService pool)
         {
             _assetLoader = asserLoader;
-            _pool = pool;
+            _poolService = pool;
         }
 
         public void Initialize()
@@ -56,8 +56,9 @@ namespace BlueCheese.App
                 throw new Exception($"Unable to instantiate UIView with name: {viewName}");
             }
 
-            return _pool
-                .Spawn(prefab)
+            return _poolService
+                .GetOrCreatePool(prefab)
+                .Spawn()
                 .GetComponent<UIView>();
         }
 
@@ -70,7 +71,7 @@ namespace BlueCheese.App
         public void UnregisterView(UIView view)
         {
             _viewList.Remove(view);
-            _pool.Despawn(view.gameObject);
+            view.gameObject.GetComponent<GameObjectPool.PoolItem>().Despawn();
             UpdateCurrentView();
         }
 
