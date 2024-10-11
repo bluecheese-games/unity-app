@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+//
+// Copyright (c) 2024 BlueCheese Games All rights reserved
+//
+
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace BlueCheese.App

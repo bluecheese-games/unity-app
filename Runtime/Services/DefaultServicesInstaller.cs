@@ -26,7 +26,7 @@ namespace BlueCheese.App
             builder.ServiceContainer.Register<IHttpService, HttpService>();
             builder.ServiceContainer.Register<IHttpClient, UnityWebRequestHttpClient>();
             builder.ServiceContainer.Register<IGameObjectService, GameObjectService>();
-            builder.ServiceContainer.Register<IPoolService, PoolService>();
+            builder.ServiceContainer.Register<IGameObjectPoolService, GameObjectPoolService>();
             builder.ServiceContainer.Register<IErrorHandlingService, DefaultErrorHandlingService>();
             builder.ServiceContainer.Register<ITrackingService, DebugTrackingService>();
             builder.ServiceContainer.Register<IRandomService, DefaultRandomService>().AsTransient();

@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2024 BlueCheese Games All rights reserved
+//
+
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;

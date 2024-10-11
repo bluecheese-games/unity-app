@@ -2,11 +2,13 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
+using System.Threading.Tasks;
 using UnityEngine;
+using BlueCheese.Core.Utils;
 
 namespace BlueCheese.App
 {
-    public class GameObjectService : IGameObjectService
+	public class GameObjectService : IGameObjectService
     {
         public GameObject CreateEmptyObject(string name = null) => new(name);
 
@@ -25,5 +27,11 @@ namespace BlueCheese.App
         public T Find<T>(bool includeInactive = false) where T : Component => GameObject.FindFirstObjectByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude);
 
         public T[] FindAll<T>(bool includeInactive = false) where T : Component => GameObject.FindObjectsOfType<T>(includeInactive);
-    }
+
+		public async Task<GameObject> InstantiateAsync(GameObject prefab) => await GameObject.InstantiateAsync(prefab);
+
+		public async Task<T> InstantiateAsync<T>(T prefab) where T : Component => await GameObject.InstantiateAsync<T>(prefab);
+
+		public async Task<T> InstantiateAsync<T>(GameObject prefab) where T : Component => (await GameObject.InstantiateAsync(prefab)).GetComponent<T>();
+	}
 }

@@ -14,19 +14,19 @@ namespace BlueCheese.App
 		private const string _masterMusicVolumePrefKey = "master_music_volume";
 
 		private readonly ILocalStorageService _localStorage;
-		private readonly IPoolService _poolService;
+		private readonly IGameObjectPoolService _poolService;
 		private readonly IAssetLoaderService _assetLoader;
 		private readonly Options _options;
 
 		private string _currentMusic = null;
 		private string _whenReadyMusicName;
 		private MusicOptions _whenReadyMusicOptions;
-		private IPool _audioPlayerPool;
+		private IGameObjectPool _audioPlayerPool;
 
 		private readonly List<AudioPlayer> _audioPlayers = new();
 		private readonly Dictionary<string, AudioItem> _audioItems = new();
 
-		public AudioService(ILocalStorageService localStorage, IPoolService pool, IAssetLoaderService assetLoader, Options options)
+		public AudioService(ILocalStorageService localStorage, IGameObjectPoolService pool, IAssetLoaderService assetLoader, Options options)
 		{
 			_localStorage = localStorage;
 			_poolService = pool;
@@ -55,7 +55,7 @@ namespace BlueCheese.App
 
 		private void InitializeAudioPool()
 		{
-			_audioPlayerPool = _poolService.Initialize<AudioPlayer>(new PoolOptions()
+			_audioPlayerPool = _poolService.SetupPool<AudioPlayer>(new PoolOptions()
 			{
 				InitialCapacity = _options.AudioPoolCapacity,
 				DontDestroyOnLoad = true,

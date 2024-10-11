@@ -136,8 +136,23 @@ namespace BlueCheese.Tests.Services
 
 			public event TickEventHandler OnTick;
 			public event Action OnTickSecond;
+			public event AsyncTickEventHandler OnTickAsync;
+			public event AsyncTickSecondEventHandler OnTickSecondAsync;
 
 			private DateTime _now = DateTime.Now;
+
+			event TickSecondEventHandler IClockService.OnTickSecond
+			{
+				add
+				{
+					throw new NotImplementedException();
+				}
+
+				remove
+				{
+					throw new NotImplementedException();
+				}
+			}
 
 			public void Initialize() { }
 
