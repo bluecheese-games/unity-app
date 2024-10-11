@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
@@ -6,64 +6,81 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace BlueCheese.App
 {
-	public class GameObjectPool : IPool
+	public class GameObjectPool : IGameObjectPool
 	{
 		private readonly IGameObjectService _gameObjectService;
 		private readonly Type _componentType;
 		private readonly GameObject _prefab;
-		private readonly HashSet<PoolItem> _availableItems;
-		private readonly HashSet<PoolItem> _usedItems;
-		private readonly Transform _container;
-		private readonly PoolOptions _options;
+		private readonly HashSet<PoolItem> _availableItems = new(8);
+		private readonly HashSet<PoolItem> _usedItems = new(8);
+		private Transform _container;
+		private PoolOptions _options;
 
 		public GameObjectPool(IGameObjectService gameObjectService, GameObject prefab = null, Type componentType = null, PoolOptions options = default)
 		{
 			_gameObjectService = gameObjectService;
 			_prefab = prefab;
 			_componentType = componentType;
-			_container = options.UseContainer ? _gameObjectService.CreateEmptyObject().transform : null;
-			_options = options;
-			if (_container != null && options.DontDestroyOnLoad)
-			{
-				_gameObjectService.DontDestroyOnLoad(_container.gameObject);
-			}
+			_container = null;
 
-			if (_container != null)
+			Setup(options);
+		}
+
+		public void Setup(PoolOptions options = default) => _ = SetupAsync(options);
+
+		public async Task SetupAsync(PoolOptions options = default)
+		{
+			_options = options;
+
+			if (options.UseContainer && _container == null)
 			{
-				_container.name = $"Pool<{(prefab != null ? prefab.name : _componentType.Name)}>";
+				_container = _gameObjectService.CreateEmptyObject().transform;
+				_container.name = $"Pool<{(_prefab != null ? _prefab.name : _componentType.Name)}>";
+				if (options.DontDestroyOnLoad)
+				{
+					_gameObjectService.DontDestroyOnLoad(_container.gameObject);
+				}
 			}
 
 			if (options.InitialCapacity > 0)
 			{
-				_availableItems = new(options.InitialCapacity);
-				_usedItems = new(options.InitialCapacity);
+				_availableItems.EnsureCapacity(options.InitialCapacity);
+				_usedItems.EnsureCapacity(options.InitialCapacity);
 				for (int i = 0; i < options.InitialCapacity; i++)
 				{
-					Add(CreateItem());
+					Add(await CreateItemAsync());
 				}
-			}
-			else
-			{
-				_availableItems = new(8);
-				_usedItems = new(8);
 			}
 		}
 
 		public GameObject Spawn()
 		{
-			return GetOrCreateItem().gameObject;
+			return GetOrCreateItemAsync().Result.gameObject;
+		}
+
+		public async Task<GameObject> SpawnAsync()
+		{
+			var item = await GetOrCreateItemAsync();
+			return item.gameObject;
 		}
 
 		public T Spawn<T>() where T : Component
 		{
-			return GetOrCreateItem().GetComponent<T>();
+			return GetOrCreateItemAsync().Result.GetComponent<T>();
 		}
 
-		private PoolItem GetOrCreateItem()
+		public async Task<T> SpawnAsync<T>() where T : Component
+		{
+			var item = await GetOrCreateItemAsync();
+			return item.GetComponent<T>();
+		}
+
+		private async Task<PoolItem> GetOrCreateItemAsync()
 		{
 			PoolItem item;
 			if (_availableItems.Count > 0)
@@ -75,15 +92,15 @@ namespace BlueCheese.App
 			}
 			else
 			{
-				item = CreateItem();
+				item = await CreateItemAsync();
 			}
 			_usedItems.Add(item);
 			return item;
 		}
 
-		private PoolItem CreateItem()
+		private async Task<PoolItem> CreateItemAsync()
 		{
-			GameObject obj = InstantiateObject();
+			GameObject obj = await InstantiateObjectAsync();
 
 			if (_componentType != null)
 			{
@@ -106,15 +123,19 @@ namespace BlueCheese.App
 			return item;
 		}
 
-		private GameObject InstantiateObject()
+		private async Task<GameObject> InstantiateObjectAsync()
 		{
 			if (_options.Factory != null)
 			{
 				return _options.Factory();
 			}
+			else if (_options.FactoryAsync != null)
+			{
+				return await _options.FactoryAsync();
+			}
 			else if (_prefab != null)
 			{
-				return _gameObjectService.Instantiate(_prefab);
+				return await _gameObjectService.InstantiateAsync(_prefab);
 			}
 			else
 			{

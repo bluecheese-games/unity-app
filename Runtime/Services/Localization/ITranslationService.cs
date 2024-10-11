@@ -1,4 +1,8 @@
-﻿using BlueCheese.Core.ServiceLocator;
+//
+// Copyright (c) 2024 BlueCheese Games All rights reserved
+//
+
+using BlueCheese.Core.ServiceLocator;
 using System.Collections.Generic;
 
 namespace BlueCheese.App

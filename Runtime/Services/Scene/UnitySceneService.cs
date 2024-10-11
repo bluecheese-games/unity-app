@@ -4,8 +4,8 @@
 
 using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
-using Core.Utils;
-using Core.Signals;
+using BlueCheese.Core.Utils;
+using BlueCheese.Core.Signals;
 
 namespace BlueCheese.App
 {

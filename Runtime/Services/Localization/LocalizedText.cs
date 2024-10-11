@@ -1,4 +1,8 @@
-﻿using Core.Signals;
+//
+// Copyright (c) 2024 BlueCheese Games All rights reserved
+//
+
+using BlueCheese.Core.Signals;
 using TMPro;
 using UnityEngine;
 

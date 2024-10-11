@@ -1,5 +1,9 @@
-﻿using BlueCheese.Core.ServiceLocator;
-using Core.Signals;
+//
+// Copyright (c) 2024 BlueCheese Games All rights reserved
+//
+
+using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.Signals;
 using System;
 using System.Collections.Generic;
 using UnityEngine;

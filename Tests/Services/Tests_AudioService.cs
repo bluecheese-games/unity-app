@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
@@ -21,7 +21,7 @@ namespace BlueCheese.Tests.Services
 		{
 			var localStorage = new FakeLocalStorageService();
 			var gameObjectService = new FakeGameObjectService();
-			var pool = new PoolService(gameObjectService);
+			var pool = new GameObjectPoolService(gameObjectService);
 			var assetLoader = new FakeAssetLoaderService();
 			var audioBank = ScriptableObject.CreateInstance<AudioBank>();
 			audioBank.Items = new List<AudioItem>()
@@ -149,6 +149,21 @@ namespace BlueCheese.Tests.Services
 		public T Instantiate<T>(T prefab) where T : Component => Object.Instantiate(prefab);
 
 		public T Instantiate<T>(GameObject prefab) where T : Component => Object.Instantiate(prefab).GetComponent<T>();
+
+		public Task<GameObject> InstantiateAsync(GameObject prefab)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		public Task<T> InstantiateAsync<T>(T prefab) where T : Component
+		{
+			throw new System.NotImplementedException();
+		}
+
+		public Task<T> InstantiateAsync<T>(GameObject prefab) where T : Component
+		{
+			throw new System.NotImplementedException();
+		}
 	}
 
 	public class FakeLocalStorageService : ILocalStorageService
@@ -160,24 +175,24 @@ namespace BlueCheese.Tests.Services
 		public void WriteValue<T>(string key, T value = default) => _values[key] = value;
 	}
 
-	public class FakePoolService : IPoolService
+	public class FakePoolService : IGameObjectPoolService
 	{
-		public IPool GetOrCreatePool(GameObject prefab)
+		public IGameObjectPool GetOrCreatePool(GameObject prefab)
 		{
 			throw new System.NotImplementedException();
 		}
 
-		public IPool GetOrCreatePool<T>() where T : Component
+		public IGameObjectPool GetOrCreatePool<T>() where T : Component
 		{
 			throw new System.NotImplementedException();
 		}
 
-		public IPool Initialize(GameObject prefab, PoolOptions options = default)
+		public IGameObjectPool SetupPool(GameObject prefab, PoolOptions options = default)
 		{
 			throw new System.NotImplementedException();
 		}
 
-		public IPool Initialize<T>(PoolOptions options = default) where T : Component
+		public IGameObjectPool SetupPool<T>(PoolOptions options = default) where T : Component
 		{
 			throw new System.NotImplementedException();
 		}

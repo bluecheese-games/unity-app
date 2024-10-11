@@ -1,4 +1,8 @@
-﻿using BlueCheese.App.Editor;
+//
+// Copyright (c) 2024 BlueCheese Games All rights reserved
+//
+
+using BlueCheese.App.Editor;
 using UnityEngine;
 
 namespace BlueCheese.App

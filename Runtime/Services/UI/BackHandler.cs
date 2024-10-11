@@ -3,7 +3,7 @@
 //
 
 using BlueCheese.Core.ServiceLocator;
-using Core.Signals;
+using BlueCheese.Core.Signals;
 using NaughtyAttributes;
 using System;
 using System.Threading.Tasks;

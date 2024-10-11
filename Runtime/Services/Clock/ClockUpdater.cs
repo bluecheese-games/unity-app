@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-    public class ClockUpdater : MonoBehaviour
+	public class ClockUpdater : MonoBehaviour
     {
         public Action<float> UpdateCallback;
 
@@ -18,7 +18,7 @@ namespace BlueCheese.App
 
         private void Update()
         {
-            UpdateCallback?.Invoke(Time.deltaTime);
-        }
+			UpdateCallback?.Invoke(Time.deltaTime);
+		}
     }
 }

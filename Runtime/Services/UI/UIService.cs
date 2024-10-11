@@ -12,13 +12,13 @@ namespace BlueCheese.App
     public class UIService : IUIService
     {
         private readonly IAssetLoaderService _assetLoader;
-        private readonly IPoolService _poolService;
+        private readonly IGameObjectPoolService _poolService;
         private Dictionary<string, GameObject> _viewPrefabs;
         private readonly List<UIView> _viewList = new();
         private UIView _currentView;
         private bool _isInitialized;
 
-        public UIService(IAssetLoaderService asserLoader, IPoolService pool)
+        public UIService(IAssetLoaderService asserLoader, IGameObjectPoolService pool)
         {
             _assetLoader = asserLoader;
             _poolService = pool;

@@ -6,27 +6,26 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-	public interface IPoolService
+	public interface IGameObjectPoolService
     {
-
 		/// <summary>
 		/// Initializes the pool with the given prefab and options.
 		/// </summary>
-		IPool Initialize(GameObject prefab, PoolOptions options = default);
+		IGameObjectPool SetupPool(GameObject prefab, PoolOptions options = default);
 
 		/// <summary>
 		/// Initializes the pool with the given component type and options.
 		/// </summary>
-		IPool Initialize<T>(PoolOptions options = default) where T : Component;
+		IGameObjectPool SetupPool<T>(PoolOptions options = default) where T : Component;
 
 		/// <summary>
 		/// Gets or creates a pool for the given prefab.
 		/// </summary>
-		IPool GetOrCreatePool(GameObject prefab);
+		IGameObjectPool GetOrCreatePool(GameObject prefab);
 
 		/// <summary>
 		/// Gets or creates a pool for the given component type.
 		/// </summary>
-		IPool GetOrCreatePool<T>() where T : Component;
+		IGameObjectPool GetOrCreatePool<T>() where T : Component;
 	}
 }
