@@ -12,7 +12,7 @@ namespace BlueCheese.App
         /// <summary>
         /// Returns the values fetched by the remote config provider
         /// </summary>
-        Dictionary<string, object> GetValues();
+        IReadOnlyDictionary<string, object> GetValues();
 
         /// <summary>
         /// Ask the provider to fetch the remote config values
