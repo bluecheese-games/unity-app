@@ -5,6 +5,7 @@
 using BlueCheese.Core.ServiceLocator;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BlueCheese.App
 {
@@ -144,13 +145,19 @@ namespace BlueCheese.App
 				return;
 			}
 
-			foreach (var player in _audioPlayers)
-			{
-				player.Stop(fadeDuration);
-			}
+			StopSoundsWhere(player => true, fadeDuration);
 		}
 
-		public bool PlayMusic(string name) => PlayMusic(name, MusicOptions.Default);
+        private void StopSoundsWhere(Func<AudioPlayer, bool> predicate, float fadeDuration = 0)
+        {
+			var players = _audioPlayers.Where(predicate);
+            foreach (var player in players)
+            {
+                player.Stop(fadeDuration);
+            }
+        }
+
+        public bool PlayMusic(string name) => PlayMusic(name, MusicOptions.Default);
 
 		public bool PlayMusic(string name, MusicOptions options)
 		{
@@ -193,13 +200,7 @@ namespace BlueCheese.App
 
 		private void Stop(string name, float fadeDuration)
 		{
-			foreach (var player in _audioPlayers)
-			{
-				if (player.PlayingItem != null && player.PlayingItem.Name == name)
-				{
-					player.Stop(fadeDuration);
-				}
-			}
+			StopSoundsWhere(player => player.PlayingItem != null && player.PlayingItem.Name == name, fadeDuration);
 		}
 
 		private AudioItem GetAudioItem(string name)
