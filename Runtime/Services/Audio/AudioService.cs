@@ -150,7 +150,7 @@ namespace BlueCheese.App
 
         private void StopSoundsWhere(Func<AudioPlayer, bool> predicate, float fadeDuration = 0)
         {
-			var players = _audioPlayers.Where(predicate);
+			var players = _audioPlayers.Where(predicate).ToArray();
             foreach (var player in players)
             {
                 player.Stop(fadeDuration);
