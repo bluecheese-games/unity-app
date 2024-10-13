@@ -10,21 +10,17 @@ using UnityEngine.UI;
 
 namespace BlueCheese.App
 {
-    [RequireComponent(typeof(BackHandler))]
     public class UIView : MonoBehaviour
     {
         [SerializeField] private Button _defaultButton;
 
         [Injectable] private IUIService _ui;
 
-        private BackHandler _backHandler;
-
         public bool HasFocus { get; private set; }
 
         private void Awake()
         {
             Services.Inject(this);
-            _backHandler = GetComponent<BackHandler>();
 
             if (_defaultButton == null)
             {
@@ -76,7 +72,13 @@ namespace BlueCheese.App
             }
         }
 
-        public async Task HandleBackButton() => await _backHandler.HandleBackButton();
+        public async Task HandleBackButton()
+        {
+            if (TryGetComponent<BackHandler>(out var backHandler))
+            {
+                await backHandler.HandleBackButton();
+            }
+        }
 
         public virtual void Destroy()
         {
