@@ -18,10 +18,10 @@ namespace BlueCheese.App
         private UIView _currentView;
         private bool _isInitialized;
 
-        public UIService(IAssetLoaderService asserLoader, IGameObjectPoolService pool)
+        public UIService(IAssetLoaderService asserLoader, IGameObjectPoolService pooolService)
         {
             _assetLoader = asserLoader;
-            _poolService = pool;
+            _poolService = pooolService;
         }
 
         public void Initialize()

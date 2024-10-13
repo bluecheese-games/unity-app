@@ -6,7 +6,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace BlueCheese.App
@@ -31,9 +30,7 @@ namespace BlueCheese.App
 			Setup(options);
 		}
 
-		public void Setup(PoolOptions options = default) => _ = SetupAsync(options);
-
-		public async Task SetupAsync(PoolOptions options = default)
+		public void Setup(PoolOptions options = default)
 		{
 			_options = options;
 
@@ -53,34 +50,16 @@ namespace BlueCheese.App
 				_usedItems.EnsureCapacity(options.InitialCapacity);
 				for (int i = 0; i < options.InitialCapacity; i++)
 				{
-					Add(await CreateItemAsync());
+					Add(CreateItem());
 				}
 			}
 		}
 
-		public GameObject Spawn()
-		{
-			return GetOrCreateItemAsync().Result.gameObject;
-		}
+        public GameObject Spawn() => GetOrCreateItem().gameObject;
 
-		public async Task<GameObject> SpawnAsync()
-		{
-			var item = await GetOrCreateItemAsync();
-			return item.gameObject;
-		}
+        public T Spawn<T>() where T : Component => GetOrCreateItem().GetComponent<T>();
 
-		public T Spawn<T>() where T : Component
-		{
-			return GetOrCreateItemAsync().Result.GetComponent<T>();
-		}
-
-		public async Task<T> SpawnAsync<T>() where T : Component
-		{
-			var item = await GetOrCreateItemAsync();
-			return item.GetComponent<T>();
-		}
-
-		private async Task<PoolItem> GetOrCreateItemAsync()
+        private PoolItem GetOrCreateItem()
 		{
 			PoolItem item;
 			if (_availableItems.Count > 0)
@@ -92,15 +71,15 @@ namespace BlueCheese.App
 			}
 			else
 			{
-				item = await CreateItemAsync();
+				item = CreateItem();
 			}
 			_usedItems.Add(item);
 			return item;
 		}
 
-		private async Task<PoolItem> CreateItemAsync()
+		private PoolItem CreateItem()
 		{
-			GameObject obj = await InstantiateObjectAsync();
+			GameObject obj = InstantiateObject();
 
 			if (_componentType != null)
 			{
@@ -123,19 +102,15 @@ namespace BlueCheese.App
 			return item;
 		}
 
-		private async Task<GameObject> InstantiateObjectAsync()
+		private GameObject InstantiateObject()
 		{
 			if (_options.Factory != null)
 			{
 				return _options.Factory();
 			}
-			else if (_options.FactoryAsync != null)
-			{
-				return await _options.FactoryAsync();
-			}
 			else if (_prefab != null)
 			{
-				return await _gameObjectService.InstantiateAsync(_prefab);
+				return _gameObjectService.Instantiate(_prefab);
 			}
 			else
 			{

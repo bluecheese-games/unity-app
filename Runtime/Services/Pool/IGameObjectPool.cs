@@ -3,7 +3,6 @@
 //
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace BlueCheese.App
@@ -19,19 +18,9 @@ namespace BlueCheese.App
 		GameObject Spawn();
 
 		/// <summary>
-		/// Spawns an instance from the pool using the prefab.
-		/// </summary>
-		Task<GameObject> SpawnAsync();
-
-		/// <summary>
 		/// Spawns an instance from the pool using the component type.
 		/// </summary>
 		T Spawn<T>() where T : Component;
-
-		/// <summary>
-		/// Spawns an instance from the pool using the component type.
-		/// </summary>
-		Task<T> SpawnAsync<T>() where T : Component;
 
 		/// <summary>
 		/// Despawns an instance back to the pool.

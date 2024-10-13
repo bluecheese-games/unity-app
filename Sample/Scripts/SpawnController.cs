@@ -3,9 +3,7 @@
 //
 
 using BlueCheese.Core.ServiceLocator;
-using System.Threading.Tasks;
 using UnityEngine;
-using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
 
 namespace BlueCheese.App.Sample
 {
@@ -34,14 +32,14 @@ namespace BlueCheese.App.Sample
 				InitialCapacity = 10,
 				UseContainer = true,
 			});
-			_clock.OnTickSecondAsync += Spawn;
+			_clock.OnTickSecond += Spawn;
 		}
 
-		private async void Update()
+		private void Update()
 		{
 			if (_input.GetButtonDown("Jump"))
 			{
-				await Spawn();
+				Spawn();
 			}
 			if (_input.GetButtonDown("Fire2"))
 			{
@@ -51,10 +49,10 @@ namespace BlueCheese.App.Sample
 			_counterText.SetParameter(0, _pool.UsedItems.Count.ToString());
 		}
 
-		private async Task Spawn()
+		private void Spawn()
 		{
 			_logger.Log("Spawn", this);
-			var spawnedInstance = await _pool.SpawnAsync();
+			var spawnedInstance = _pool.Spawn();
 			spawnedInstance.transform.SetPositionAndRotation(transform.position, transform.rotation);
 			if (spawnedInstance.TryGetComponent<Rigidbody>(out var rb))
 			{
