@@ -9,7 +9,9 @@ namespace BlueCheese.App
 {
     public class DefaultRemoteConfigService : IRemoteConfigService
     {
-        public Dictionary<string, object> GetValues() => new();
+        private readonly Dictionary<string, object> _values = new();
+
+        public IReadOnlyDictionary<string, object> GetValues() => _values;
 
         public async Task FetchAsync() => await Task.CompletedTask;
     }
