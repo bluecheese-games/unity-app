@@ -3,7 +3,6 @@
 //
 
 using System;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace BlueCheese.App
@@ -30,11 +29,5 @@ namespace BlueCheese.App
         /// If not set, the pool will use the prefab to instantiate new instances.
         /// </summary>
         public Func<GameObject> Factory;
-
-		/// <summary>
-		/// The custom factory function to create new instances.
-		/// If not set, the pool will use the prefab to instantiate new instances.
-		/// </summary>
-		public Func<Task<GameObject>> FactoryAsync;
 	}
 }
