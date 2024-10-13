@@ -71,7 +71,7 @@ namespace BlueCheese.App
         public void UnregisterView(UIView view)
         {
             _viewList.Remove(view);
-            view.gameObject.GetComponent<GameObjectPool.PoolItem>().Despawn();
+            _poolService.GetOrCreatePool(view.gameObject).Despawn(view.gameObject);
             UpdateCurrentView();
         }
 
