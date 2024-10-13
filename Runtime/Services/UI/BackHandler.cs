@@ -4,7 +4,6 @@
 
 using BlueCheese.Core.ServiceLocator;
 using BlueCheese.Core.Signals;
-using NaughtyAttributes;
 using System;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -16,7 +15,6 @@ namespace BlueCheese.App
     public class BackHandler : MonoBehaviour
     {
         [SerializeField] protected BackBehaviour _backBehaviour;
-        [ShowIf(nameof(_backBehaviour), BackBehaviour.InvokeEvent)]
         [SerializeField] protected UnityEvent _onBack;
 
         [Injectable] private ILogger<BackHandler> _logger;
@@ -46,6 +44,7 @@ namespace BlueCheese.App
 
         public async Task HandleBackButton()
         {
+            _onBack?.Invoke();
             switch (_backBehaviour)
             {
                 case BackBehaviour.HideView:
@@ -53,9 +52,6 @@ namespace BlueCheese.App
                     break;
                 case BackBehaviour.DestroyView:
                     _uiView.Destroy();
-                    break;
-                case BackBehaviour.InvokeEvent:
-                    _onBack?.Invoke();
                     break;
                 case BackBehaviour.ExitApp:
                     _logger.Log("Exiting app...");
@@ -80,7 +76,6 @@ namespace BlueCheese.App
             None,
             HideView,
             DestroyView,
-            InvokeEvent,
             ExitApp,
         }
     }
