@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace BlueCheese.App
 {
@@ -13,7 +12,8 @@ namespace BlueCheese.App
     {
         private readonly IAssetLoaderService _assetLoader;
         private readonly IGameObjectPoolService _poolService;
-        private Dictionary<string, GameObject> _viewPrefabs;
+        private readonly Dictionary<string, UIView> _viewsByName = new();
+        private readonly Dictionary<UIView, IGameObjectPool> _pools = new();
         private readonly List<UIView> _viewList = new();
         private UIView _currentView;
         private bool _isInitialized;
@@ -38,28 +38,26 @@ namespace BlueCheese.App
 
         private void LoadViewsInResources()
         {
-            _viewPrefabs = new();
             UIViewBank[] banks = _assetLoader.LoadAssetsFromResources<UIViewBank>("UI");
             foreach (var bank in banks)
             {
                 foreach (var view in bank.ViewPrefabs)
                 {
-                    _viewPrefabs.Add(view.name, view.gameObject);
+                    _viewsByName.Add(view.name, view);
+                    _pools.Add(view, _poolService.GetOrCreatePool(view.gameObject));
                 }
             }
         }
 
         public UIView CreateView(string viewName)
         {
-            if (_viewPrefabs.TryGetValue(viewName, out var prefab) == false)
+            if (!_viewsByName.TryGetValue(viewName, out var view) ||
+                !_pools.TryGetValue(view, out var pool))
             {
                 throw new Exception($"Unable to instantiate UIView with name: {viewName}");
             }
 
-            return _poolService
-                .GetOrCreatePool(prefab)
-                .Spawn()
-                .GetComponent<UIView>();
+            return pool.Spawn<UIView>();
         }
 
         public void RegisterView(UIView view)
@@ -71,7 +69,10 @@ namespace BlueCheese.App
         public void UnregisterView(UIView view)
         {
             _viewList.Remove(view);
-            _poolService.GetOrCreatePool(view.gameObject).Despawn(view.gameObject);
+            if (_pools.TryGetValue(view, out var pool))
+            {
+                pool.Despawn(view.gameObject);
+            }
             UpdateCurrentView();
         }
 
