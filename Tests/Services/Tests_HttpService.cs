@@ -6,7 +6,7 @@ using BlueCheese.App;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Net;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using System;
 using BlueCheese.Core.ServiceLocator;
 
@@ -215,14 +215,14 @@ namespace BlueCheese.Tests.Services
 		public IHttpClient.Result GetAsyncResult { get; set; }
 		public IHttpClient.Result PostAsyncResult { get; set; }
 
-		public Task<IHttpClient.Result> GetAsync(Uri uri, Dictionary<string, string> headers)
+		public UniTask<IHttpClient.Result> GetAsync(Uri uri, Dictionary<string, string> headers)
 		{
-			return Task.FromResult(GetAsyncResult);
+			return UniTask.FromResult(GetAsyncResult);
 		}
 
-		public Task<IHttpClient.Result> PostAsync(Uri uri, Dictionary<string, string> headers, Dictionary<string, string> parameters)
+		public UniTask<IHttpClient.Result> PostAsync(Uri uri, Dictionary<string, string> headers, Dictionary<string, string> parameters)
 		{
-			return Task.FromResult(PostAsyncResult);
+			return UniTask.FromResult(PostAsyncResult);
 		}
 	}
 

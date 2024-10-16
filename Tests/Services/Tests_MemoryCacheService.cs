@@ -5,7 +5,7 @@
 using BlueCheese.App;
 using NUnit.Framework;
 using System;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace BlueCheese.Tests.Services
 {
@@ -156,12 +156,12 @@ namespace BlueCheese.Tests.Services
 
 			public void Initialize() { }
 
-			public Task InvokeAsync(Action action, float delay)
+			public UniTask InvokeAsync(Action action, float delay)
 			{
 				throw new NotImplementedException();
 			}
 
-			public Task WaitAsync(float delay)
+			public UniTask WaitAsync(float delay)
 			{
 				throw new NotImplementedException();
 			}

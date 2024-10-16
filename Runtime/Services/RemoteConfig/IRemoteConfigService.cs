@@ -3,7 +3,7 @@
 //
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace BlueCheese.App
 {
@@ -14,9 +14,9 @@ namespace BlueCheese.App
         /// </summary>
         IReadOnlyDictionary<string, object> GetValues();
 
-        /// <summary>
-        /// Ask the provider to fetch the remote config values
-        /// </summary>
-        Task FetchAsync();
+		/// <summary>
+		/// Ask the provider to fetch the remote config values
+		/// </summary>
+		UniTask FetchAsync();
     }
 }

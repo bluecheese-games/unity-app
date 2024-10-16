@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace BlueCheese.App
 {
@@ -44,11 +44,11 @@ namespace BlueCheese.App
 			}
 		}
 
-		public async Task<IHttpResponse> GetAsync(IHttpRequest request) => await ProcessRequestAsync(request, HttpMethod.Get);
+		public async UniTask<IHttpResponse> GetAsync(IHttpRequest request) => await ProcessRequestAsync(request, HttpMethod.Get);
 
-		public async Task<IHttpResponse> PostAsync(IHttpRequest request) => await ProcessRequestAsync(request, HttpMethod.Post);
+		public async UniTask<IHttpResponse> PostAsync(IHttpRequest request) => await ProcessRequestAsync(request, HttpMethod.Post);
 
-		private async Task<IHttpResponse> ProcessRequestAsync(IHttpRequest request, HttpMethod method)
+		private async UniTask<IHttpResponse> ProcessRequestAsync(IHttpRequest request, HttpMethod method)
 		{
 			if (!request.TryGetUri(_options.BaseUri, out var uri))
 			{

@@ -2,9 +2,8 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
-using Core.Utils;
 
 namespace BlueCheese.App
 {
@@ -15,7 +14,7 @@ namespace BlueCheese.App
             return Resources.Load<T>(path);
         }
 
-        public async Task<T> LoadAssetFromResourcesAsync<T>(string path) where T : Object
+        public async UniTask<T> LoadAssetFromResourcesAsync<T>(string path) where T : Object
         {
             ResourceRequest request = Resources.LoadAsync<T>(path);
             await request;

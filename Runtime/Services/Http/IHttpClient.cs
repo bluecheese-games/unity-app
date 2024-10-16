@@ -4,15 +4,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace BlueCheese.App
 {
 	public interface IHttpClient
 	{
-		Task<Result> GetAsync(Uri uri, Dictionary<string, string> headers);
+		UniTask<Result> GetAsync(Uri uri, Dictionary<string, string> headers);
 
-		Task<Result> PostAsync(Uri uri, Dictionary<string, string> headers, Dictionary<string, string> parameters);
+		UniTask<Result> PostAsync(Uri uri, Dictionary<string, string> headers, Dictionary<string, string> parameters);
 
 		public struct Result
 		{

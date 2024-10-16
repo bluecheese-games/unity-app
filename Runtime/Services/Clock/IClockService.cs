@@ -4,14 +4,14 @@
 
 using BlueCheese.Core.ServiceLocator;
 using System;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace BlueCheese.App
 {
     public delegate void TickEventHandler(float deltaTime);
-    public delegate Task AsyncTickEventHandler(float deltaTime);
+    public delegate UniTask AsyncTickEventHandler(float deltaTime);
     public delegate void TickSecondEventHandler();
-    public delegate Task AsyncTickSecondEventHandler();
+    public delegate UniTask AsyncTickSecondEventHandler();
 
     public interface IClockService : IInitializable
     {
@@ -42,8 +42,8 @@ namespace BlueCheese.App
 		/// </summary>
 		DateTime Now { get; }
 
-        Task InvokeAsync(Action action, float delay);
+		UniTask InvokeAsync(Action action, float delay);
 
-        Task WaitAsync(float delay);
+		UniTask WaitAsync(float delay);
     }
 }

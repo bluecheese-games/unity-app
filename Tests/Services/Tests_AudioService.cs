@@ -6,7 +6,7 @@ using BlueCheese.App;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace BlueCheese.Tests.Services
@@ -150,17 +150,17 @@ namespace BlueCheese.Tests.Services
 
 		public T Instantiate<T>(GameObject prefab) where T : Component => Object.Instantiate(prefab).GetComponent<T>();
 
-		public Task<GameObject> InstantiateAsync(GameObject prefab)
+		public UniTask<GameObject> InstantiateAsync(GameObject prefab)
 		{
 			throw new System.NotImplementedException();
 		}
 
-		public Task<T> InstantiateAsync<T>(T prefab) where T : Component
+		public UniTask<T> InstantiateAsync<T>(T prefab) where T : Component
 		{
 			throw new System.NotImplementedException();
 		}
 
-		public Task<T> InstantiateAsync<T>(GameObject prefab) where T : Component
+		public UniTask<T> InstantiateAsync<T>(GameObject prefab) where T : Component
 		{
 			throw new System.NotImplementedException();
 		}
@@ -212,9 +212,9 @@ namespace BlueCheese.Tests.Services
 			return (T)_assets.Find(a => a.path == path).asset;
 		}
 
-		public Task<T> LoadAssetFromResourcesAsync<T>(string path) where T : Object
+		public UniTask<T> LoadAssetFromResourcesAsync<T>(string path) where T : Object
 		{
-			return Task.FromResult(LoadAssetFromResources<T>(path));
+			return UniTask.FromResult(LoadAssetFromResources<T>(path));
 		}
 
 		public T[] LoadAssetsFromResources<T>(string path) where T : Object

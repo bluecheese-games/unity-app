@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using BlueCheese.Core.Utils;
 
@@ -28,10 +28,10 @@ namespace BlueCheese.App
 
         public T[] FindAll<T>(bool includeInactive = false) where T : Component => GameObject.FindObjectsOfType<T>(includeInactive);
 
-		public async Task<GameObject> InstantiateAsync(GameObject prefab) => await GameObject.InstantiateAsync(prefab);
+		public async UniTask<GameObject> InstantiateAsync(GameObject prefab) => await GameObject.InstantiateAsync(prefab);
 
-		public async Task<T> InstantiateAsync<T>(T prefab) where T : Component => await GameObject.InstantiateAsync<T>(prefab);
+		public async UniTask<T> InstantiateAsync<T>(T prefab) where T : Component => await GameObject.InstantiateAsync<T>(prefab);
 
-		public async Task<T> InstantiateAsync<T>(GameObject prefab) where T : Component => (await GameObject.InstantiateAsync(prefab)).GetComponent<T>();
+		public async UniTask<T> InstantiateAsync<T>(GameObject prefab) where T : Component => (await GameObject.InstantiateAsync(prefab)).GetComponent<T>();
 	}
 }

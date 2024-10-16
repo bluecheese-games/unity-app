@@ -7,7 +7,7 @@
 // 
 
 using System;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace BlueCheese.App
@@ -65,12 +65,12 @@ namespace BlueCheese.App
 			}
         }
 
-        public async Task InvokeAsync(Action action, float delay)
+        public async UniTask InvokeAsync(Action action, float delay)
         {
             await WaitAsync(delay);
             action?.Invoke();
         }
 
-        public async Task WaitAsync(float delay) => await Task.Delay(Mathf.RoundToInt(delay * 1000));
+        public async UniTask WaitAsync(float delay) => await UniTask.Delay(Mathf.RoundToInt(delay * 1000));
     }
 }

@@ -3,7 +3,7 @@
 //
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace BlueCheese.App
 {
@@ -13,6 +13,6 @@ namespace BlueCheese.App
 
         public IReadOnlyDictionary<string, object> GetValues() => _values;
 
-        public async Task FetchAsync() => await Task.CompletedTask;
+        public async UniTask FetchAsync() => await UniTask.CompletedTask;
     }
 }

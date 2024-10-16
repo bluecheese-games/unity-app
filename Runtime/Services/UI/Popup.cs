@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace BlueCheese.App
@@ -46,12 +46,12 @@ namespace BlueCheese.App
             }
         }
 
-        public async Task<PopupResult> ShowAsync()
+        public async UniTask<PopupResult> ShowAsync()
         {
             gameObject.SetActive(true);
             while(gameObject.activeSelf)
             {
-                await Task.Yield();
+                await UniTask.Yield();
             }
             return Result;
         }
