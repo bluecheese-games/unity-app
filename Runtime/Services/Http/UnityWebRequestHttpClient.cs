@@ -5,14 +5,14 @@
 using BlueCheese.Core.Utils;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine.Networking;
 
 namespace BlueCheese.App
 {
 	public class UnityWebRequestHttpClient : IHttpClient
 	{
-		public async Task<IHttpClient.Result> GetAsync(Uri uri, Dictionary<string, string> headers)
+		public async UniTask<IHttpClient.Result> GetAsync(Uri uri, Dictionary<string, string> headers)
 		{
 			var webRequest = UnityWebRequest.Get(uri);
 			foreach (var kvp in headers)
@@ -28,7 +28,7 @@ namespace BlueCheese.App
 			return new IHttpClient.Result(isSuccess, content, webRequest.responseCode);
 		}
 
-		public async Task<IHttpClient.Result> PostAsync(Uri uri, Dictionary<string, string> headers, Dictionary<string, string> parameters)
+		public async UniTask<IHttpClient.Result> PostAsync(Uri uri, Dictionary<string, string> headers, Dictionary<string, string> parameters)
 		{
 			var webRequest = UnityWebRequest.Post(uri, parameters);
 			foreach (var kvp in headers)

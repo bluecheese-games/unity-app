@@ -2,9 +2,8 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine.SceneManagement;
-using BlueCheese.Core.Utils;
 using BlueCheese.Core.Signals;
 
 namespace BlueCheese.App
@@ -19,7 +18,7 @@ namespace BlueCheese.App
             SignalAPI.Publish(new EnterSceneSignal(sceneName, exitingSceneName, payload));
         }
 
-		public async Task LoadAsync(string sceneName, object payload = null)
+		public async UniTask LoadAsync(string sceneName, object payload = null)
         {
             string exitingSceneName = SceneManager.GetActiveScene().name;
             await SignalAPI.PublishAsync(new ExitSceneSignal(exitingSceneName, sceneName, payload));
@@ -27,12 +26,12 @@ namespace BlueCheese.App
             await SignalAPI.PublishAsync(new EnterSceneSignal(sceneName, exitingSceneName, payload));
 		}
 
-		public async Task LoadAdditiveAsync(string sceneName)
+		public async UniTask LoadAdditiveAsync(string sceneName)
 		{
             await SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
 		}
 
-		public async Task UnloadAsync(string sceneName)
+		public async UniTask UnloadAsync(string sceneName)
 		{
             await SceneManager.UnloadSceneAsync(sceneName);
 		}
