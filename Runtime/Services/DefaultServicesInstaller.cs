@@ -34,6 +34,7 @@ namespace BlueCheese.App
                 .WithOptions(() => LocalizationService.Options.FromResourcesOrDefault());
             builder.ServiceContainer.Register<ITranslationService, TranslationService>();
             builder.ServiceContainer.Register(typeof(ILogger<>), typeof(UnityLogger<>));
+            builder.ServiceContainer.Register<IFXService, FXService>();
             return builder;
         }
     }

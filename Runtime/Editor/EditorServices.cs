@@ -44,6 +44,7 @@ namespace BlueCheese.App.Editor
 				.WithOptions(() => LocalizationService.Options.FromResourcesOrDefault());
 			container.Register<ITranslationService, EditorTranslationService>();
 			container.Register<IApp, EditorApp>();
+			container.Register<EditorAudioService>();
 
 			container.Startup();
 			return container;

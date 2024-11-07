@@ -9,7 +9,7 @@ namespace BlueCheese.App
 {
 	public interface IGameObjectPool
 	{
-		IReadOnlyList<GameObjectPool.PoolItem> AvailableItems { get; }
+		IReadOnlyList<GameObjectPool.PoolItem> PoolItems { get; }
 		IReadOnlyList<GameObjectPool.PoolItem> UsedItems { get; }
 
 		/// <summary>

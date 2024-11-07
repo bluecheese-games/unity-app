@@ -7,7 +7,6 @@
 // 
 
 using System;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace BlueCheese.App
@@ -15,9 +14,7 @@ namespace BlueCheese.App
     public class UnityClockService : IClockService
     {
         public event TickEventHandler OnTick;
-        public event AsyncTickEventHandler OnTickAsync;
         public event TickSecondEventHandler OnTickSecond;
-        public event AsyncTickSecondEventHandler OnTickSecondAsync;
 
         private readonly IGameObjectService _gameObjectService;
 
@@ -47,10 +44,6 @@ namespace BlueCheese.App
         private void HandleUpdate(float deltaTime)
         {
             OnTick?.Invoke(deltaTime);
-            if(OnTickAsync != null)
-			{
-				_ = OnTickAsync.Invoke(deltaTime);
-			}
 
 			float previousTime = _time;
             _time += deltaTime;
@@ -58,19 +51,7 @@ namespace BlueCheese.App
             if (Mathf.RoundToInt(previousTime) != Mathf.RoundToInt(_time))
             {
                 OnTickSecond?.Invoke();
-                if(OnTickSecondAsync != null)
-				{
-					_ = OnTickSecondAsync?.Invoke();
-				}
 			}
         }
-
-        public async UniTask InvokeAsync(Action action, float delay)
-        {
-            await WaitAsync(delay);
-            action?.Invoke();
-        }
-
-        public async UniTask WaitAsync(float delay) => await UniTask.Delay(Mathf.RoundToInt(delay * 1000));
     }
 }

@@ -59,7 +59,7 @@ namespace BlueCheese.App
 
 			if (_options.LogRequests)
 			{
-				_logger.Log($"{method}: {uri}");
+				_logger.LogInfo($"{method}: {uri}");
 			}
 
 			IHttpClient.Result result;

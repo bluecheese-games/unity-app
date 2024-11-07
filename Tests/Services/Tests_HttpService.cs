@@ -228,9 +228,11 @@ namespace BlueCheese.Tests.Services
 
 	public class FakeLogger<TClass> : ILogger<TClass> where TClass : class
 	{
-		public LogType LogTypes { get; set; }
-		public int LogCallCount { get; private set; }
-		public string LastLogMessage { get; private set; }
+		public LogLevel LogLevels { get; set; }
+		public int LogDebugCallCount { get; private set; }
+		public string LastLogDebugMessage { get; private set; }
+		public int LogInfoCallCount { get; private set; }
+		public string LastLogInfoMessage { get; private set; }
 		public int LogWarningCallCount { get; private set; }
 		public string LastLogWarningMessage { get; private set; }
 		public int LogErrorCallCount { get; private set; }
@@ -238,10 +240,16 @@ namespace BlueCheese.Tests.Services
 		public int LogExceptionCallCount { get; private set; }
 		public Exception LastLogException { get; private set; }
 
-		public void Log(string message, UnityEngine.Object context = null)
+		public void LogDebug(string message, UnityEngine.Object context = null)
 		{
-			LogCallCount++;
-			LastLogMessage = message;
+			LogDebugCallCount++;
+			LastLogDebugMessage = message;
+		}
+
+		public void LogInfo(string message, UnityEngine.Object context = null)
+		{
+			LogInfoCallCount++;
+			LastLogInfoMessage = message;
 		}
 
 		public void LogWarning(string message, UnityEngine.Object context = null)

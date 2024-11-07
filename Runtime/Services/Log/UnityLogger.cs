@@ -6,50 +6,58 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-    public class UnityLogger<TClass> : ILogger<TClass> where TClass : class
-    {
-        private readonly IApp _app;
+	public class UnityLogger<TClass> : ILogger<TClass> where TClass : class
+	{
+		private readonly IApp _app;
 
-        private readonly string _prefix = string.Empty;
+		private readonly ILogFormatter _formatter;
 
-        public LogType LogTypes { get; set; } = LogType.Info | LogType.Warning | LogType.Error | LogType.Exception;
+		public LogLevel LogLevels { get; set; } = LogLevel.Info | LogLevel.Warning | LogLevel.Error | LogLevel.Exception;
 
-        public UnityLogger(IApp app)
-        {
-            _app = app;
-            _prefix = $"<b><color=fff>[{typeof(TClass).Name}]</color></b> ";
-        }
+		public UnityLogger(IApp app)
+		{
+			_app = app;
+			_formatter = new LogFormatter(typeof(TClass));
+		}
 
-        public void Log(string message, Object context = null)
-        {
-            if (_app.Environment == Environment.Development && LogTypes.HasFlag(LogType.Info))
-            {
-                Debug.Log($"{_prefix}{message}", context);
-            }
-        }
+		public void LogDebug(string message, Object context = null)
+		{
+			if (_app.Environment == Environment.Development && LogLevels.HasFlag(LogLevel.Debug))
+			{
+				Debug.Log(_formatter.Format(message), context);
+			}
+		}
 
-        public void LogWarning(string message, Object context = null)
-        {
-            if (_app.Environment == Environment.Development && LogTypes.HasFlag(LogType.Warning))
-            {
-                Debug.LogWarning($"{_prefix}{message}", context);
-            }
-        }
+		public void LogInfo(string message, Object context = null)
+		{
+			if (LogLevels.HasFlag(LogLevel.Info))
+			{
+				Debug.Log(_formatter.Format(message), context);
+			}
+		}
 
-        public void LogError(string message, Object context = null)
-        {
-            if (_app.Environment == Environment.Development && LogTypes.HasFlag(LogType.Error))
-            {
-                Debug.LogError($"{_prefix}{message}", context);
-            }
-        }
+		public void LogWarning(string message, Object context = null)
+		{
+			if (LogLevels.HasFlag(LogLevel.Warning))
+			{
+				Debug.LogWarning(_formatter.Format(message), context);
+			}
+		}
 
-        public void LogException(System.Exception exeption, Object context = null)
-        {
-            if (_app.Environment == Environment.Development && LogTypes.HasFlag(LogType.Exception))
-            {
-                Debug.LogException(exeption, context);
-            }
-        }
-    }
+		public void LogError(string message, Object context = null)
+		{
+			if (LogLevels.HasFlag(LogLevel.Error))
+			{
+				Debug.LogError(_formatter.Format(message), context);
+			}
+		}
+
+		public void LogException(System.Exception exeption, Object context = null)
+		{
+			if (LogLevels.HasFlag(LogLevel.Exception))
+			{
+				Debug.LogException(exeption, context);
+			}
+		}
+	}
 }
