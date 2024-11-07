@@ -13,10 +13,10 @@ namespace BlueCheese.App.Sample
 		[SerializeField] private GameObject _spawnedPrefab;
 		[SerializeField] private float _spawnForce = 3f;
 		[SerializeField] private float _spawnLifetime = 5f;
+		[SerializeField] private SoundFX _spawnSFX = "SphereSpawn";
 
 		[Injectable] private IGameObjectPoolService _poolService;
 		[Injectable] private IRandomService _random;
-		[Injectable] private IClockService _clock;
 		[Injectable] private IInputService _input;
 		[Injectable] private IAudioService _audio;
 		[Injectable] private ILogger<SpawnController> _logger;
@@ -29,10 +29,13 @@ namespace BlueCheese.App.Sample
 
 			_pool = _poolService.SetupPool(_spawnedPrefab, new()
 			{
-				InitialCapacity = 10,
+				Capacity = 15,
+				Overflow = PoolOverflow.LogError,
+				FillAmount = 10,
 				UseContainer = true,
 			});
-			_clock.OnTickSecond += Spawn;
+
+			InvokeRepeating(nameof(Spawn), 1f, 1f);
 		}
 
 		private void Update()
@@ -51,7 +54,7 @@ namespace BlueCheese.App.Sample
 
 		private void Spawn()
 		{
-			_logger.Log("Spawn", this);
+			Log.Debug("Spawn", this);
 			var spawnedInstance = _pool.Spawn();
 			spawnedInstance.transform.SetPositionAndRotation(transform.position, transform.rotation);
 			if (spawnedInstance.TryGetComponent<Rigidbody>(out var rb))
@@ -60,7 +63,7 @@ namespace BlueCheese.App.Sample
 				rb.velocity = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * _spawnForce;
 			}
 
-			_audio.PlaySound("SphereSpawn");
+			_spawnSFX.Play(transform.position);
 
 			_pool.Despawn(spawnedInstance, _spawnLifetime);
 		}

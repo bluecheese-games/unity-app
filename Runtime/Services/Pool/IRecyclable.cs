@@ -9,6 +9,6 @@ namespace BlueCheese.App
         /// <summary>
         /// This method is called when the instance is recycled from the pool.
         /// </summary>
-        void Recycle();
+        void OnRecycle();
     }
 }

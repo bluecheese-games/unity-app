@@ -29,7 +29,7 @@ namespace BlueCheese.App
 	[Serializable]
 	public class AudioItem
 	{
-		public string Name;
+		public SoundFX Name;
 		public AudioClip Clip;
         [Range(0f, 1f)]
         public float Volume = 1f;

@@ -67,5 +67,10 @@ namespace BlueCheese.App.Editor
 
 			EditorGUI.FocusTextInControl("search-text");
 		}
+
+		internal static void Open(SerializedProperty keyProperty)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

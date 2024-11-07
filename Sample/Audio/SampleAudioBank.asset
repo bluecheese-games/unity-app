@@ -13,6 +13,75 @@ MonoBehaviour:
   m_Name: SampleAudioBank
   m_EditorClassIdentifier: 
   Items:
-  - Name: SphereSpawn
+  - Name:
+      Name: SphereSpawn
+      HasOptions: 0
+      Options:
+        Volume: 1
+        Delay: 0
+        Loop: 0
+        Pitch: {x: 1, y: 1}
+        Spacial:
+          IsSpacialized: 0
+          Target: {fileID: 0}
+          MinDistance: 1
+          MaxDistance: 10
+          RolloffMode: 0
+        _isInitialized: 1
+      Position: {x: 0, y: 0, z: 0}
+    Clip: {fileID: 8300000, guid: 06a4ec99eb23a804ca2178269fca64b5, type: 3}
+    Volume: 0.2
+  - Name:
+      Name: Test1
+      HasOptions: 0
+      Options:
+        Volume: 1
+        Delay: 0
+        Loop: 0
+        Pitch: {x: 1, y: 1}
+        Spacial:
+          IsSpacialized: 0
+          Target: {fileID: 0}
+          MinDistance: 1
+          MaxDistance: 10
+          RolloffMode: 0
+        _isInitialized: 1
+      Position: {x: 0, y: 0, z: 0}
+    Clip: {fileID: 8300000, guid: 06a4ec99eb23a804ca2178269fca64b5, type: 3}
+    Volume: 0.2
+  - Name:
+      Name: Test2
+      HasOptions: 0
+      Options:
+        Volume: 1
+        Delay: 0
+        Loop: 0
+        Pitch: {x: 1, y: 1}
+        Spacial:
+          IsSpacialized: 0
+          Target: {fileID: 0}
+          MinDistance: 1
+          MaxDistance: 10
+          RolloffMode: 0
+        _isInitialized: 1
+      Position: {x: 0, y: 0, z: 0}
+    Clip: {fileID: 8300000, guid: 06a4ec99eb23a804ca2178269fca64b5, type: 3}
+    Volume: 0.2
+  - Name:
+      Name: Test3
+      HasOptions: 0
+      Options:
+        Volume: 1
+        Delay: 0
+        Loop: 0
+        Pitch: {x: 1, y: 1}
+        Spacial:
+          IsSpacialized: 0
+          Target: {fileID: 0}
+          MinDistance: 1
+          MaxDistance: 10
+          RolloffMode: 0
+        _isInitialized: 1
+      Position: {x: 0, y: 0, z: 0}
     Clip: {fileID: 8300000, guid: 06a4ec99eb23a804ca2178269fca64b5, type: 3}
     Volume: 0.2

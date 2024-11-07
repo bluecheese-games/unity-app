@@ -12,10 +12,12 @@ namespace BlueCheese.App
 	{
 		private readonly Dictionary<int, IGameObjectPool> _pools = new();
 		private readonly IGameObjectService _gameObjectService;
+		private readonly ILogger<GameObjectPoolService> _logger;
 
-		public GameObjectPoolService(IGameObjectService gameObjectService)
+		public GameObjectPoolService(IGameObjectService gameObjectService, ILogger<GameObjectPoolService> logger)
 		{
 			_gameObjectService = gameObjectService;
+			_logger = logger;
 		}
 
 		public IGameObjectPool SetupPool(GameObject prefab, PoolOptions options = default)
@@ -36,7 +38,7 @@ namespace BlueCheese.App
 			{
 				return pool;
 			}
-			pool = new GameObjectPool(_gameObjectService, prefab, componentType, options);
+			pool = new GameObjectPool(_gameObjectService, _logger, prefab, componentType, options);
 			_pools.Add(id, pool);
 			return pool;
 		}

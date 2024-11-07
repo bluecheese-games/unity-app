@@ -45,9 +45,9 @@ namespace BlueCheese.App
 			}
 		}
 
-		virtual public bool PlaySound(AudioItem item, SoundOptions options)
+		virtual public bool PlaySound(AudioItem item, SoundFX sound)
 		{
-			if (!Application.isPlaying || _audioSource == null || !item.IsValid)
+			if (_audioSource == null || !item.IsValid)
 			{
 				return false;
 			}
@@ -55,30 +55,41 @@ namespace BlueCheese.App
 			var audioService = Services.Get<IAudioService>();
 
 			_audioSource.clip = item.Clip;
-			_audioSource.volume = item.Volume * options.Volume * audioService.MasterSoundVolume;
-			_audioSource.loop = options.Loop;
-			_audioSource.pitch = options.Pitch;
-			_audioSource.spatialize = options.Spacial.IsSpacialized;
-			if (options.Spacial.IsSpacialized)
+			_audioSource.volume = item.Volume * sound.Options.Volume * audioService.MasterSoundVolume;
+			_audioSource.loop = sound.Options.Loop;
+			_audioSource.pitch = GetRandomValue(sound.Options.Pitch);
+			_audioSource.spatialize = sound.Options.Spacial.IsSpacialized;
+			if (sound.Options.Spacial.IsSpacialized)
 			{
-				_audioSource.minDistance = options.Spacial.MinDistance;
-				_audioSource.maxDistance = options.Spacial.MaxDistance;
-				_audioSource.rolloffMode = options.Spacial.RolloffMode;
-				_target = options.Spacial.Target;
+				_audioSource.minDistance = sound.Options.Spacial.MinDistance;
+				_audioSource.maxDistance = sound.Options.Spacial.MaxDistance;
+				_audioSource.rolloffMode = sound.Options.Spacial.RolloffMode;
+				_target = sound.Options.Spacial.Target;
 				if (_target != null)
 				{
-					_offset = options.Spacial.Position;
+					_offset = sound.Position;
 				}
 				else
 				{
-					transform.position = options.Spacial.Position;
+					transform.position = sound.Position;
 				}
 			}
 
-			_audioSource.PlayDelayed(options.Delay);
+			_audioSource.Stop();
+			_audioSource.PlayDelayed(sound.Options.Delay);
 			PlayingItem = item;
 
 			return true;
+		}
+
+		private static float GetRandomValue(Vector2 range)
+		{
+			if (range.x == range.y)
+			{
+				return range.x;
+			}
+
+			return Services.Get<IRandomService>().Next(range.x, range.y);
 		}
 
 		virtual public bool PlayMusic(AudioItem item, MusicOptions options)
@@ -141,7 +152,7 @@ namespace BlueCheese.App
 			Stop();
 		}
 
-		void IRecyclable.Recycle()
+		void IRecyclable.OnRecycle()
 		{
 			Stop(false);
 		}

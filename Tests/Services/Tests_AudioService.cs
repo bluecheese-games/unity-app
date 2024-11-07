@@ -21,7 +21,8 @@ namespace BlueCheese.Tests.Services
 		{
 			var localStorage = new FakeLocalStorageService();
 			var gameObjectService = new FakeGameObjectService();
-			var pool = new GameObjectPoolService(gameObjectService);
+			var logger = new FakeLogger<GameObjectPoolService>();
+			var pool = new GameObjectPoolService(gameObjectService, logger);
 			var assetLoader = new FakeAssetLoaderService();
 			var audioBank = ScriptableObject.CreateInstance<AudioBank>();
 			audioBank.Items = new List<AudioItem>()
@@ -103,7 +104,7 @@ namespace BlueCheese.Tests.Services
 			return true;
 		}
 
-		override public bool PlaySound(AudioItem item, SoundOptions options)
+		override public bool PlaySound(AudioItem item, SoundFX sound)
 		{
 			if (item == null || !item.IsValid) return false;
 			PlayingItem = item;

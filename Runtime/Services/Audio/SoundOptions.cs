@@ -2,6 +2,7 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
+using NaughtyAttributes;
 using System;
 using UnityEngine;
 
@@ -10,17 +11,23 @@ namespace BlueCheese.App
     [Serializable]
     public struct SoundOptions
     {
+        [Range(0f, 1f)]
         public float Volume;
+        [Min(0f)]
         public float Delay;
         public bool Loop;
-        public float Pitch;
+		[MinMaxSlider(0, 3)]
+		public Vector2 Pitch;
         public SpacialOptions Spacial;
+
+        [HideInInspector]
+        public bool _isInitialized;
 
         public static SoundOptions Default => new()
         {
             Volume = 1f,
             Delay = 0f,
-            Pitch = 1f,
+            Pitch = new(1f, 1f),
             Spacial = SpacialOptions.Default,
         };
 
@@ -28,7 +35,6 @@ namespace BlueCheese.App
         public struct SpacialOptions
         {
             public bool IsSpacialized;
-            public Vector3 Position;
             public Transform Target;
             public float MinDistance;
             public float MaxDistance;
@@ -37,7 +43,6 @@ namespace BlueCheese.App
             public static SpacialOptions Default => new()
             {
                 IsSpacialized = false,
-                Position = default,
                 Target = default,
                 MinDistance = 1f,
                 MaxDistance = 10f,

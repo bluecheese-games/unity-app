@@ -22,26 +22,19 @@ namespace BlueCheese.App
         /// Is the service ready?
         /// </summary>
         bool IsReady { get; }
-        
-        /// <summary>
-        /// Plays a sound.
-        /// </summary>
-        /// <param name="name">The sound name.</param>
-        bool PlaySound(string name);
 
-        /// <summary>
-        /// Plays a sound with options.
-        /// </summary>
-        /// <param name="name">The sound name.</param>
-        /// <param name="options">The sound options.</param>
-        bool PlaySound(string name, SoundOptions options);
+		/// <summary>
+		/// Plays a sound.
+		/// </summary>
+		/// <param name="sound">A SoundFX or a sound name.</param>
+		bool PlaySound(SoundFX sound);
 
         /// <summary>
         /// Stops a playing sound.
         /// </summary>
         /// <param name="name">The sound name.</param>
         /// <param name="fadeDuration">The fade out duration in seconds.</param>
-        void StopSound(string name, float fadeDuration = 0f);
+        void StopSound(SoundFX sound, float fadeDuration = 0f);
 
         /// <summary>
         /// Stops all playing sounds.

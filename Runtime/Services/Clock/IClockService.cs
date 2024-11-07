@@ -22,28 +22,13 @@ namespace BlueCheese.App
         event TickEventHandler OnTick;
 
         /// <summary>
-        /// This event is called every frame.
-        /// The parameter is the deltaTime == the amount of seconds since last frame
-        /// </summary>
-        event AsyncTickEventHandler OnTickAsync;
-
-        /// <summary>
         /// This event is called every seconds.
         /// </summary>
         event TickSecondEventHandler OnTickSecond;
 
 		/// <summary>
-		/// This event is called every seconds.
-		/// </summary>
-		event AsyncTickSecondEventHandler OnTickSecondAsync;
-
-		/// <summary>
 		/// The current DateTime
 		/// </summary>
 		DateTime Now { get; }
-
-		UniTask InvokeAsync(Action action, float delay);
-
-		UniTask WaitAsync(float delay);
     }
 }

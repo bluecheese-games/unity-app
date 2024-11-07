@@ -13,6 +13,6 @@ namespace BlueCheese.App
             _logger = logger;
         }
 
-        public void Track(ITrackingService.Event evt) => _logger.Log(evt);
+        public void Track(ITrackingService.Event evt) => _logger.LogInfo(evt);
     }
 }

@@ -58,7 +58,7 @@ namespace BlueCheese.App
 		{
 			_audioPlayerPool = _poolService.SetupPool<AudioPlayer>(new PoolOptions()
 			{
-				InitialCapacity = _options.AudioPoolCapacity,
+				FillAmount = _options.AudioPoolCapacity,
 				DontDestroyOnLoad = true,
 				UseContainer = true,
 			});
@@ -110,11 +110,9 @@ namespace BlueCheese.App
 			}
 		}
 
-		public bool PlaySound(string name) => PlaySound(name, SoundOptions.Default);
-
-		public bool PlaySound(string name, SoundOptions options)
+		public bool PlaySound(SoundFX sound)
 		{
-			if (!IsReady || name == null)
+			if (!IsReady || !sound.IsValid)
 			{
 				return false;
 			}
@@ -122,20 +120,20 @@ namespace BlueCheese.App
 			var player = _options.AudioPlayerFactory();
 			if (player != null)
 			{
-				var item = GetAudioItem(name);
-				return player.PlaySound(item, options);
+				var item = GetAudioItem(sound.Name);
+				return player.PlaySound(item, sound);
 			}
 			return false;
 		}
 
-		public void StopSound(string name, float fadeDuration = 0f)
+		public void StopSound(SoundFX sound, float fadeDuration = 0f)
 		{
-			if (!IsReady || name == null)
+			if (!IsReady || !sound.IsValid)
 			{
 				return;
 			}
 
-			Stop(name, fadeDuration);
+			Stop(sound.Name, fadeDuration);
 		}
 
 		public void StopAllSounds(float fadeDuration = 0)
