@@ -11,7 +11,7 @@ namespace BlueCheese.App
 	{
 		public EditorTranslationService(ILocalizationService localization, IAssetLoaderService assetLoader) : base(localization, assetLoader) { }
 
-		public IReadOnlyList<string> GetAllKeys()
+		public string[] GetAllKeys()
 		{
 			// Get all keys from all translation tables, combine, remove duplicates, sort by key and return
 			var keys = new HashSet<string>();
@@ -24,7 +24,7 @@ namespace BlueCheese.App
 			}
 			var sortedKeys = new List<string>(keys);
 			sortedKeys.Sort();
-			return sortedKeys;
+			return sortedKeys.ToArray();
 		}
 	}
 }

@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.Editor;
+using BlueCheese.Core.Utils.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,6 +18,7 @@ namespace BlueCheese.App.Editor
 			var optionsProperty = property.FindPropertyRelative("Options");
 			var optionsInitializedProperty = optionsProperty.FindPropertyRelative("_isInitialized");
 			EditorAudioService audioService = EditorServices.Get<EditorAudioService>();
+			string[] keys = audioService.AllSounds;
 
 			// Initialize options if not already initialized
 			if (!optionsInitializedProperty.boolValue)
@@ -26,28 +27,30 @@ namespace BlueCheese.App.Editor
 				optionsInitializedProperty.boolValue = true;
 			}
 
-			Rect nameRect = new(position.x, position.y, position.width - 115, EditorGUIUtility.singleLineHeight);
-			Rect buttonRect = new(position.x + position.width - 110, position.y, 25, EditorGUIUtility.singleLineHeight);
-			Rect hasOptionLabelRect = new(position.x + position.width - 65, position.y, 50, EditorGUIUtility.singleLineHeight);
-			Rect hasOptionsRect = new(position.x + position.width - 15, position.y, 15, EditorGUIUtility.singleLineHeight);
-
-			EditorGUI.PrefixLabel(position, label);
-			EditorGUI.PropertyField(nameRect, nameProperty, label);
+			EditorGUIHelper.DrawSearchableKeyProperty(nameProperty, label, keys);
 			bool isPlaying = audioService.IsPlaying();
 
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.PrefixLabel(" ");
+
+			EditorGUILayout.LabelField("Test", GUILayout.Width(30));
 			GUI.color = Color.yellow;
-			if (isPlaying && GUI.Button(buttonRect, EditorIcon.Stop))
+			if (isPlaying && GUILayout.Button(EditorIcon.Stop, GUILayout.Width(30)))
 			{
 				audioService.StopAll();
 			}
 			GUI.color = Color.white;
-			if (!isPlaying && GUI.Button(buttonRect, EditorIcon.Play))
+			if (!isPlaying && GUILayout.Button(EditorIcon.Play, GUILayout.Width(30)))
 			{
 				audioService.PlaySound((SoundFX)property.boxedValue);
 			}
 
-			EditorGUI.LabelField(hasOptionLabelRect, new GUIContent("Options"));
-			EditorGUI.PropertyField(hasOptionsRect, hasOptionsProperty, GUIContent.none);
+			EditorGUILayout.Space(10, true);
+
+			EditorGUILayout.LabelField(new GUIContent("Has options"), GUILayout.Width(70));
+			EditorGUILayout.PropertyField(hasOptionsProperty, GUIContent.none, GUILayout.Width(70));
+
+			EditorGUILayout.EndHorizontal();
 
 			if (hasOptionsProperty.boolValue)
 			{

@@ -38,6 +38,10 @@ namespace BlueCheese.App
 		public void Setup(PoolOptions options = default)
 		{
 			_options = options;
+			if (_options.Capacity <= 0)
+			{
+				_options.Capacity = DefaultCapacity;
+			}
 
 			if (options.UseContainer && _container == null)
 			{

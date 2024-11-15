@@ -51,5 +51,15 @@ namespace BlueCheese.App
 		/// Clears the pool by destroying all used and available instances.
 		/// </summary>
 		void Destroy();
+
+		/// <summary>
+		/// Fills the pool with the amount of instances.
+		/// </summary>
+		void Fill(int amount);
+
+		/// <summary>
+		/// Setup the pool with the options.
+		/// </summary>
+		void Setup(PoolOptions options);
 	}
 }
