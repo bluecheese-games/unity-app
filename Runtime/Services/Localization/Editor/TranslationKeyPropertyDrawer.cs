@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.Editor;
+using BlueCheese.Core.Utils.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,9 +11,6 @@ namespace BlueCheese.App.Editor
 	[CustomPropertyDrawer(typeof(TranslationKey))]
 	public class TranslationKeyPropertyDrawer : PropertyDrawer
 	{
-		private string _keyToSet = null;
-		private string _pluralKeyToSet = null;
-
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 		{
 			if (EditorGUI.PropertyField(position, property, label))
@@ -24,8 +21,10 @@ namespace BlueCheese.App.Editor
 
 		private void DrawTranslationKeyProperty(SerializedProperty property)
 		{
+			var keys = EditorServices.Get<EditorTranslationService>().GetAllKeys();
+
 			EditorGUILayout.BeginVertical("box");
-			DrawKey(property);
+			DrawKey(property, keys);
 			DrawPluralKey(property);
 			EditorGUI.indentLevel++;
 			DrawParameters(property);
@@ -33,50 +32,20 @@ namespace BlueCheese.App.Editor
 			EditorGUILayout.EndVertical();
 		}
 
-		private void DrawKey(SerializedProperty property)
+		private void DrawKey(SerializedProperty property, string[] keys)
 		{
 			var keyProperty = property.FindPropertyRelative("_key");
-			if (!string.IsNullOrEmpty(_keyToSet))
-			{
-				keyProperty.stringValue = _keyToSet;
-				_keyToSet = null;
-			}
-
-			bool keyExists = EditorServices.Get<ITranslationService>().Translate(keyProperty.stringValue) != keyProperty.stringValue;
-
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.PrefixLabel(new GUIContent("Key"));
-			keyProperty.stringValue = EditorGUIHelper.DrawTextfieldWithIcon(keyProperty.stringValue, keyExists ? EditorIcon.Valid : null, Color.green);
-			if (GUILayout.Button(new GUIContent(EditorIcon.Search), GUILayout.Width(40), GUILayout.Height(20)))
-			{
-				// Search for key
-				SearchTranslationKeyWindow.Open(key => _keyToSet = key);
-			}
-			EditorGUILayout.EndHorizontal();
+			EditorGUIHelper.DrawSearchableKeyProperty(keyProperty, new GUIContent("Key"), keys);
 		}
 
 		private void DrawPluralKey(SerializedProperty property)
 		{
 			var pluralKeyProperty = property.FindPropertyRelative("_pluralKey");
-			if (!string.IsNullOrEmpty(_pluralKeyToSet))
-			{
-				pluralKeyProperty.stringValue = _pluralKeyToSet;
-				_pluralKeyToSet = null;
-			}
 
 			if (!string.IsNullOrEmpty(pluralKeyProperty.stringValue))
 			{
-				bool keyExists = EditorServices.Get<ITranslationService>().Translate(pluralKeyProperty.stringValue) != pluralKeyProperty.stringValue;
-
-				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.PrefixLabel(new GUIContent("Plural Key"));
-				pluralKeyProperty.stringValue = EditorGUIHelper.DrawTextfieldWithIcon(pluralKeyProperty.stringValue, keyExists ? EditorIcon.Valid : null, Color.green);
-				if (GUILayout.Button(new GUIContent(EditorIcon.Search), GUILayout.Width(40), GUILayout.Height(20)))
-				{
-					// Search for key
-					SearchTranslationKeyWindow.Open(key => _pluralKeyToSet = key);
-				}
-				EditorGUILayout.EndHorizontal();
+				var keys = EditorServices.Get<EditorTranslationService>().GetAllKeys();
+				EditorGUIHelper.DrawSearchableKeyProperty(pluralKeyProperty, new GUIContent("PluralKey"), keys);
 			}
 			else
 			{

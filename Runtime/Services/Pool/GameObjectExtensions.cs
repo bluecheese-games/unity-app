@@ -9,22 +9,17 @@ namespace BlueCheese.App
 {
     public static class GameObjectExtensions 
     {
+		public static IGameObjectPool GetPool(this GameObject gameObject)
+			=> Services.Get<IGameObjectPoolService>().GetOrCreatePool(gameObject);
+
         public static GameObject Spawn(this GameObject gameObject)
-        {
-            var poolService = Services.Get<IGameObjectPoolService>();
-            var pool = poolService.GetOrCreatePool(gameObject);
-            return pool.Spawn();
-        }
+			=> GetPool(gameObject).Spawn();
 
 		public static T Spawn<T>(this GameObject gameObject) where T : Component
             => Spawn(gameObject).GetComponent<T>();
 
         public static void Despawn(this GameObject gameObject, float delay = 0f)
-		{
-			var poolService = Services.Get<IGameObjectPoolService>();
-			var pool = poolService.GetOrCreatePool(gameObject);
-            pool.Despawn(gameObject, delay);
-		}
+			=> GetPool(gameObject).Despawn(gameObject, delay);
 
         public static void SetupPool(this GameObject gameObject, PoolOptions options)
 		{

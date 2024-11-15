@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.Editor;
+using BlueCheese.Core.Utils.Editor;
 using System;
 using UnityEditor;
 using UnityEngine;
@@ -26,7 +26,6 @@ namespace BlueCheese.App.Editor
 		private bool _isPlaying = false;
 		private bool _restart = true;
 		private DateTime _previousTime = DateTime.Now;
-		private float _previewRatio = 0f;
 
 		private void OnEnable()
 		{

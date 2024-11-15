@@ -3,6 +3,8 @@
 //
 
 using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.Utils;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace BlueCheese.App.Sample
@@ -10,7 +12,8 @@ namespace BlueCheese.App.Sample
 	public class SpawnController : MonoBehaviour
 	{
 		[SerializeField] private LocalizedText _counterText;
-		[SerializeField] private GameObject _spawnedPrefab;
+		[SerializeField] private Collection _spawnedPrefabCollection;
+		[SerializeField] private float _spawnInterval = 1f;
 		[SerializeField] private float _spawnForce = 3f;
 		[SerializeField] private float _spawnLifetime = 5f;
 		[SerializeField] private SoundFX _spawnSFX = "SphereSpawn";
@@ -21,21 +24,13 @@ namespace BlueCheese.App.Sample
 		[Injectable] private IAudioService _audio;
 		[Injectable] private ILogger<SpawnController> _logger;
 
-		private IGameObjectPool _pool;
+		private HashSet<IGameObjectPool> _pools = new();
 
 		private void Awake()
 		{
 			Services.Inject(this);
 
-			_pool = _poolService.SetupPool(_spawnedPrefab, new()
-			{
-				Capacity = 15,
-				Overflow = PoolOverflow.LogError,
-				FillAmount = 10,
-				UseContainer = true,
-			});
-
-			InvokeRepeating(nameof(Spawn), 1f, 1f);
+			InvokeRepeating(nameof(Spawn), 1f, _spawnInterval);
 		}
 
 		private void Update()
@@ -44,28 +39,42 @@ namespace BlueCheese.App.Sample
 			{
 				Spawn();
 			}
-			if (_input.GetButtonDown("Fire2"))
-			{
-				_pool.Destroy();
-			}
 
-			_counterText.SetParameter(0, _pool.UsedItems.Count.ToString());
+			int usedItems = 0;
+			foreach (var pool in _pools)
+			{
+				usedItems += pool.UsedItems.Count;
+			}
+			_counterText.SetParameter(0, usedItems.ToString());
 		}
 
 		private void Spawn()
 		{
 			Log.Debug("Spawn", this);
-			var spawnedInstance = _pool.Spawn();
+			var prefab = _spawnedPrefabCollection.GetRandomObject<GameObject>();
+			var pool = prefab.GetPool();
+
+			if (!_pools.Contains(pool))
+			{
+				_pools.Add(pool);
+				pool.Setup(new()
+				{
+					FillAmount = 10,
+					UseContainer = true,
+				});
+			}
+
+			var spawnedInstance = pool.Spawn();
 			spawnedInstance.transform.SetPositionAndRotation(transform.position, transform.rotation);
 			if (spawnedInstance.TryGetComponent<Rigidbody>(out var rb))
 			{
 				float angle = _random.Value * Mathf.PI * 2;
-				rb.velocity = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * _spawnForce;
+				rb.velocity = new Vector3(Mathf.Cos(angle) * 0.5f, 1f, Mathf.Sin(angle) * 0.5f) * _spawnForce;
 			}
 
 			_spawnSFX.Play(transform.position);
 
-			_pool.Despawn(spawnedInstance, _spawnLifetime);
+			pool.Despawn(spawnedInstance, _spawnLifetime);
 		}
 	}
 }
