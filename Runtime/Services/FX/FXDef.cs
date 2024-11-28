@@ -8,6 +8,7 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
+
 	[CreateAssetMenu(menuName = "FX/FXDef", fileName = "New FX")]
 	public class FXDef : ScriptableObject
 	{
@@ -15,6 +16,7 @@ namespace BlueCheese.App
 		public bool OverrideDuration = false;
 		[EnableIf(nameof(OverrideDuration)), AllowNesting]
 		public float Duration = 0f;
+		public FXScalerDef[] Scalers;
 		[HideInInspector]
 		public PreviewSettings _previewSettings = new();
 
@@ -35,6 +37,18 @@ namespace BlueCheese.App
 			if (!OverrideDuration && Prefab != null && Prefab.TryGetComponent<ParticleSystem>(out var particleSystem))
 			{
 				Duration = particleSystem.main.loop ? 0 : particleSystem.main.duration;
+			}
+
+			if (Scalers != null)
+			{
+				for (int i = 0; i < Scalers.Length; i++)
+				{
+					Scalers[i].name = Scalers[i].type.ToString();
+					if (Scalers[i].curve == null || Scalers[i].curve.keys.Length == 0)
+					{
+						Scalers[i].curve = AnimationCurve.Constant(0, 1, 1);
+					}
+				}
 			}
 		}
 

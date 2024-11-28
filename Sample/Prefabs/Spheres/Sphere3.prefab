@@ -52,6 +52,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Sphere3
       objectReference: {fileID: 0}
+    - target: {fileID: 3330849576144205613, guid: 30bcf10f99ff2e941a7cf45d15601e9d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3574956385969408548, guid: 30bcf10f99ff2e941a7cf45d15601e9d, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 

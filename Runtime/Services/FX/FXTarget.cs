@@ -2,6 +2,7 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
+using BlueCheese.Core.Utils;
 using System;
 using UnityEngine;
 
@@ -35,6 +36,7 @@ namespace BlueCheese.App
 		void IDespawnable.OnDespawn()
 		{
 			OnDestroyed?.Invoke();
+			OnDestroyed = null;
 		}
 	}
 }

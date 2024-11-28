@@ -3,25 +3,26 @@
 //
 
 using BlueCheese.Core;
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.Utils;
 using UnityEngine;
 
 namespace BlueCheese.App
 {
-	public class FXInstance : MonoBehaviour
+	public class FXInstance : MonoBehaviour, IRecyclable
 	{
-		private float _duration;
+		private FXDef _def;
 		private Transform _target;
 		private Vector3 _offset;
 		private bool _isPlaying;
 		private float _timeElapsed;
+		private float _scaleValue = 1f;
 		private ParticleSystem _particleSystem;
 
 		public bool IsAlive => _isPlaying && gameObject.activeInHierarchy;
 
 		public void Setup(FXDef fxDef)
 		{
-			_duration = fxDef.Duration;
+			_def = fxDef;
 			_particleSystem = GetComponent<ParticleSystem>();
 		}
 
@@ -38,7 +39,7 @@ namespace BlueCheese.App
 			{
 				Stop();
 			}
-			else if (_duration > 0f && _timeElapsed >= _duration)
+			else if (_def.Duration > 0f && _timeElapsed >= _def.Duration)
 			{
 				Stop();
 			}
@@ -49,20 +50,34 @@ namespace BlueCheese.App
 			}
 		}
 
-		public void Play(Transform target, Vector3 offset = default)
-		{
-			_target = target;
-			_offset = offset;
-			Play(target.position + _offset);
-		}
+		public void Scale(float value) => _scaleValue = value;
 
-		public void Play(Vector3 position)
+		public void PlayOnTarget(Transform target, Vector3 offset = default)
 		{
 			if (_isPlaying)
 			{
 				return;
 			}
 
+			_target = target;
+			_offset = offset;
+			PlayAtPosition(target.position + _offset);
+		}
+
+		public void PlayAtPosition(Vector3 position)
+		{
+			if (_isPlaying)
+			{
+				return;
+			}
+
+			transform.position = position;
+
+			Play();
+		}
+
+		private void Play()
+		{
 			_isPlaying = true;
 			_timeElapsed = 0f;
 			if (_target != null)
@@ -71,24 +86,24 @@ namespace BlueCheese.App
 				fxTarget.Subscribe(OnTargetDestroyed);
 			}
 
-			transform.position = position;
+			foreach (var scaler in _def.Scalers)
+			{
+				scaler.Apply(_particleSystem, _scaleValue);
+			}
 
-			Services.Get<IFXService>().RegisterInstance(this);
+			if (_particleSystem != null)
+			{
+				_particleSystem.Play(true);
+			}
 		}
 
 		private void OnTargetDestroyed()
 		{
-			_target = null;
 			Stop();
 		}
 
 		public void Stop()
 		{
-			if (!_isPlaying)
-			{
-				return;
-			}
-
 			_isPlaying = false;
 			gameObject.SetActive(false);
 
@@ -96,18 +111,20 @@ namespace BlueCheese.App
 			{
 				fxTarget.Unsubscribe(OnTargetDestroyed);
 			}
+			_target = null;
+		}
+
+		public void OnRecycle()
+		{
+			_isPlaying = false;
+			_scaleValue = 1f;
+			_target = null;
 		}
 
 		public void Pause() => _isPlaying = false;
 
 		public void Resume() => _isPlaying = true;
 
-		private void OnDestroy()
-		{
-			if (_target != null && _target.TryGetComponent<FXTarget>(out var fxTarget))
-			{
-				fxTarget.Unsubscribe(OnTargetDestroyed);
-			}
-		}
+		private void OnDestroy() => Stop();
 	}
 }

@@ -93,7 +93,7 @@ namespace BlueCheese.Tests.Services
 		}
 	}
 
-	public class FakeAudioPlayer : AudioPlayer
+	public class FakeAudioPlayer : AudioItemPlayer
 	{
 		override public AudioItem PlayingItem { get; protected set; }
 

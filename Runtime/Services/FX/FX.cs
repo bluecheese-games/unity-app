@@ -18,24 +18,30 @@ namespace BlueCheese.App
 			_fxDef = fxDef;
 		}
 
-		private readonly FXInstance GetInstance() => Services.Get<IFXService>().CreateFX(_fxDef);
+		private readonly FXInstance CreateInstance() => Services.Get<IFXService>().CreateFX(_fxDef);
 
-		public readonly void Play(Transform target, Vector3 offset = default)
+		public readonly void Play(Transform target, Vector3 offset = default, float scale = 1f)
 		{
 			if (!IsValid)
 			{
 				return;
 			}
-			GetInstance().Play(target, offset);
+
+			var instance = CreateInstance();
+			instance.Scale(scale);
+			instance.PlayOnTarget(target, offset);
 		}
 
-		public readonly void Play(Vector3 position)
+		public readonly void Play(Vector3 position, float scale = 1f)
 		{
 			if (!IsValid)
 			{
 				return;
 			}
-			GetInstance().Play(position);
+
+			var instance = CreateInstance();
+			instance.Scale(scale);
+			instance.PlayAtPosition(position);
 		}
 
 		public readonly bool IsValid => _fxDef != null && _fxDef.IsValid;

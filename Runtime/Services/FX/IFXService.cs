@@ -71,6 +71,7 @@ namespace BlueCheese.App
 			var obj = _poolService.GetOrCreatePool(fxDef.Prefab).Spawn();
 			var instance = obj.AddOrGetComponent<FXInstance>();
 			instance.Setup(fxDef);
+			RegisterInstance(instance);
 			return instance;
 		}
 
