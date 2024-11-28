@@ -24,7 +24,7 @@ namespace BlueCheese.App
 		private MusicOptions _whenReadyMusicOptions;
 		private IGameObjectPool _audioPlayerPool;
 
-		private readonly List<AudioPlayer> _audioPlayers = new();
+		private readonly List<AudioItemPlayer> _audioPlayers = new();
 		private readonly Dictionary<string, AudioItem> _audioItems = new();
 
 		public AudioService(ILocalStorageService localStorage, IGameObjectPoolService pool, IAssetLoaderService assetLoader, Options options)
@@ -56,7 +56,7 @@ namespace BlueCheese.App
 
 		private void InitializeAudioPool()
 		{
-			_audioPlayerPool = _poolService.SetupPool<AudioPlayer>(new PoolOptions()
+			_audioPlayerPool = _poolService.SetupPool<AudioItemPlayer>(new PoolOptions()
 			{
 				FillAmount = _options.AudioPoolCapacity,
 				DontDestroyOnLoad = true,
@@ -146,7 +146,7 @@ namespace BlueCheese.App
 			StopSoundsWhere(player => true, fadeDuration);
 		}
 
-        private void StopSoundsWhere(Func<AudioPlayer, bool> predicate, float fadeDuration = 0)
+        private void StopSoundsWhere(Func<AudioItemPlayer, bool> predicate, float fadeDuration = 0)
         {
 			var players = _audioPlayers.Where(predicate).ToArray();
             foreach (var player in players)
@@ -210,9 +210,9 @@ namespace BlueCheese.App
 			return null;
 		}
 
-		private AudioPlayer GetAvailablePlayer()
+		private AudioItemPlayer GetAvailablePlayer()
 		{
-			AudioPlayer player = _audioPlayerPool.Spawn<AudioPlayer>();
+			AudioItemPlayer player = _audioPlayerPool.Spawn<AudioItemPlayer>();
 			if (!_audioPlayers.Contains(player))
 			{
 				_audioPlayers.Add(player);
@@ -221,7 +221,7 @@ namespace BlueCheese.App
 			return player;
 		}
 
-		private void HandleSoundFinished(AudioPlayer audioPlayer)
+		private void HandleSoundFinished(AudioItemPlayer audioPlayer)
 		{
 			_audioPlayers.Remove(audioPlayer);
 			_audioPlayerPool.Despawn(audioPlayer);
@@ -232,7 +232,7 @@ namespace BlueCheese.App
 			/// <summary>
 			/// Custom audio player factory.
 			/// </summary>
-			public Func<AudioPlayer> AudioPlayerFactory;
+			public Func<AudioItemPlayer> AudioPlayerFactory;
 
 			/// <summary>
 			/// Directly provided audio banks.

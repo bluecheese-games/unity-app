@@ -3,6 +3,7 @@
 //
 
 using BlueCheese.Core;
+using BlueCheese.Core.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -72,7 +73,7 @@ namespace BlueCheese.App
 
 			for (int i = _poolItems.Count; i < amount; i++)
 			{
-				Add(CreateItem());
+				Add(CreateItem(false));
 			}
 		}
 
@@ -103,18 +104,21 @@ namespace BlueCheese.App
 			{
 				item = _poolItems.First();
 				item.Recycle();
-				item.gameObject.SetActive(true);
+				if (!item.gameObject.activeSelf)
+				{
+					item.gameObject.SetActive(true);
+				}
 				_poolItems.Remove(item);
 			}
 			else
 			{
-				item = CreateItem();
+				item = CreateItem(true);
 			}
 			_usedItems.Add(item);
 			return item;
 		}
 
-		private PoolItem CreateItem()
+		private PoolItem CreateItem(bool enabled)
 		{
 			int count = _poolItems.Count + _usedItems.Count;
 			if (count >= _options.Capacity)
@@ -137,7 +141,7 @@ namespace BlueCheese.App
 				}
 			}
 
-			GameObject obj = InstantiateObject();
+			GameObject obj = InstantiateObject(enabled);
 
 			if (_componentType != null)
 			{
@@ -157,24 +161,35 @@ namespace BlueCheese.App
 			return item;
 		}
 
-		private GameObject InstantiateObject()
+		private GameObject InstantiateObject(bool enabled)
 		{
+			GameObject obj;
 			if (_options.Factory != null)
 			{
-				return _options.Factory();
+				obj = _options.Factory();
 			}
 			else if (_prefab != null)
 			{
-				return _gameObjectService.Instantiate(_prefab);
+				bool active = _prefab.activeSelf;
+				_prefab.SetActive(enabled);
+				obj = _gameObjectService.Instantiate(_prefab);
+				_prefab.SetActive(active);
 			}
 			else
 			{
-				return _gameObjectService.CreateEmptyObject();
+				obj = _gameObjectService.CreateEmptyObject();
+				obj.SetActive(enabled);
 			}
+			return obj;
 		}
 
 		private void Add(PoolItem item)
 		{
+			if (item.gameObject.activeSelf)
+			{
+				item.gameObject.SetActive(false);
+			}
+
 			int count = _poolItems.Count + _usedItems.Count;
 			if (count >= _options.Capacity)
 			{
@@ -182,7 +197,6 @@ namespace BlueCheese.App
 			}
 			else
 			{
-				item.gameObject.SetActive(false);
 				_poolItems.Add(item);
 				_usedItems.Remove(item);
 			}

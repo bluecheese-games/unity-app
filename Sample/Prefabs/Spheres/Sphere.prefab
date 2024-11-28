@@ -162,8 +162,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _fx:
     _fxDef: {fileID: 11400000, guid: 606f0fc46252e1b47b1f48c1a4883b39, type: 2}
-  _playTime: 66
+  _playTime: 4
   _delay: 0
+  _scale: 1
   _target: {fileID: 1362956510110065616}
   _offset: {x: 0, y: 0, z: 0}
 --- !u!114 &7479634912308544054
@@ -182,5 +183,6 @@ MonoBehaviour:
     _fxDef: {fileID: 11400000, guid: c0228b673e6aee84985c1e290433b5bd, type: 2}
   _playTime: 8
   _delay: 0
+  _scale: 1
   _target: {fileID: 0}
   _offset: {x: 0, y: 0, z: 0}

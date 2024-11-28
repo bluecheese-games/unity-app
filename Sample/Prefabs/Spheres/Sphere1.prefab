@@ -50,7 +50,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3330849576144205613, guid: 30bcf10f99ff2e941a7cf45d15601e9d, type: 3}
       propertyPath: m_Name
-      value: Sphere
+      value: Sphere1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3330849576144205613, guid: 30bcf10f99ff2e941a7cf45d15601e9d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
