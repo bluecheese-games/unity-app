@@ -244,7 +244,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _counterText: {fileID: 949288740}
-  _spawnedPrefabCollection: {fileID: 11400000, guid: 2b9f1d8623022b749b73e76bf3faea93, type: 2}
+  _spawnedPrefabCollection: {fileID: 11400000, guid: 235ff34154c644a4c872eaebb2b7dc7f, type: 2}
   _spawnInterval: 0.5
   _spawnForce: 12
   _spawnLifetime: 2

@@ -70,4 +70,5 @@ MonoBehaviour:
       m_RotationOrder: 4
   _previewSettings:
     backgroundColor: {r: 0, g: 0, b: 0, a: 1}
-    zoom: 1
+    showSkybox: 1
+    zoom: 1.5277778

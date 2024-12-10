@@ -12,7 +12,7 @@ namespace BlueCheese.App.Sample
 	public class SpawnController : MonoBehaviour
 	{
 		[SerializeField] private LocalizedText _counterText;
-		[SerializeField] private Collection _spawnedPrefabCollection;
+		[SerializeField] private PrefabCollection _spawnedPrefabCollection;
 		[SerializeField] private float _spawnInterval = 1f;
 		[SerializeField] private float _spawnForce = 3f;
 		[SerializeField] private float _spawnLifetime = 5f;
@@ -51,7 +51,7 @@ namespace BlueCheese.App.Sample
 		private void Spawn()
 		{
 			Log.Debug("Spawn", this);
-			var prefab = _spawnedPrefabCollection.GetRandomObject<GameObject>();
+			var prefab = _spawnedPrefabCollection.GetRandom();
 			var pool = prefab.GetPool();
 
 			if (!_pools.Contains(pool))

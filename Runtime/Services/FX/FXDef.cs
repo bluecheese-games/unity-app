@@ -14,9 +14,8 @@ namespace BlueCheese.App
 	{
 		public GameObject Prefab;
 		public bool OverrideDuration = false;
-		[EnableIf(nameof(OverrideDuration)), AllowNesting]
 		public float Duration = 0f;
-		public FXScalerDef[] Scalers;
+		public FXScaler[] Scalers;
 		[HideInInspector]
 		public PreviewSettings _previewSettings = new();
 
@@ -56,6 +55,7 @@ namespace BlueCheese.App
 		public class PreviewSettings
 		{
 			public Color backgroundColor = Color.black;
+			public bool showSkybox = false;
 			public float zoom = 1f;
 		}
 	}

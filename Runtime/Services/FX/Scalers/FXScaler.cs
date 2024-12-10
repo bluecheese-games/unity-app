@@ -2,22 +2,48 @@
 // Copyright (c) 2024 BlueCheese Games All rights reserved
 //
 
+using BlueCheese.Core;
+using System;
 using UnityEngine;
 
 namespace BlueCheese.App
 {
-	public abstract class FXScaler : MonoBehaviour
+	[Serializable]
+	public struct FXScaler
 	{
-		protected ParticleSystem _ps;
-
-		private void Awake()
+		[Serializable]
+		public enum Type
 		{
-			_ps = GetComponent<ParticleSystem>();
-			Initialize();
+			None,
+			ParticleCount,
+			ParticleSize,
 		}
 
-		protected abstract void Initialize();
+		[HideInInspector]
+		public string name;
+		public Type type;
+		public AnimationCurve curve;
 
-		public abstract void Apply(float ratio);
+		public readonly void Apply(ParticleSystem ps, float ratio = 1f)
+		{
+			if (curve == null || type == Type.None)
+			{
+				return;
+			}
+
+			float value = curve.Evaluate(ratio);
+			FXScalerBase scaler = CreateScalerComponent(ps);
+			if (scaler != null)
+			{
+				scaler.Apply(value);
+			}
+		}
+
+		private readonly FXScalerBase CreateScalerComponent(ParticleSystem ps) => type switch
+		{
+			Type.ParticleCount => ps.AddOrGetComponent<FXScalerParticleCount>(),
+			Type.ParticleSize => ps.AddOrGetComponent<FXScalerParticleSize>(),
+			_ => null,
+		};
 	}
 }
