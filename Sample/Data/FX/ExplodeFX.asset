@@ -13,6 +13,10 @@ MonoBehaviour:
   m_Name: ExplodeFX
   m_EditorClassIdentifier: 
   Prefab: {fileID: 4298575415737741924, guid: 05bcca53a5b0a5342a0db73b87e105ca, type: 3}
-  HasDuration: 0
-  Duration: 0
-  IgnoreParticleSystem: 0
+  OverrideDuration: 0
+  Duration: 1
+  Scalers: []
+  _previewSettings:
+    backgroundColor: {r: 0, g: 0, b: 0, a: 1}
+    showSkybox: 0
+    zoom: 1

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-	public class FXScalerParticleCount : FXScaler
+	public class FXScalerParticleCount : FXScalerBase
 	{
 		private float[] _burstCounts;
 		private float _rateOverTime;

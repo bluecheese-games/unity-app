@@ -4,7 +4,7 @@
 
 namespace BlueCheese.App
 {
-	public class FXScalerParticleSize : FXScaler
+	public class FXScalerParticleSize : FXScalerBase
 	{
 		private float _startSize;
 
