@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024 BlueCheese Games All rights reserved
+// Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
 namespace BlueCheese.App
@@ -13,6 +13,6 @@ namespace BlueCheese.App
             _logger = logger;
         }
 
-        public void Track(ITrackingService.Event evt) => _logger.LogInfo(evt);
+        public void Track(in ITrackingService.Event evt) => _logger.LogInfo(evt);
     }
 }

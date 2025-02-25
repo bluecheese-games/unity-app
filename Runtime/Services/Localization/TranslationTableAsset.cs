@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024 BlueCheese Games All rights reserved
+// Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
 using BlueCheese.App.Editor;
@@ -11,10 +11,12 @@ using UnityEngine;
 namespace BlueCheese.App
 {
 	[CreateAssetMenu(fileName = "TranslationTable", menuName = "Localization/Translation Table")]
-	public class TranslationTableAsset : ScriptableObject
+	public class TranslationTableAsset : ScriptableObject, ITranslationTableAsset
 	{
 		[SerializeField] private List<string> _keys;
 		[SerializeField] private List<Translations> _translations;
+
+		public string Name => name;
 
 		public void Load(ITranslationService translationService)
 		{
@@ -50,7 +52,7 @@ namespace BlueCheese.App
 		private Translations GetTranslations(Language language)
 		{
 			return _translations.FirstOrDefault(t => t.Language == language);
-		} 
+		}
 
 		public string GetTranslation(Language language, string key)
 		{
@@ -88,6 +90,21 @@ namespace BlueCheese.App
 			}
 		}
 
+		public void RemoveKey(string key)
+		{
+			var index = _keys.IndexOf(key);
+			RemoveKey(index);
+		}
+
+		public void RemoveKey(int keyIndex)
+		{
+			_keys.RemoveAt(keyIndex);
+			foreach (var translation in _translations)
+			{
+				translation.Items.RemoveAt(keyIndex);
+			}
+		}
+
 		public void SetKey(int keyIndex, string newKey)
 		{
 			_keys[keyIndex] = newKey;
@@ -97,7 +114,7 @@ namespace BlueCheese.App
 		{
 			foreach (var key in _keys)
 			{
-				if (key.Contains(searchText)) return true;
+				if (key.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)) return true;
 			}
 			return false;
 		}
@@ -108,7 +125,7 @@ namespace BlueCheese.App
 			{
 				foreach (var item in translation.Items)
 				{
-					if (item.Contains(searchText)) return true;
+					if (item.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)) return true;
 				}
 			}
 			return false;
@@ -140,6 +157,11 @@ namespace BlueCheese.App
 			{
 				Items.Add(value);
 			}
+		}
+
+		public void Open()
+		{
+			TranslationTableWindow.Open(this);
 		}
 	}
 }

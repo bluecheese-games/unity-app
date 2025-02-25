@@ -1,8 +1,7 @@
-﻿//
-// Copyright (c) 2024 BlueCheese Games All rights reserved
+//
+// Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core;
 using BlueCheese.Core.Utils;
 using UnityEngine;
 
@@ -12,7 +11,8 @@ namespace BlueCheese.App
 	{
 		private FXDef _def;
 		private Transform _target;
-		private Vector3 _offset;
+		private Vector3 _offsetPosition;
+		private Vector3 _offsetRotation;
 		private bool _isPlaying;
 		private float _timeElapsed;
 		private float _scaleValue = 1f;
@@ -34,7 +34,6 @@ namespace BlueCheese.App
 			}
 
 			_timeElapsed += deltaTime;
-
 			if (_particleSystem != null && _particleSystem.isStopped)
 			{
 				Stop();
@@ -43,16 +42,11 @@ namespace BlueCheese.App
 			{
 				Stop();
 			}
-
-			if (_target)
-			{
-				transform.SetPositionAndRotation(_target.position + _offset, _target.rotation);
-			}
 		}
 
 		public void Scale(float value) => _scaleValue = value;
 
-		public void PlayOnTarget(Transform target, Vector3 offset = default)
+		public void PlayOnTarget(Transform target, Vector3 offsetPosition = default, Vector3 offsetRotation = default)
 		{
 			if (_isPlaying)
 			{
@@ -60,18 +54,19 @@ namespace BlueCheese.App
 			}
 
 			_target = target;
-			_offset = offset;
-			PlayAtPosition(target.position + _offset);
+			_offsetPosition = offsetPosition;
+			_offsetRotation = offsetRotation;
+			PlayAt(target.position + _offsetPosition, target.rotation * Quaternion.Euler(_offsetRotation));
 		}
 
-		public void PlayAtPosition(Vector3 position)
+		public void PlayAt(Vector3 position, Quaternion rotation = default)
 		{
 			if (_isPlaying)
 			{
 				return;
 			}
 
-			transform.position = position;
+			transform.SetPositionAndRotation(position, rotation);
 
 			Play();
 		}
@@ -82,8 +77,7 @@ namespace BlueCheese.App
 			_timeElapsed = 0f;
 			if (_target != null)
 			{
-				var fxTarget = _target.gameObject.AddOrGetComponent<FXTarget>();
-				fxTarget.Subscribe(OnTargetDestroyed);
+				FXTarget.Register(_target.gameObject, this, _offsetPosition, _offsetRotation);
 			}
 
 			foreach (var scaler in _def.Scalers)
@@ -97,21 +91,40 @@ namespace BlueCheese.App
 			}
 		}
 
-		private void OnTargetDestroyed()
+		public void StopEmitting()
 		{
-			Stop();
+			if (!_isPlaying)
+			{
+				return;
+			}
+
+			if (_particleSystem != null)
+			{
+				// Stop the particle system from emitting new particles
+				// Once all existing particles have died, the particle system will stop
+				_particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+			}
+			else
+			{
+				Stop();
+			}
 		}
 
 		public void Stop()
 		{
+			if (!_isPlaying)
+			{
+				return;
+			}
+
 			_isPlaying = false;
 			gameObject.SetActive(false);
 
-			if (_target != null && _target.TryGetComponent<FXTarget>(out var fxTarget))
+			if (_target != null)
 			{
-				fxTarget.Unsubscribe(OnTargetDestroyed);
+				FXTarget.Unregister(_target.gameObject, this);
+				_target = null;
 			}
-			_target = null;
 		}
 
 		public void OnRecycle()

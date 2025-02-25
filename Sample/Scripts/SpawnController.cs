@@ -1,11 +1,12 @@
 //
-// Copyright (c) 2024 BlueCheese Games All rights reserved
+// Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
 using BlueCheese.Core.ServiceLocator;
 using BlueCheese.Core.Utils;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace BlueCheese.App.Sample
 {
@@ -29,8 +30,17 @@ namespace BlueCheese.App.Sample
 		private void Awake()
 		{
 			Services.Inject(this);
+			Assert.IsNotNull(_poolService);
+		}
 
+		private void OnEnable()
+		{
 			InvokeRepeating(nameof(Spawn), 1f, _spawnInterval);
+		}
+
+		private void OnDisable()
+		{
+			CancelInvoke(nameof(Spawn));
 		}
 
 		private void Update()
@@ -43,7 +53,7 @@ namespace BlueCheese.App.Sample
 			int usedItems = 0;
 			foreach (var pool in _pools)
 			{
-				usedItems += pool.UsedItems.Count;
+				usedItems += pool.CountInUse;
 			}
 			_counterText.SetParameter(0, usedItems.ToString());
 		}
@@ -72,7 +82,7 @@ namespace BlueCheese.App.Sample
 				rb.velocity = new Vector3(Mathf.Cos(angle) * 0.5f, 1f, Mathf.Sin(angle) * 0.5f) * _spawnForce;
 			}
 
-			_spawnSFX.Play(transform.position);
+			_spawnSFX.Play();
 
 			pool.Despawn(spawnedInstance, _spawnLifetime);
 		}

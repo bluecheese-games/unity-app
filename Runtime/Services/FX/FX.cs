@@ -1,5 +1,5 @@
-﻿//
-// Copyright (c) 2024 BlueCheese Games All rights reserved
+//
+// Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
 using BlueCheese.Core.ServiceLocator;
@@ -20,28 +20,32 @@ namespace BlueCheese.App
 
 		private readonly FXInstance CreateInstance() => Services.Get<IFXService>().CreateFX(_fxDef);
 
-		public readonly void Play(Transform target, Vector3 offset = default, float scale = 1f)
+		public readonly FXInstance Play(Transform target, Vector3 offset = default, float scale = 1f)
 		{
 			if (!IsValid)
 			{
-				return;
+				return null;
 			}
 
 			var instance = CreateInstance();
 			instance.Scale(scale);
 			instance.PlayOnTarget(target, offset);
+
+			return instance;
 		}
 
-		public readonly void Play(Vector3 position, float scale = 1f)
+		public readonly FXInstance Play(Vector3 position, Quaternion rotation = default, float scale = 1f)
 		{
 			if (!IsValid)
 			{
-				return;
+				return null;
 			}
 
 			var instance = CreateInstance();
 			instance.Scale(scale);
-			instance.PlayAtPosition(position);
+			instance.PlayAt(position, rotation);
+
+			return instance;
 		}
 
 		public readonly bool IsValid => _fxDef != null && _fxDef.IsValid;

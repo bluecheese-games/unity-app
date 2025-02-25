@@ -1,13 +1,17 @@
 //
-// Copyright (c) 2024 BlueCheese Games All rights reserved
+// Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 namespace BlueCheese.App
 {
 	public class TranslationService : ITranslationService
 	{
+		private const string TranslationsResourcePath = "Translations";
+
 		protected readonly ILocalizationService _localization;
 		protected readonly IAssetLoaderService _assetLoader;
 		protected readonly Dictionary<Language, TranslationTable> _translations = new();
@@ -20,7 +24,9 @@ namespace BlueCheese.App
 
 		public void Initialize()
 		{
-			var translationAssets = _assetLoader.LoadAssetsFromResources<TranslationTableAsset>("Translations");
+			var translationAssets = _assetLoader
+				.LoadAssetsFromResources<ScriptableObject>(TranslationsResourcePath)
+				.OfType<ITranslationTableAsset>();
 			foreach (var translationAsset in translationAssets)
 			{
 				translationAsset.Load(this);
