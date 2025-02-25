@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024 BlueCheese Games All rights reserved
+// Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
 using BlueCheese.Core;
@@ -157,6 +157,7 @@ namespace BlueCheese.App
 			{
 				_gameObjectService.DontDestroyOnLoad(obj);
 			}
+			item.hideFlags = HideFlags.HideInInspector;
 			item.Pool = this;
 			return item;
 		}
@@ -271,9 +272,9 @@ namespace BlueCheese.App
 			}
 		}
 
-		public IReadOnlyList<PoolItem> PoolItems => _poolItems.ToList();
+		public int CountInUse => _usedItems.Count;
 
-		public IReadOnlyList<PoolItem> UsedItems => _usedItems.ToList();
+		public int CountAvailable => _poolItems.Count;
 
 		public class PoolItem : MonoBehaviour
 		{

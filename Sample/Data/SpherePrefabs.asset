@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c797762b3d43a740a1b996861570970, type: 3}
   m_Name: SpherePrefabs
   m_EditorClassIdentifier: 
-  Name: 
+  Name: Spheres
   Tags:
     _values: []
+  RegisterInAssetBank: 1
   _items:
   - {fileID: 7658002209671511108, guid: c77e1f5b32f16d840b20e342b5aa4018, type: 3}
   - {fileID: 3670112285062335086, guid: 1cd8672ec8f89fa458695abe4a57840d, type: 3}

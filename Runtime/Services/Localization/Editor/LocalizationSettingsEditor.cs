@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024 BlueCheese Games All rights reserved
+// Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
 using BlueCheese.Core.Utils.Editor;
@@ -34,6 +34,8 @@ namespace BlueCheese.App.Editor
 			DrawSupportedLanguages();
 			EditorGUILayout.Space();
 			DrawTranslationTables();
+			EditorGUILayout.Space();
+			DrawDuplicates();
 
 			if (serializedObject.ApplyModifiedProperties())
 			{
@@ -66,7 +68,7 @@ namespace BlueCheese.App.Editor
 				fixedHeight = 20
 			};
 
-			// Add defalut language in supported languages if it is not already there
+			// Add default language in supported languages if it is not already there
 			if (!_settings.SupportedLanguages.Contains(_settings.DefaultLanguage))
 			{
 				_supportedLanguagesProperty.InsertArrayElementAtIndex(0);
@@ -149,7 +151,10 @@ namespace BlueCheese.App.Editor
 
 			var searchIcon = EditorGUIUtility.IconContent("Search Icon").image;
 			var assetFinder = EditorServices.Get<IAssetFinderService>();
-			var translationTables = assetFinder.FindAssetsInResources<TranslationTableAsset>();
+			var translationTables = assetFinder
+				.FindAssetsInResources<ScriptableObject>()
+				.OfType<ITranslationTableAsset>()
+				.ToList();
 
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField(new GUIContent(searchIcon), GUILayout.Width(20));
@@ -167,10 +172,10 @@ namespace BlueCheese.App.Editor
 				}
 				foundAny = true;
 				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.LabelField($"{table.name} [{table.Keys.Count}]", EditorStyles.boldLabel);
+				EditorGUILayout.LabelField($"{table.Name} [{table.Keys.Count}]", EditorStyles.boldLabel);
 				if (GUILayout.Button("Open", GUILayout.Width(100)))
 				{
-					TranslationTableWindow.Open(table);
+					table.Open();
 				}
 				EditorGUILayout.EndHorizontal();
 			}
@@ -183,6 +188,39 @@ namespace BlueCheese.App.Editor
 				else
 				{
 					EditorGUILayout.LabelField("No translation tables found. Create one by right clicking in a resources folder");
+				}
+			}
+			EditorGUILayout.EndVertical();
+		}
+
+		private void DrawDuplicates()
+		{
+			var assetFinder = EditorServices.Get<IAssetFinderService>();
+			var translationTables = assetFinder
+				.FindAssetsInResources<ScriptableObject>()
+				.OfType<ITranslationTableAsset>()
+				.ToList();
+			var duplicateKeys = translationTables
+				.SelectMany(t => t.Keys)
+				.GroupBy(k => k)
+				.Where(g => g.Count() > 1)
+				.Select(g => g.Key)
+				.ToList();
+			if (duplicateKeys.Count == 0)
+			{
+				return;
+			}
+			EditorGUILayout.HelpBox($"Found {duplicateKeys.Count} duplicate keys", MessageType.Warning);
+			EditorGUILayout.BeginVertical("box");
+			foreach (var key in duplicateKeys)
+			{
+				EditorGUILayout.LabelField(key, EditorStyles.boldLabel);
+				foreach (var table in translationTables)
+				{
+					if (table.Keys.Contains(key))
+					{
+						EditorGUILayout.LabelField($"> In {table.Name}");
+					}
 				}
 			}
 			EditorGUILayout.EndVertical();

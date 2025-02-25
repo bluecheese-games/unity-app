@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024 BlueCheese Games All rights reserved
+// Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ namespace BlueCheese.App
 {
     public interface ITrackingService
     {
-        void Track(Event evt);
+        void Track(in Event evt);
 
         public readonly ref struct Event
         {

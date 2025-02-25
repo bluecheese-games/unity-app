@@ -1,5 +1,5 @@
-﻿//
-// Copyright (c) 2024 BlueCheese Games All rights reserved
+//
+// Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
 using BlueCheese.Core.Utils;
@@ -25,7 +25,7 @@ namespace BlueCheese.App
 		{
 			if (_target == null)
 			{
-				_fx.Play(transform.position + _offset, _scale);
+				_fx.Play(transform.position + _offset, transform.rotation, _scale);
 			}
 			else
 			{

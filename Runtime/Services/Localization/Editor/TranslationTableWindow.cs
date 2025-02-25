@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024 BlueCheese Games All rights reserved
+// Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
 using BlueCheese.Core.Utils.Editor;
@@ -96,7 +96,7 @@ namespace BlueCheese.App.Editor
 
 			_languageToAddIndex = EditorGUILayout.Popup(_languageToAddIndex, languageNames.ToArray(), enumStyle, GUILayout.Width(_columnWidth - 33));
 
-			if(_languageToAddIndex == 0)
+			if (_languageToAddIndex == 0)
 			{
 				GUI.enabled = false;
 			}
@@ -153,9 +153,15 @@ namespace BlueCheese.App.Editor
 						_needsRefresh = true;
 					}
 				}
-				GUI.enabled = false;
-				EditorGUILayout.TextField("", GUILayout.Width(_columnWidth));
-				GUI.enabled = true;
+				if (GUILayout.Button(new GUIContent(EditorIcon.Trash), GUILayout.Width(30)))
+				{
+					if (EditorUtility.DisplayDialog("Delete Key", $"Are you sure you want to delete the key '{key}' and all its translations?", "Yes", "No"))
+					{
+						Undo.RecordObject(_asset, "Delete Key");
+						_asset.RemoveKey(key);
+						_needsRefresh = true;
+					}
+				}
 				EditorGUILayout.EndHorizontal();
 			}
 

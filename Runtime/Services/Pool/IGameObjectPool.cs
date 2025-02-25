@@ -1,17 +1,13 @@
 //
-// Copyright (c) 2024 BlueCheese Games All rights reserved
+// Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace BlueCheese.App
 {
 	public interface IGameObjectPool
 	{
-		IReadOnlyList<GameObjectPool.PoolItem> PoolItems { get; }
-		IReadOnlyList<GameObjectPool.PoolItem> UsedItems { get; }
-
 		/// <summary>
 		/// Spawns an instance from the pool using the prefab.
 		/// </summary>
@@ -61,5 +57,15 @@ namespace BlueCheese.App
 		/// Setup the pool with the options.
 		/// </summary>
 		void Setup(PoolOptions options);
+
+		/// <summary>
+		/// Returns the count of currently used instances.
+		/// </summary>
+		int CountInUse { get; }
+
+		/// <summary>
+		/// Returns the count of currently available instances.
+		/// </summary>
+		int CountAvailable { get; }
 	}
 }
