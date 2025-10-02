@@ -3,6 +3,7 @@
 //
 
 using BlueCheese.App.Editor;
+using System;
 using UnityEngine;
 
 namespace BlueCheese.App
@@ -14,6 +15,26 @@ namespace BlueCheese.App
 		public static void Initialize(ITranslationService translationService)
 		{
 			_translationService = translationService;
+		}
+
+		public static bool HasTranslation(TranslationKey translationKey)
+		{
+			if (_translationService == null)
+			{
+				if (Application.isPlaying)
+				{
+					return false;
+				}
+				else
+				{
+					Initialize(EditorServices.Get<ITranslationService>());
+				}
+			}
+			if (_translationService == null)
+			{
+				return false;
+			}
+			return _translationService.HasTranslation(translationKey);
 		}
 
 		public static string Translate(TranslationKey key)

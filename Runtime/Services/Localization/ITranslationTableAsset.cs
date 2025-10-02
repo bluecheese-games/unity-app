@@ -2,6 +2,7 @@
 // Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
+using System;
 using System.Collections.Generic;
 
 namespace BlueCheese.App
@@ -12,9 +13,9 @@ namespace BlueCheese.App
 		List<string> Keys { get; }
 		List<Language> Languages { get; }
 
+		IDictionary<string, string> GetTranslations(Language language);
 		bool ContainsKey(string searchText);
 		bool ContainsTranslation(string searchText);
-		void Load(ITranslationService translationService);
 		void Open();
 	}
 }

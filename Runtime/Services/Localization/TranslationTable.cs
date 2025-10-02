@@ -10,12 +10,20 @@ namespace BlueCheese.App
 	{
 		private readonly Dictionary<string, string> _translations = new();
 
-		public void Add(Dictionary<string, string> translations)
+		public void Add(IDictionary<string, string> translations)
 		{
 			foreach (var translation in translations)
 			{
 				_translations[translation.Key] = translation.Value;
 			}
+		}
+
+		public bool HasTranslation(TranslationKey key)
+		{
+			if (key.Key == null) return false;
+			if (_translations.ContainsKey(key.Key)) return true;
+			if (key.PluralKey != null && _translations.ContainsKey(key.PluralKey)) return true;
+			return false;
 		}
 
 		public bool TryGet(TranslationKey key, out string singular, out string plural)

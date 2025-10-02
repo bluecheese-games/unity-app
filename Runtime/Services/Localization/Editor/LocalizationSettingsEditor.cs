@@ -2,6 +2,7 @@
 // Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
+using BlueCheese.Core;
 using BlueCheese.Core.Utils.Editor;
 using System;
 using System.Linq;
@@ -32,10 +33,6 @@ namespace BlueCheese.App.Editor
 			serializedObject.Update();
 
 			DrawSupportedLanguages();
-			EditorGUILayout.Space();
-			DrawTranslationTables();
-			EditorGUILayout.Space();
-			DrawDuplicates();
 
 			if (serializedObject.ApplyModifiedProperties())
 			{
@@ -43,23 +40,9 @@ namespace BlueCheese.App.Editor
 			}
 		}
 
-		private static void DrawTitle(string title)
-		{
-			var titleStyle = new GUIStyle(EditorStyles.helpBox)
-			{
-				alignment = TextAnchor.MiddleCenter,
-				fontSize = 18,
-				fontStyle = FontStyle.Bold
-			};
-
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(title, titleStyle);
-			EditorGUILayout.EndHorizontal();
-		}
-
 		private void DrawSupportedLanguages()
 		{
-			DrawTitle("Supported Languages");
+			EditorGUIHelper.DrawTitle("Supported Languages");
 			Language currentLanguage = EditorServices.Get<ILocalizationService>().CurrentLanguage;
 
 			float columnsWidth = (EditorGUIUtility.currentViewWidth - 70) / 3;
@@ -143,87 +126,6 @@ namespace BlueCheese.App.Editor
 				localizedText.UpdateText();
 			}
 			SceneView.RepaintAll();
-		}
-
-		private void DrawTranslationTables()
-		{
-			DrawTitle("Translation Tables");
-
-			var searchIcon = EditorGUIUtility.IconContent("Search Icon").image;
-			var assetFinder = EditorServices.Get<IAssetFinderService>();
-			var translationTables = assetFinder
-				.FindAssetsInResources<ScriptableObject>()
-				.OfType<ITranslationTableAsset>()
-				.ToList();
-
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(new GUIContent(searchIcon), GUILayout.Width(20));
-			_searchText = EditorGUILayout.TextField("Search key or translation", _searchText);
-			EditorGUILayout.EndHorizontal();
-			EditorGUILayout.BeginVertical("box");
-			bool foundAny = false;
-			foreach (var table in translationTables)
-			{
-				if (!string.IsNullOrEmpty(_searchText) &&
-					!table.ContainsKey(_searchText) &&
-					!table.ContainsTranslation(_searchText))
-				{
-					continue;
-				}
-				foundAny = true;
-				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.LabelField($"{table.Name} [{table.Keys.Count}]", EditorStyles.boldLabel);
-				if (GUILayout.Button("Open", GUILayout.Width(100)))
-				{
-					table.Open();
-				}
-				EditorGUILayout.EndHorizontal();
-			}
-			if (!foundAny)
-			{
-				if (!string.IsNullOrEmpty(_searchText))
-				{
-					EditorGUILayout.LabelField("No match");
-				}
-				else
-				{
-					EditorGUILayout.LabelField("No translation tables found. Create one by right clicking in a resources folder");
-				}
-			}
-			EditorGUILayout.EndVertical();
-		}
-
-		private void DrawDuplicates()
-		{
-			var assetFinder = EditorServices.Get<IAssetFinderService>();
-			var translationTables = assetFinder
-				.FindAssetsInResources<ScriptableObject>()
-				.OfType<ITranslationTableAsset>()
-				.ToList();
-			var duplicateKeys = translationTables
-				.SelectMany(t => t.Keys)
-				.GroupBy(k => k)
-				.Where(g => g.Count() > 1)
-				.Select(g => g.Key)
-				.ToList();
-			if (duplicateKeys.Count == 0)
-			{
-				return;
-			}
-			EditorGUILayout.HelpBox($"Found {duplicateKeys.Count} duplicate keys", MessageType.Warning);
-			EditorGUILayout.BeginVertical("box");
-			foreach (var key in duplicateKeys)
-			{
-				EditorGUILayout.LabelField(key, EditorStyles.boldLabel);
-				foreach (var table in translationTables)
-				{
-					if (table.Keys.Contains(key))
-					{
-						EditorGUILayout.LabelField($"> In {table.Name}");
-					}
-				}
-			}
-			EditorGUILayout.EndVertical();
 		}
 	}
 }

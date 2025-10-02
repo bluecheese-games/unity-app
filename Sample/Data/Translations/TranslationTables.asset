@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b05076a454e4f44d823e992e703479d, type: 3}
+  m_Script: {fileID: 11500000, guid: 691c0c6190501ce498bb6e5304f4142e, type: 3}
   m_Name: TranslationTables
   m_EditorClassIdentifier: 
   Name: TranslationTables
@@ -17,4 +17,5 @@ MonoBehaviour:
     _values:
     - Localization
   RegisterInAssetBank: 1
-  _items: []
+  _items:
+  - {fileID: 11400000, guid: a81161296f133ed41b418ff401241837, type: 2}

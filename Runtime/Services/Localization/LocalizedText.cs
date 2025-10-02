@@ -42,12 +42,12 @@ namespace BlueCheese.App
 
 		public void UpdateText()
 		{
-			if (_text == null)
+			if (_text == null || !_translationKey.IsValid)
 			{
 				return;
 			}
 
-			_text.text = GetTranslation();
+			_text.text = _translationKey;
 		}
 
 		private void OnValidate()
@@ -57,12 +57,10 @@ namespace BlueCheese.App
 				_text = GetComponent<TMP_Text>();
 			}
 
-			if (_text != null)
+			if (_text != null && _translationKey.IsValid)
 			{
 				_text.text = _translationKey;
 			}
 		}
-
-		private string GetTranslation() => _translationKey;
 	}
 }

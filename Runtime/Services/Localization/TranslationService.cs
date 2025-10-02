@@ -2,6 +2,7 @@
 // Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
+using BlueCheese.Core.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,7 +11,7 @@ namespace BlueCheese.App
 {
 	public class TranslationService : ITranslationService
 	{
-		private const string TranslationsResourcePath = "Translations";
+		public const string TranslationsResourcePath = "Translations";
 
 		protected readonly ILocalizationService _localization;
 		protected readonly IAssetLoaderService _assetLoader;
@@ -24,18 +25,28 @@ namespace BlueCheese.App
 
 		public void Initialize()
 		{
-			var translationAssets = _assetLoader
-				.LoadAssetsFromResources<ScriptableObject>(TranslationsResourcePath)
-				.OfType<ITranslationTableAsset>();
-			foreach (var translationAsset in translationAssets)
+			var collection = AssetBank.GetAssetByType<TranslationTableCollection>();
+			if (collection != null)
 			{
-				translationAsset.Load(this);
+				foreach (var tableAsset in collection.Items)
+				{
+					AddTranslations(tableAsset);
+				}
 			}
 
 			Translator.Initialize(this);
 		}
 
-		public void AddTranslations(Language language, Dictionary<string, string> translations)
+		private void AddTranslations(ITranslationTableAsset tableAsset)
+		{
+			if (tableAsset == null) return;
+			foreach (var language in tableAsset.Languages)
+			{
+				AddTranslations(language, tableAsset.GetTranslations(language));
+			}
+		}
+
+		public void AddTranslations(Language language, IDictionary<string, string> translations)
 		{
 			if (!_translations.TryGetValue(language, out var table))
 			{
@@ -60,6 +71,15 @@ namespace BlueCheese.App
 
 			// No translation found, return key
 			return key.Key;
+		}
+
+		public bool HasTranslation(TranslationKey key)
+		{
+			if (!_translations.TryGetValue(_localization.CurrentLanguage, out var table))
+			{
+				return false;
+			}
+			return table.HasTranslation(key);
 		}
 
 		private bool TryTranslate(Language language, TranslationKey key, out string translation)
