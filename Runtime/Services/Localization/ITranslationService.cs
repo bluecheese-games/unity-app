@@ -9,7 +9,8 @@ namespace BlueCheese.App
 {
 	public interface ITranslationService : IInitializable
 	{
-		void AddTranslations(Language language, Dictionary<string, string> translations);
+		void AddTranslations(Language language, IDictionary<string, string> translations);
 		string Translate(TranslationKey key);
+		bool HasTranslation(TranslationKey key);
 	}
 }

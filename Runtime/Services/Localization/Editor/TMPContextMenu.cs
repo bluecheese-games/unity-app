@@ -9,7 +9,7 @@ namespace BlueCheese.App.Editor
 {
 	public static class TMPContextMenu
 	{
-		[MenuItem("CONTEXT/TextMeshProUGUI/Add 'Localized Text' Component")]
+		[MenuItem("CONTEXT/TextMeshProUGUI/Localize")]
 		private static void AddLocalizedTextComponent(MenuCommand command)
 		{
 			TextMeshProUGUI tmp = (TextMeshProUGUI)command.context;

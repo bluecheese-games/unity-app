@@ -3,6 +3,8 @@
 //
 
 using BlueCheese.Core.Utils.Editor;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,6 +13,8 @@ namespace BlueCheese.App.Editor
 	[CustomPropertyDrawer(typeof(TranslationKey))]
 	public class TranslationKeyPropertyDrawer : PropertyDrawer
 	{
+		private int _selectedTableIndex = 0;
+
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 		{
 			if (EditorGUI.PropertyField(position, property, label))
@@ -21,14 +25,24 @@ namespace BlueCheese.App.Editor
 
 		private void DrawTranslationKeyProperty(SerializedProperty property)
 		{
-			var keys = EditorServices.Get<EditorTranslationService>().GetAllKeys();
+			var translationService = EditorServices.Get<EditorTranslationService>();
+			var keys = translationService.GetAllKeys();
+			bool isValid = keys.Contains(property.FindPropertyRelative("_key").stringValue);
 
 			EditorGUILayout.BeginVertical("box");
 			DrawKey(property, keys);
-			DrawPluralKey(property);
-			EditorGUI.indentLevel++;
-			DrawParameters(property);
-			EditorGUI.indentLevel--;
+
+			if (isValid)
+			{
+				DrawPluralKey(property);
+				EditorGUI.indentLevel++;
+				DrawParameters(property);
+				EditorGUI.indentLevel--;
+			}
+			else
+			{
+				DrawCreateKey(property, translationService.TranslationTableAssets);
+			}
 			EditorGUILayout.EndVertical();
 		}
 
@@ -77,6 +91,48 @@ namespace BlueCheese.App.Editor
 					parametersProperty.arraySize = 1;
 				}
 			}
+		}
+
+		private void DrawCreateKey(SerializedProperty property, List<TranslationTableAsset> translationTableAssets)
+		{
+			var keyProperty = property.FindPropertyRelative("_key");
+			if (keyProperty.stringValue == "")
+			{
+				return;
+			}
+			if (translationTableAssets.Count == 0)
+			{
+				EditorGUILayout.HelpBox("No Translation Table Assets found in Resources folder. Create one first.", MessageType.Info);
+				return;
+			}
+			// Show a popup to select which translation table to add the key to
+			string[] tableNames = translationTableAssets.Select(t => t.Name).ToArray();
+			EditorGUILayout.BeginHorizontal();
+			var enumPopupStyle = new GUIStyle(EditorStyles.popup)
+			{
+				fixedHeight = 20
+			};
+			_selectedTableIndex = EditorGUILayout.Popup("Add Key To Table", _selectedTableIndex, tableNames, enumPopupStyle);
+			if (GUILayout.Button(EditorIcon.Plus, GUILayout.Width(30)))
+			{
+				var table = translationTableAssets[_selectedTableIndex];
+				if (table != null)
+				{
+					Undo.RecordObject(table, "Add Translation Key");
+					var item = table.AddItem(keyProperty.stringValue);
+					var translationService = EditorServices.Get<EditorTranslationService>();
+					var language = translationService.DefaultLanguage;
+					var localizedText = (LocalizedText)property.serializedObject.targetObject;
+					var tmpText = localizedText.GetComponent<TMPro.TextMeshProUGUI>();
+					var textValue = tmpText.text;
+
+					item.SetTranslation(language, textValue);
+					translationService.Refresh();
+
+					EditorUtility.SetDirty(table);
+				}
+			}
+			EditorGUILayout.EndHorizontal();
 		}
 	}
 }

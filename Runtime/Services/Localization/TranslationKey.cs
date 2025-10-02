@@ -20,6 +20,7 @@ namespace BlueCheese.App
 		public readonly string Key => _key;
 		public readonly string PluralKey => _pluralKey;
 		public readonly IReadOnlyList<string> Parameters => _parameters;
+		public readonly bool IsValid => Translator.HasTranslation(this);
 
 		private int GetPluralValue()
 		{
