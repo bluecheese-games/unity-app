@@ -10,7 +10,7 @@ using UnityEngine.Assertions;
 
 namespace BlueCheese.App.Sample
 {
-	public class SpawnController : MonoBehaviour
+	public class SampleGameController : MonoBehaviour
 	{
 		[SerializeField] private LocalizedText _counterText;
 		[SerializeField] private AssetRef<PrefabCollection> _spawnedPrefabs;
@@ -22,8 +22,6 @@ namespace BlueCheese.App.Sample
 		[Injectable] private IGameObjectPoolService _poolService;
 		[Injectable] private IRandomService _random;
 		[Injectable] private IInputService _input;
-		[Injectable] private IAudioService _audio;
-		[Injectable] private ILogger<SpawnController> _logger;
 
 		private HashSet<IGameObjectPool> _pools = new();
 

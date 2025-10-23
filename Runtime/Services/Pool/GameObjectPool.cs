@@ -20,8 +20,8 @@ namespace BlueCheese.App
 		private readonly ILogger<GameObjectPoolService> _logger;
 		private readonly Type _componentType;
 		private readonly GameObject _prefab;
-		private readonly HashSet<PoolItem> _poolItems = new(DefaultCapacity);
-		private readonly HashSet<PoolItem> _usedItems = new(DefaultCapacity);
+		private readonly HashSet<PoolItem> _inactiveItems = new(DefaultCapacity);
+		private readonly HashSet<PoolItem> _activeItems = new(DefaultCapacity);
 		private Transform _container;
 		private PoolOptions _options;
 
@@ -55,8 +55,8 @@ namespace BlueCheese.App
 				_gameObjectService.DontDestroyOnLoad(_container.gameObject);
 			}
 
-			_poolItems.EnsureCapacity(options.Capacity);
-			_usedItems.EnsureCapacity(options.Capacity);
+			_inactiveItems.EnsureCapacity(options.Capacity);
+			_activeItems.EnsureCapacity(options.Capacity);
 
 			Fill(options.FillAmount);
 		}
@@ -71,7 +71,7 @@ namespace BlueCheese.App
 				return;
 			}
 
-			for (int i = _poolItems.Count; i < amount; i++)
+			for (int i = _inactiveItems.Count; i < amount; i++)
 			{
 				Add(CreateItem(false));
 			}
@@ -100,32 +100,32 @@ namespace BlueCheese.App
 		private PoolItem GetOrCreateItem()
 		{
 			PoolItem item;
-			if (_poolItems.Count > 0)
+			if (_inactiveItems.Count > 0)
 			{
-				item = _poolItems.First();
+				item = _inactiveItems.First();
 				item.Recycle();
 				if (!item.gameObject.activeSelf)
 				{
 					item.gameObject.SetActive(true);
 				}
-				_poolItems.Remove(item);
+				_inactiveItems.Remove(item);
 			}
 			else
 			{
 				item = CreateItem(true);
 			}
-			_usedItems.Add(item);
+			_activeItems.Add(item);
 			return item;
 		}
 
 		private PoolItem CreateItem(bool enabled)
 		{
-			int count = _poolItems.Count + _usedItems.Count;
+			int count = _inactiveItems.Count + _activeItems.Count;
 			if (count >= _options.Capacity)
 			{
 				switch (_options.Overflow)
 				{
-					case PoolOverflow.Force:
+					case PoolOverflow.Ignore:
 						break;
 					case PoolOverflow.LogError:
 						if (count == _options.Capacity)
@@ -134,7 +134,7 @@ namespace BlueCheese.App
 						}
 						break;
 					case PoolOverflow.RecycleActive:
-						_usedItems.First().Despawn();
+						_activeItems.First().Despawn();
 						break;
 					case PoolOverflow.ReturnsNull:
 						return null;
@@ -191,15 +191,15 @@ namespace BlueCheese.App
 				item.gameObject.SetActive(false);
 			}
 
-			int count = _poolItems.Count + _usedItems.Count;
+			int count = _inactiveItems.Count + _activeItems.Count;
 			if (count >= _options.Capacity)
 			{
 				GameObject.Destroy(item.gameObject);
 			}
 			else
 			{
-				_poolItems.Add(item);
-				_usedItems.Remove(item);
+				_inactiveItems.Add(item);
+				_activeItems.Remove(item);
 			}
 		}
 
@@ -234,13 +234,13 @@ namespace BlueCheese.App
 				return;
 			}
 
-			_poolItems.Remove(item);
-			_usedItems.Remove(item);
+			_inactiveItems.Remove(item);
+			_activeItems.Remove(item);
 		}
 
 		public void DespawnAll(float delay = 0f)
 		{
-			foreach (var item in _poolItems)
+			foreach (var item in _inactiveItems)
 			{
 				item.GetComponent<PoolItem>().Despawn(delay);
 			}
@@ -248,22 +248,22 @@ namespace BlueCheese.App
 
 		public void DeleteAll()
 		{
-			_poolItems.Clear();
+			_inactiveItems.Clear();
 		}
 
 		public void Destroy()
 		{
-			foreach (var item in _poolItems)
+			foreach (var item in _inactiveItems)
 			{
 				_gameObjectService.Destroy(item.gameObject);
 			}
-			_poolItems.Clear();
+			_inactiveItems.Clear();
 
-			foreach (var item in _usedItems)
+			foreach (var item in _activeItems)
 			{
 				_gameObjectService.Destroy(item.gameObject);
 			}
-			_usedItems.Clear();
+			_activeItems.Clear();
 
 			if (_container != null)
 			{
@@ -272,9 +272,9 @@ namespace BlueCheese.App
 			}
 		}
 
-		public int CountInUse => _usedItems.Count;
+		public int CountInUse => _activeItems.Count;
 
-		public int CountAvailable => _poolItems.Count;
+		public int CountAvailable => _inactiveItems.Count;
 
 		public class PoolItem : MonoBehaviour
 		{
