@@ -2,7 +2,7 @@
 // Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
-using Unity.Plastic.Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace BlueCheese.App
 {

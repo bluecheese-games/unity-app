@@ -3,7 +3,6 @@
 //
 
 using BlueCheese.Core.Utils;
-using System.Linq;
 using UnityEngine;
 
 namespace BlueCheese.App
@@ -17,7 +16,7 @@ namespace BlueCheese.App
 			base.OnRegister();
 
 			// Get TranslationTableAsset
-			var translationService = Editor.EditorServices.Get<EditorTranslationService>();
+			var translationService = EditorServices.Get<EditorTranslationService>();
 			var assets = translationService.TranslationTableAssets;
 
 			// Cleanup empty or null entries

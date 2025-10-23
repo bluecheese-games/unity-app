@@ -20,8 +20,8 @@ MonoBehaviour:
       Value: 'Sphere: {0}'
     - Language: 15
       Value: "Sph\xE8re : {0}"
-    LastModified: 638948314288547008
-    LastValidated: 638948314293436484
+    LastModified: 638950209623257519
+    LastValidated: 638950210136497943
     Status: 0
   - Key: sample.counter.plural
     Translations:
@@ -32,3 +32,4 @@ MonoBehaviour:
     LastModified: 638948316855801626
     LastValidated: 638948316865559510
     Status: 0
+  _lastModified: 638950221928757487

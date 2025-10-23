@@ -13,7 +13,7 @@ namespace BlueCheese.App.Sample
 	public class SpawnController : MonoBehaviour
 	{
 		[SerializeField] private LocalizedText _counterText;
-		[SerializeField] private PrefabCollection _spawnedPrefabCollection;
+		[SerializeField] private AssetRef<PrefabCollection> _spawnedPrefabs;
 		[SerializeField] private float _spawnInterval = 1f;
 		[SerializeField] private float _spawnForce = 3f;
 		[SerializeField] private float _spawnLifetime = 5f;
@@ -31,6 +31,8 @@ namespace BlueCheese.App.Sample
 		{
 			Services.Inject(this);
 			Assert.IsNotNull(_poolService);
+
+			DevMetricRuntime.Record("SpawnController_Awake", Time.realtimeSinceStartup);
 		}
 
 		private void OnEnable()
@@ -61,7 +63,7 @@ namespace BlueCheese.App.Sample
 		private void Spawn()
 		{
 			Log.Debug("Spawn", this);
-			var prefab = _spawnedPrefabCollection.GetRandom();
+			var prefab = _spawnedPrefabs.Asset.GetRandom();
 			var pool = prefab.GetPool();
 
 			if (!_pools.Contains(pool))

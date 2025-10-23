@@ -50,11 +50,15 @@ namespace BlueCheese.App
 
 		private List<TranslationTableAsset> FindAssets()
 		{
+#if UNITY_EDITOR
 			var assets = UnityEditor.AssetDatabase.FindAssets($"t:{nameof(TranslationTableAsset)}")
 				.Select(UnityEditor.AssetDatabase.GUIDToAssetPath)
 				.Select(UnityEditor.AssetDatabase.LoadAssetAtPath<TranslationTableAsset>)
 				.OrderBy(asset => asset.Name);
 			return assets.ToList();
+#else
+			return new List<TranslationTableAsset>();
+#endif
 		}
 
 		public void Refresh()
@@ -63,7 +67,9 @@ namespace BlueCheese.App
 			_translations.Clear();
 			foreach (var asset in _translationTableAssets)
 			{
+#if UNITY_EDITOR
 				asset.Validate();
+#endif
 				foreach (var language in asset.Languages)
 				{
 					AddTranslations(language, asset.GetTranslations(language));

@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
@@ -16,6 +16,5 @@ namespace BlueCheese.App
 		IDictionary<string, string> GetTranslations(Language language);
 		bool ContainsKey(string searchText);
 		bool ContainsTranslation(string searchText);
-		void Open();
 	}
 }

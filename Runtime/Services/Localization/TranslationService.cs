@@ -5,7 +5,6 @@
 using BlueCheese.Core.Utils;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace BlueCheese.App
 {
@@ -25,7 +24,7 @@ namespace BlueCheese.App
 
 		public void Initialize()
 		{
-			var collection = AssetBank.GetAssetByType<TranslationTableCollection>();
+			var collection = AssetBank.GetAssetsByType<TranslationTableCollection>().FirstOrDefault();
 			if (collection != null)
 			{
 				foreach (var tableAsset in collection.Items)
