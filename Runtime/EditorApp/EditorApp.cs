@@ -5,7 +5,7 @@
 using System;
 using UnityEngine;
 
-namespace BlueCheese.App.Editor
+namespace BlueCheese.App
 {
 	public class EditorApp : IApp
 	{

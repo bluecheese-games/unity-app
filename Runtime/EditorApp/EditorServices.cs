@@ -5,7 +5,7 @@
 using BlueCheese.Core.ServiceLocator;
 using System;
 
-namespace BlueCheese.App.Editor
+namespace BlueCheese.App
 {
 	public static class EditorServices
 	{

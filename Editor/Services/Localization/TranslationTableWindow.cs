@@ -3,7 +3,7 @@
 //
 
 using BlueCheese.Core;
-using BlueCheese.Core.Utils.Editor;
+using BlueCheese.Core.Editor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,9 +25,11 @@ namespace BlueCheese.App.Editor
 		private Vector2 _scrollPosition;
 		private int _languageToAddIndex;
 		private string _keyToAdd;
-		private string _keyToRemove;
 		private bool _needsRefresh;
 		private string _filterText;
+		private bool _selectAll = false;
+		private List<string> _selectedKeys = new();
+		private List<string> _keysToRemove = new();
 
 		private int _columnWidth = 200;
 
@@ -62,6 +64,19 @@ namespace BlueCheese.App.Editor
 		private void DrawHeader()
 		{
 			EditorGUILayout.BeginHorizontal();
+			bool _previousSelectAll = _selectAll;
+			_selectAll = GUILayout.Toggle(_selectAll, new GUIContent("", "Select/Deselect all"), GUILayout.Width(16));
+			if (_selectAll != _previousSelectAll)
+			{
+				_selectedKeys.Clear();
+				if (_selectAll)
+				{
+					foreach (var item in _asset.Items)
+					{
+						_selectedKeys.Add(item.Key);
+					}
+				}
+			}
 			EditorGUILayout.LabelField("Key", EditorStyles.boldLabel, GUILayout.Width(_columnWidth));
 			foreach (var language in _asset.Languages)
 			{
@@ -100,7 +115,7 @@ namespace BlueCheese.App.Editor
 				languageNames.Add("All missing languages");
 			}
 
-			_languageToAddIndex = EditorGUILayout.Popup(_languageToAddIndex, languageNames.ToArray(), enumStyle, GUILayout.Width(_columnWidth - 33));
+			_languageToAddIndex = EditorGUILayout.Popup(_languageToAddIndex, languageNames.ToArray(), enumStyle, GUILayout.Width(_columnWidth - 39));
 
 			if (_languageToAddIndex == 0)
 			{
@@ -163,6 +178,15 @@ namespace BlueCheese.App.Editor
 				}
 
 				EditorGUILayout.BeginHorizontal();
+				bool isSelected = GUILayout.Toggle(_selectedKeys.Contains(item.Key), new GUIContent("", "Select/Deselect"), GUILayout.Width(16));
+				if (isSelected && !_selectedKeys.Contains(item.Key))
+				{
+					_selectedKeys.Add(item.Key);
+				}
+				else if (!isSelected && _selectedKeys.Contains(item.Key))
+				{
+					_selectedKeys.Remove(item.Key);
+				}
 				string newKey = EditorGUILayout.TextField(item.Key, GUILayout.Width(_columnWidth));
 				if (newKey != item.Key)
 				{
@@ -190,6 +214,11 @@ namespace BlueCheese.App.Editor
 					}
 				}
 
+				if (GUILayout.Button(new GUIContent(EditorIcon.Menu), EditorStyles.miniButton, GUILayout.Width(30)))
+				{
+					ShowItemMenu(item.Key);
+				}
+
 				if (item.Status == TranslationStatus.Validated)
 				{
 					GUI.color = Color.green;
@@ -205,19 +234,11 @@ namespace BlueCheese.App.Editor
 					EditorGUILayout.LabelField(new GUIContent(EditorIcon.Warning, $"Modified {modifiedTime}"), GUILayout.Width(20));
 					GUI.color = Color.white;
 
-					if (GUILayout.Button(new GUIContent("Validate", EditorIcon.Valid, "Validate Translations"), GUILayout.Width(76)))
+					if (GUILayout.Button(new GUIContent("Validate", EditorIcon.Valid, "Validate Translations"), EditorStyles.miniButton, GUILayout.Width(76)))
 					{
 						Undo.RecordObject(_asset, "Validate Translations");
 						item.ValidateTranslations();
 						_needsRefresh = true;
-					}
-				}
-				GUILayout.FlexibleSpace();
-				if (GUILayout.Button(new GUIContent(EditorIcon.Trash), GUILayout.Width(30)))
-				{
-					if (EditorUtility.DisplayDialog("Delete Key", $"Are you sure you want to delete the key '{item.Key}' and all its translations?", "Yes", "No"))
-					{
-						_keyToRemove = item.Key;
 					}
 				}
 				EditorGUILayout.EndHorizontal();
@@ -227,6 +248,13 @@ namespace BlueCheese.App.Editor
 			EditorGUILayout.Separator();
 
 			EditorGUILayout.BeginHorizontal();
+			GUI.enabled = _selectedKeys.Count > 0;
+			if (GUILayout.Button(new GUIContent(EditorIcon.Menu), EditorStyles.iconButton, GUILayout.Width(17)))
+			{
+				ShowItemMenu(_selectedKeys.ToArray());
+			}
+
+			GUI.enabled = true;
 			_keyToAdd = EditorGUILayout.TextField(_keyToAdd, GUILayout.Width(_columnWidth));
 			GUI.enabled = !string.IsNullOrWhiteSpace(_keyToAdd) && !_asset.ContainsKey(_keyToAdd);
 			if (GUILayout.Button("Add Key", GUILayout.Width(_columnWidth)))
@@ -238,13 +266,90 @@ namespace BlueCheese.App.Editor
 			GUI.enabled = true;
 			EditorGUILayout.EndHorizontal();
 
-			if (!string.IsNullOrWhiteSpace(_keyToRemove))
+			if (_keysToRemove.Count > 0)
 			{
 				Undo.RecordObject(_asset, "Remove Key");
-				_asset.RemoveKey(_keyToRemove);
-				_keyToRemove = null;
+				foreach (var key in _keysToRemove)
+				{
+					_asset.RemoveKey(key);
+				}
+				_keysToRemove.Clear();
+				_selectAll = false;
+				_selectedKeys.Clear();
 				_needsRefresh = true;
 			}
+		}
+
+		private void ShowItemMenu(params string[] keys)
+		{
+			string selected = keys.Length == 1 ? $"key '{keys[0]}'" : "selected keys";
+			GenericMenu menu = new();
+			menu.AddItem(new GUIContent($"Delete {selected}"), false, () =>
+			{
+				if (EditorUtility.DisplayDialog("Delete Keys", $"Are you sure you want to delete the {selected} and all associated translations?", "Yes", "No"))
+				{
+					_keysToRemove.AddRange(keys);
+				}
+			});
+			menu.AddItem(new GUIContent($"Validate {selected}"), false, () =>
+			{
+				Undo.RecordObject(_asset, "Validate Translations");
+				foreach (var key in keys)
+				{
+					var item = _asset.Items.FirstOrDefault(i => i.Key == key);
+					item?.ValidateTranslations();
+				}
+				_needsRefresh = true;
+			});
+			string moveToTitle = $"Move {selected} to...";
+			menu.AddItem(new GUIContent(moveToTitle), false, () =>
+			{
+				var translationService = EditorServices.Get<EditorTranslationService>();
+				TranslationTableAsset[] allTables = translationService.TranslationTableAssets
+					.Where(t => t != _asset)
+					.ToArray();
+				if (allTables.Length == 0) { menu.AddItem(new GUIContent("No other translation tables found"), false, null); return; }
+
+				foreach (var table in allTables)
+				{
+					menu.AddItem(new GUIContent($"{moveToTitle}/{table.Name}"), false, () =>
+					{
+						Undo.RecordObject(_asset, "Move Keys");
+						Undo.RecordObject(table, "Move Keys");
+						foreach (var key in keys)
+						{
+							var item = _asset.Items.FirstOrDefault(i => i.Key == key);
+							if (item != null)
+							{
+								if (table.TryAddItem(item))
+								{
+									_asset.RemoveKey(key);
+									_keysToRemove.Add(key);
+									_needsRefresh = true;
+								}
+							}
+						}
+					});
+				}
+
+
+				/*Undo.RecordObject(_asset, "Move Keys");
+				Undo.RecordObject(table, "Move Keys");
+				foreach (var key in keys)
+				{
+					var item = _asset.Items.FirstOrDefault(i => i.Key == key);
+					if (item != null)
+					{
+						if (table.TryAddItem(item))
+						{
+							_asset.RemoveKey(key);
+							_keysToRemove.Add(key);
+							_needsRefresh = true;
+						}
+					}
+				}*/
+			});
+			menu.ShowAsContext();
 		}
 
 		private void RefreshAsset()

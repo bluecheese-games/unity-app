@@ -15,6 +15,7 @@ namespace BlueCheese.App
 	{
 		[SerializeField] private List<Language> _languages;
 		[SerializeField] private List<TranslationItem> _items;
+		[SerializeField] private long _lastModified;
 
 #if UNITY_EDITOR
 		public void Validate()
@@ -24,7 +25,7 @@ namespace BlueCheese.App
 
 			if (_languages.Count == 0)
 			{
-				var defaultLanguage = Editor.EditorServices.Get<ILocalizationService>().DefaultLanguage;
+				var defaultLanguage = EditorServices.Get<ILocalizationService>().DefaultLanguage;
 				AddLanguage(defaultLanguage);
 				UnityEditor.EditorUtility.SetDirty(this);
 				UnityEditor.AssetDatabase.SaveAssets();
@@ -55,12 +56,8 @@ namespace BlueCheese.App
 
 		public DateTime LastModified
 		{
-			get
-			{
-				if (_items == null || _items.Count == 0) return DateTime.MinValue;
-				var lastModifiedTicks = _items.Max(i => i.LastModified);
-				return new DateTime(lastModifiedTicks);
-			}
+			get => new(_lastModified);
+			set => _lastModified = value.Ticks;
 		}
 
 		public int Count(TranslationStatus status) => _items.Count(i => i.Status == status);
@@ -89,6 +86,7 @@ namespace BlueCheese.App
 			var item = GetItem(key);
 			item ??= AddItem(key);
 			item.SetTranslation(language, value);
+			LastModified = DateTime.UtcNow;
 		}
 
 		public void EditKey(string existingKey, string newKey)
@@ -104,6 +102,7 @@ namespace BlueCheese.App
 				throw new ArgumentException($"Key {newKey} already exists.");
 			}
 			item.EditKey(newKey);
+			LastModified = DateTime.UtcNow;
 		}
 
 		public void AddLanguage(Language language)
@@ -115,6 +114,7 @@ namespace BlueCheese.App
 			{
 				item.SetTranslation(language, "");
 			}
+			LastModified = DateTime.UtcNow;
 		}
 
 		public void RemoveLanguage(Language language)
@@ -124,6 +124,7 @@ namespace BlueCheese.App
 			{
 				item.RemoveTranslation(language);
 			}
+			LastModified = DateTime.UtcNow;
 		}
 
 		public TranslationItem AddItem(string keyToAdd)
@@ -137,12 +138,22 @@ namespace BlueCheese.App
 				item.SetTranslation(language, "");
 			}
 			_items.Add(item);
+			LastModified = DateTime.UtcNow;
 			return item;
+		}
+
+		public bool TryAddItem(TranslationItem item)
+		{
+			if (GetItem(item.Key) != null) return false; // Key already exists
+			_items.Add(item);
+			LastModified = DateTime.UtcNow;
+			return true;
 		}
 
 		public void RemoveKey(string key)
 		{
 			_items.RemoveAll(i => i.Key == key);
+			LastModified = DateTime.UtcNow;
 		}
 
 		public bool ContainsKey(string searchText)
@@ -269,41 +280,6 @@ namespace BlueCheese.App
 			public override int GetHashCode() => HashCode.Combine(Language, Value);
 
 			public static implicit operator string(Translation t) => t.Value;
-		}
-
-		[Serializable, Obsolete]
-		public class Translations
-		{
-			public Language Language;
-			public List<string> Items;
-
-			public Translations(Language language, int capacity)
-			{
-				Language = language;
-				Items = new List<string>(capacity);
-				for (int i = 0; i < capacity; i++)
-				{
-					Items.Add("");
-				}
-			}
-
-			public string this[int index]
-			{
-				get => Items[index];
-				set => Items[index] = value;
-			}
-
-			public void Add(string value)
-			{
-				Items.Add(value);
-			}
-		}
-
-		public void Open()
-		{
-#if UNITY_EDITOR
-			Editor.TranslationTableWindow.Open(this);
-#endif
 		}
 	}
 }

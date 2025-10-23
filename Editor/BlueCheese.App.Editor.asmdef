@@ -1,0 +1,21 @@
+{
+    "name": "BlueCheese.App.Editor",
+    "rootNamespace": "BlueCheese.App.Editor",
+    "references": [
+        "GUID:e5c6ae23fb900a946894d0e9dca31f1d",
+        "GUID:96d226fd95fa6b749a97f8dec233598a",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:f6ecf9bcf81d8e245a50ec0ac247ad60"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

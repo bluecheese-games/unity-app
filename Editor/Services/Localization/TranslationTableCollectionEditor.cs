@@ -2,15 +2,14 @@
 // Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.App.Editor;
 using BlueCheese.Core;
-using BlueCheese.Core.Utils.Editor;
+using BlueCheese.Core.Editor;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace BlueCheese.App
+namespace BlueCheese.App.Editor
 {
 	[CustomEditor(typeof(TranslationTableCollection))]
 	public class TranslationTableCollectionEditor : CollectionEditor
@@ -72,7 +71,7 @@ namespace BlueCheese.App
 				EditorGUILayout.LabelField($"{table.Name}", EditorStyles.boldLabel);
 				if (GUILayout.Button("Open", GUILayout.Width(100)))
 				{
-					table.Open();
+					TranslationTableWindow.Open(tableAsset);
 				}
 				EditorGUILayout.EndHorizontal();
 				EditorGUILayout.BeginHorizontal();
@@ -89,7 +88,7 @@ namespace BlueCheese.App
 				if (tableAsset != null && keyCount > 0)
 				{
 					int validatedCount = tableAsset.Count(TranslationStatus.Validated);
-					float progress = validatedCount / keyCount;
+					float progress = (float)validatedCount / keyCount;
 					EditorGUI.ProgressBar(EditorGUILayout.GetControlRect(), progress, $"Validated: {validatedCount}/{keyCount} ({progress:P0})");
 				}
 

@@ -2,7 +2,7 @@
 // Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.Utils.Editor;
+using BlueCheese.Core.Editor;
 using UnityEditor;
 using UnityEngine;
 

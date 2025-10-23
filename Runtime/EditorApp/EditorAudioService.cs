@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace BlueCheese.App.Editor
+namespace BlueCheese.App
 {
 	public class EditorAudioService : IInitializable
 	{
