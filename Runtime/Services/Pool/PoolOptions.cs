@@ -57,7 +57,7 @@ namespace BlueCheese.App
         /// <summary>
         /// Ignore the pool capacity and returns a new instance anyway.
         /// </summary>
-        Force,
+        Ignore,
 
         /// <summary>
         /// Returns a new instance and logs an error.

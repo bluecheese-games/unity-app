@@ -225,7 +225,7 @@ GameObject:
   - component: {fileID: 874103958}
   - component: {fileID: 874103957}
   m_Layer: 0
-  m_Name: SphereSpawner
+  m_Name: GameController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -244,7 +244,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _counterText: {fileID: 949288740}
-  _spawnedPrefabCollection: {fileID: 11400000, guid: 235ff34154c644a4c872eaebb2b7dc7f, type: 2}
   _spawnedPrefabs:
     Guid: 235ff34154c644a4c872eaebb2b7dc7f
   _spawnInterval: 0.5

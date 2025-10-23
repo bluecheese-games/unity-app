@@ -27,6 +27,7 @@ namespace BlueCheese.Tests.Services
 			var options = new HttpService.Options { BaseUri = new Uri("http://example.com") };
 			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
 			ServiceContainer.Default.Register<IJsonService, NewtonSoftJsonService>();
+			ServiceContainer.Default.Startup();
 		}
 
 		[TearDown]
