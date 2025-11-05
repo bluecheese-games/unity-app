@@ -41,7 +41,7 @@ namespace BlueCheese.App.Editor
 			}
 			else
 			{
-				DrawCreateKey(property, translationService.TranslationTableAssets);
+				DrawCreateKey(property, translationService.GetTranslationTableAssets());
 			}
 			EditorGUILayout.EndVertical();
 		}

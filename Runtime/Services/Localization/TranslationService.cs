@@ -4,7 +4,6 @@
 
 using BlueCheese.Core.Utils;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BlueCheese.App
 {
@@ -24,7 +23,7 @@ namespace BlueCheese.App
 
 		public void Initialize()
 		{
-			var collection = AssetBank.GetAssetsByType<TranslationTableCollection>().FirstOrDefault();
+			var collection = AssetBank.GetAssetOfType<TranslationTableCollection>();
 			if (collection != null)
 			{
 				foreach (var tableAsset in collection.Items)
@@ -38,7 +37,7 @@ namespace BlueCheese.App
 
 		private void AddTranslations(ITranslationTableAsset tableAsset)
 		{
-			if (tableAsset == null) return;
+			if (tableAsset == null || tableAsset.Languages == null || tableAsset.Keys == null) return;
 			foreach (var language in tableAsset.Languages)
 			{
 				AddTranslations(language, tableAsset.GetTranslations(language));

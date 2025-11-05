@@ -36,16 +36,13 @@ namespace BlueCheese.App
 			return sortedKeys.ToArray();
 		}
 
-		public List<TranslationTableAsset> TranslationTableAssets
+		public List<TranslationTableAsset> GetTranslationTableAssets(bool forceRefresh = false)
 		{
-			get
+			if (_translationTableAssets == null || forceRefresh)
 			{
-				if (_translationTableAssets == null)
-				{
-					Refresh();
-				}
-				return _translationTableAssets;
+				Refresh();
 			}
+			return _translationTableAssets;
 		}
 
 		private List<TranslationTableAsset> FindAssets()

@@ -17,7 +17,7 @@ namespace BlueCheese.App
 
 			// Get TranslationTableAsset
 			var translationService = EditorServices.Get<EditorTranslationService>();
-			var assets = translationService.TranslationTableAssets;
+			var assets = translationService.GetTranslationTableAssets(true);
 
 			// Cleanup empty or null entries
 			_items.RemoveAll(item => item == null);

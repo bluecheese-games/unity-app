@@ -32,4 +32,13 @@ MonoBehaviour:
     LastModified: 638948316855801626
     LastValidated: 638948316865559510
     Status: 0
-  _lastModified: 638950221928757487
+  - Key: test
+    Translations:
+    - Language: 11
+      Value: en
+    - Language: 15
+      Value: fr
+    LastModified: 638979414165981460
+    LastValidated: 0
+    Status: 1
+  _lastModified: 638979414165981460

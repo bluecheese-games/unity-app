@@ -224,6 +224,7 @@ GameObject:
   m_Component:
   - component: {fileID: 874103958}
   - component: {fileID: 874103957}
+  - component: {fileID: 874103959}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -243,6 +244,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a8a9b3c02e2c6143a54e4398cb6d9ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _sampleFlagEnum:
+    _bitValue: 0
   _counterText: {fileID: 949288740}
   _spawnedPrefabs:
     Guid: 235ff34154c644a4c872eaebb2b7dc7f
@@ -280,6 +283,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &874103959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 874103956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb460c07ebf55d64c8c62dd04f0dc03d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _backBehaviour: 3
+  _onBack:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &907123743
 GameObject:
   m_ObjectHideFlags: 0

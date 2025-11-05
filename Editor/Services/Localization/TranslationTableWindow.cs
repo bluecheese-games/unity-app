@@ -30,6 +30,7 @@ namespace BlueCheese.App.Editor
 		private bool _selectAll = false;
 		private List<string> _selectedKeys = new();
 		private List<string> _keysToRemove = new();
+		private List<Language> _languagesToRemove = new();
 
 		private int _columnWidth = 200;
 
@@ -78,6 +79,7 @@ namespace BlueCheese.App.Editor
 				}
 			}
 			EditorGUILayout.LabelField("Key", EditorStyles.boldLabel, GUILayout.Width(_columnWidth));
+			_languagesToRemove.Clear();
 			foreach (var language in _asset.Languages)
 			{
 				EditorGUILayout.LabelField(language.ToString(), EditorStyles.boldLabel, GUILayout.Width(_columnWidth - 33));
@@ -86,10 +88,15 @@ namespace BlueCheese.App.Editor
 					if (EditorUtility.DisplayDialog("Delete Language", $"Are you sure you want to delete translations for the language {language}?", "Yes", "No"))
 					{
 						Undo.RecordObject(_asset, "Delete Language");
-						_asset.RemoveLanguage(language);
+						_languagesToRemove.Add(language);
 						_needsRefresh = true;
 					}
 				}
+			}
+
+			foreach (var lang in _languagesToRemove)
+			{
+				_asset.RemoveLanguage(lang);
 			}
 
 			var enumStyle = new GUIStyle(EditorStyles.popup)
@@ -302,14 +309,16 @@ namespace BlueCheese.App.Editor
 				_needsRefresh = true;
 			});
 			string moveToTitle = $"Move {selected} to...";
-			menu.AddItem(new GUIContent(moveToTitle), false, () =>
+			var translationService = EditorServices.Get<EditorTranslationService>();
+			TranslationTableAsset[] allTables = translationService.GetTranslationTableAssets()?
+				.Where(t => t != _asset)
+				.ToArray();
+			if (allTables != null && allTables.Length == 0)
 			{
-				var translationService = EditorServices.Get<EditorTranslationService>();
-				TranslationTableAsset[] allTables = translationService.TranslationTableAssets
-					.Where(t => t != _asset)
-					.ToArray();
-				if (allTables.Length == 0) { menu.AddItem(new GUIContent("No other translation tables found"), false, null); return; }
-
+				menu.AddDisabledItem(new GUIContent(moveToTitle), false);
+			}
+			else
+			{
 				foreach (var table in allTables)
 				{
 					menu.AddItem(new GUIContent($"{moveToTitle}/{table.Name}"), false, () =>
@@ -331,24 +340,7 @@ namespace BlueCheese.App.Editor
 						}
 					});
 				}
-
-
-				/*Undo.RecordObject(_asset, "Move Keys");
-				Undo.RecordObject(table, "Move Keys");
-				foreach (var key in keys)
-				{
-					var item = _asset.Items.FirstOrDefault(i => i.Key == key);
-					if (item != null)
-					{
-						if (table.TryAddItem(item))
-						{
-							_asset.RemoveKey(key);
-							_keysToRemove.Add(key);
-							_needsRefresh = true;
-						}
-					}
-				}*/
-			});
+			}
 			menu.ShowAsContext();
 		}
 
