@@ -115,6 +115,7 @@ namespace BlueCheese.App.Editor
 				.OfType<ITranslationTableAsset>()
 				.ToList();
 			var duplicateKeys = translationTables
+				.Where(t => t.Keys != null)
 				.SelectMany(t => t.Keys)
 				.GroupBy(k => k)
 				.Where(g => g.Count() > 1)

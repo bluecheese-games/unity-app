@@ -13,4 +13,18 @@ MonoBehaviour:
   m_Name: AssetBank
   m_EditorClassIdentifier: 
   _assets:
-  - {fileID: 11400000, guid: 04683e4ab1b1b7c4ea3dc449ea3d98af, type: 2}
+  - Name: Spheres
+    Guid: 235ff34154c644a4c872eaebb2b7dc7f
+    TypeName: BlueCheese.Core.Utils.PrefabCollection, BlueCheese.Core, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    Tags:
+      _values: []
+    LoadMode: 0
+  - Name: TranslationTables
+    Guid: 04683e4ab1b1b7c4ea3dc449ea3d98af
+    TypeName: BlueCheese.App.TranslationTableCollection, BlueCheese.App, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    Tags:
+      _values:
+      - Localization
+    LoadMode: 0

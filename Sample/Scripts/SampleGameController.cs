@@ -4,14 +4,19 @@
 
 using BlueCheese.Core.ServiceLocator;
 using BlueCheese.Core.Utils;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace BlueCheese.App.Sample
 {
+	[Serializable]
+	public enum SampleEnum { OptionA, OptionB, OptionC, OptionD }
+
 	public class SampleGameController : MonoBehaviour
 	{
+		[SerializeField] private FlagEnum<SampleEnum> _sampleFlagEnum;
 		[SerializeField] private LocalizedText _counterText;
 		[SerializeField] private AssetRef<PrefabCollection> _spawnedPrefabs;
 		[SerializeField] private float _spawnInterval = 1f;

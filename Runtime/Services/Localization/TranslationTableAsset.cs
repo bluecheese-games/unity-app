@@ -50,7 +50,7 @@ namespace BlueCheese.App
 
 		public List<Language> Languages => _languages;
 
-		public List<string> Keys => _items.Select(i => i.Key).ToList();
+		public List<string> Keys => _items?.Select(i => i.Key).ToList();
 
 		public List<TranslationItem> Items => _items;
 
@@ -142,9 +142,22 @@ namespace BlueCheese.App
 			return item;
 		}
 
-		public bool TryAddItem(TranslationItem item)
+		public bool TryAddItem(TranslationItem item, bool addMissingLanguages = true)
 		{
 			if (GetItem(item.Key) != null) return false; // Key already exists
+
+			if (addMissingLanguages)
+			{
+				// Add any missing languages to the table
+				foreach (var translation in item.Translations)
+				{
+					if (!IsLanguageSupported(translation.Language))
+					{
+						AddLanguage(translation.Language);
+					}
+				}
+			}
+
 			_items.Add(item);
 			LastModified = DateTime.UtcNow;
 			return true;
