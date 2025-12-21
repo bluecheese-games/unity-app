@@ -87,7 +87,7 @@ namespace BlueCheese.App.Sample
 			if (spawnedInstance.TryGetComponent<Rigidbody>(out var rb))
 			{
 				float angle = _random.Value * Mathf.PI * 2;
-				rb.velocity = new Vector3(Mathf.Cos(angle) * 0.5f, 1f, Mathf.Sin(angle) * 0.5f) * _spawnForce;
+				rb.linearVelocity = new Vector3(Mathf.Cos(angle) * 0.5f, 1f, Mathf.Sin(angle) * 0.5f) * _spawnForce;
 			}
 
 			_spawnSFX.Play();

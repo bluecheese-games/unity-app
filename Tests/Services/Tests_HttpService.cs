@@ -9,6 +9,7 @@ using System.Net;
 using Cysharp.Threading.Tasks;
 using System;
 using BlueCheese.Core.ServiceLocator;
+using System.Threading.Tasks;
 
 namespace BlueCheese.Tests.Services
 {
@@ -37,7 +38,7 @@ namespace BlueCheese.Tests.Services
 		}
 
 		[Test]
-		public async void GetAsync_ReturnsSuccessResponse()
+		public async Task GetAsync_ReturnsSuccessResponse()
 		{
 			// Arrange
 			var request = new HttpGetRequest("test");
@@ -56,7 +57,7 @@ namespace BlueCheese.Tests.Services
 		}
 
 		[Test]
-		public async void GetAsync_ReturnsFailureResponse_WhenUrlIsInvalid()
+		public async Task GetAsync_ReturnsFailureResponse_WhenUrlIsInvalid()
 		{
 			// Arrange
 			var request = new HttpGetRequest("invalid url");
@@ -71,7 +72,7 @@ namespace BlueCheese.Tests.Services
 		}
 
 		[Test]
-		public async void PostAsync_ReturnsSuccessResponse()
+		public async Task PostAsync_ReturnsSuccessResponse()
 		{
 			// Arrange
 			var request = new HttpPostRequest("test");
@@ -90,7 +91,7 @@ namespace BlueCheese.Tests.Services
 		}
 
 		[Test]
-		public async void PostAsync_ReturnsFailureResponse_WhenUrlIsInvalid()
+		public async Task PostAsync_ReturnsFailureResponse_WhenUrlIsInvalid()
 		{
 			// Arrange
 			var request = new HttpPostRequest("invalid url");
@@ -105,7 +106,7 @@ namespace BlueCheese.Tests.Services
 		}
 
 		[Test]
-		public async void GetAsync_CallsHandleResponseOnEachMiddleware()
+		public async Task GetAsync_CallsHandleResponseOnEachMiddleware()
 		{
 			// Arrange
 			var request = new HttpGetRequest("http://test");
@@ -132,7 +133,7 @@ namespace BlueCheese.Tests.Services
 		}
 
 		[Test]
-		public async void GetAsync_ReturnsFailureResponse_WhenIHttpClientReturnsFailureResult()
+		public async Task GetAsync_ReturnsFailureResponse_WhenIHttpClientReturnsFailureResult()
 		{
 			// Arrange
 			var request = new HttpGetRequest("test");
@@ -151,7 +152,7 @@ namespace BlueCheese.Tests.Services
 		}
 
 		[Test]
-		public async void PostAsync_ReturnsFailureResponse_WhenIHttpClientReturnsFailureResult()
+		public async Task PostAsync_ReturnsFailureResponse_WhenIHttpClientReturnsFailureResult()
 		{
 			// Arrange
 			var request = new HttpPostRequest("test");
@@ -170,7 +171,7 @@ namespace BlueCheese.Tests.Services
 		}
 
 		[Test]
-		public async void GetAsync_LogsError_WhenIHttpClientReturnsFailureResult()
+		public async Task GetAsync_LogsError_WhenIHttpClientReturnsFailureResult()
 		{
 			// Arrange
 			var request = new HttpGetRequest("test");
@@ -188,7 +189,7 @@ namespace BlueCheese.Tests.Services
 		}
 
 		[Test]
-		public async void PostAsync_LogsError_WhenIHttpClientReturnsFailureResult()
+		public async Task PostAsync_LogsError_WhenIHttpClientReturnsFailureResult()
 		{
 			// Arrange
 			var request = new HttpPostRequest("test");
