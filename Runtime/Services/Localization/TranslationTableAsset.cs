@@ -129,6 +129,7 @@ namespace BlueCheese.App
 
 		public TranslationItem AddItem(string keyToAdd)
 		{
+			keyToAdd = NormalizeKey(keyToAdd);
 			var item = GetItem(keyToAdd);
 			if (item != null) return item; // Key already exists
 
@@ -189,6 +190,8 @@ namespace BlueCheese.App
 			}
 			return false;
 		}
+
+		private string NormalizeKey(string key) => key.Trim();
 
 		[Serializable]
 		public class TranslationItem
@@ -263,36 +266,44 @@ namespace BlueCheese.App
 				Status = TranslationStatus.Validated;
 				LastValidated = DateTime.UtcNow.Ticks;
 			}
-		}
 
-		[Serializable]
-		public class Translation
-		{
-			public Language Language;
-			public string Value;
-
-			public bool IsValid => Language != Language.Unknown && Value is not null;
-
-			private Translation(Language language, string value)
+			public TranslationItem Clone() => new(Key)
 			{
-				Language = language;
-				Value = value;
-			}
+				LastModified = LastModified,
+				LastValidated = LastValidated,
+				Status = Status,
+				Translations = Translations.Select(t => Translation.Create(t.Language, t.Value)).ToList()
+			};
 
-			public static Translation Create(Language language, string value)
+			[Serializable]
+			public class Translation
 			{
-				return new Translation(language, value);
+				public Language Language;
+				public string Value;
+
+				public bool IsValid => Language != Language.Unknown && Value is not null;
+
+				private Translation(Language language, string value)
+				{
+					Language = language;
+					Value = value;
+				}
+
+				public static Translation Create(Language language, string value)
+				{
+					return new Translation(language, value);
+				}
+
+				public static bool operator ==(Translation a, Translation b) => a.Language == b.Language && a.Value == b.Value;
+
+				public static bool operator !=(Translation a, Translation b) => !(a == b);
+
+				public override bool Equals(object obj) => obj is Translation other && this == other;
+
+				public override int GetHashCode() => HashCode.Combine(Language, Value);
+
+				public static implicit operator string(Translation t) => t.Value;
 			}
-
-			public static bool operator ==(Translation a, Translation b) => a.Language == b.Language && a.Value == b.Value;
-
-			public static bool operator !=(Translation a, Translation b) => !(a == b);
-
-			public override bool Equals(object obj) => obj is Translation other && this == other;
-
-			public override int GetHashCode() => HashCode.Combine(Language, Value);
-
-			public static implicit operator string(Translation t) => t.Value;
 		}
 	}
 }

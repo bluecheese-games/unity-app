@@ -14,7 +14,7 @@ namespace BlueCheese.App.Editor
 	[CustomEditor(typeof(FXDef))]
 	public class FXDefEditor : UnityEditor.Editor
 	{
-		private Color[] _backgroundColors = new[] { Color.black, Color.gray, Color.white };
+		private readonly Color[] _backgroundColors = new[] { Color.black, Color.gray, Color.white };
 
 		public FXDef FXDef => (FXDef)target;
 
@@ -24,16 +24,18 @@ namespace BlueCheese.App.Editor
 		private RenderTexture _previewTexture;
 
 		private bool _isPreviewReady = false;
-		private float _time = 0;
+		private float _time = 0f;
 		private bool _isPlaying = false;
 		private bool _restart = true;
-		private DateTime _previousTime = DateTime.Now;
+		private double _lastTicks;
 
 		private SerializedProperty _prefabProperty;
 		private SerializedProperty _overrideDurationProperty;
 		private SerializedProperty _durationProperty;
 		private SerializedProperty _scalersProperty;
 		private int _selectedScalerIndex = 0;
+
+		private Vector2Int _rtSize;
 
 		private void OnEnable()
 		{
@@ -45,38 +47,33 @@ namespace BlueCheese.App.Editor
 			_overrideDurationProperty = serializedObject.FindProperty(nameof(FXDef.OverrideDuration));
 			_durationProperty = serializedObject.FindProperty(nameof(FXDef.Duration));
 			_scalersProperty = serializedObject.FindProperty(nameof(FXDef.Scalers));
+
+			_lastTicks = EditorApplication.timeSinceStartup;
 		}
 
 		private void SetupPreview()
 		{
-			if (_isPreviewReady)
-			{
-				return;
-			}
-
-			if (FXDef.Prefab == null)
-			{
-				return;
-			}
-			if (!FXDef.Prefab.GetComponent<ParticleSystem>())
-			{
-				return;
-			}
+			if (_isPreviewReady) return;
+			if (FXDef.Prefab == null) return;
+			if (!FXDef.Prefab.GetComponent<ParticleSystem>()) return;
 
 			_previewObject = Instantiate(FXDef.Prefab);
-			_previewObject.transform.SetPositionAndRotation(Vector3.down * 200, default);
-			_previewObject.hideFlags = HideFlags.HideAndDontSave;
+			_previewObject.transform.SetPositionAndRotation(Vector3.down * 200f, default);
+			_previewObject.hideFlags = HideFlags.HideAndDontSave | HideFlags.NotEditable;
+
+			// Put object and children on a private layer for the preview camera
+			int layer = LayerMask.NameToLayer("FXPreview");
+			if (layer < 0) layer = 30; // fallback layer
+			SetLayerRecursively(_previewObject, layer);
 
 			_particleSystem = _previewObject.GetComponent<ParticleSystem>();
 
-			_previewTexture = new RenderTexture(256, 256, 16);
-
 			_previewCamera = new GameObject("Preview Camera").AddComponent<Camera>();
 			_previewCamera.enabled = false;
-			_previewCamera.targetTexture = _previewTexture;
 			_previewCamera.clearFlags = CameraClearFlags.Color;
 			_previewCamera.backgroundColor = Color.black;
-			_previewCamera.gameObject.hideFlags = HideFlags.HideAndDontSave;
+			_previewCamera.cullingMask = 1 << layer;
+			_previewCamera.gameObject.hideFlags = HideFlags.HideAndDontSave | HideFlags.NotEditable;
 
 			_isPreviewReady = true;
 		}
@@ -85,7 +82,17 @@ namespace BlueCheese.App.Editor
 		{
 			serializedObject.Update();
 
+			// Prefab field with rebuild on change
+			EditorGUI.BeginChangeCheck();
 			EditorGUILayout.PropertyField(_prefabProperty);
+			if (EditorGUI.EndChangeCheck())
+			{
+				serializedObject.ApplyModifiedProperties();
+				CleanupPreview();
+				SetupPreview();
+				RestartPreview();
+				return; // avoid using stale state this frame
+			}
 
 			if (FXDef.Prefab == null)
 			{
@@ -101,36 +108,40 @@ namespace BlueCheese.App.Editor
 			}
 
 			EditorGUILayout.PropertyField(_overrideDurationProperty);
-			GUI.enabled = FXDef.OverrideDuration;
-			EditorGUILayout.PropertyField(_durationProperty);
-			GUI.enabled = true;
+			using (new EditorGUI.DisabledScope(!_overrideDurationProperty.boolValue))
+			{
+				EditorGUILayout.PropertyField(_durationProperty);
+			}
 
 			DrawScalers();
 
 			serializedObject.ApplyModifiedProperties();
 
-			if (!_isPreviewReady)
-			{
+			if (!_isPreviewReady || _particleSystem == null)
 				return;
-			}
 
-			var now = DateTime.Now;
-			double deltaTime = (now - _previousTime).TotalMilliseconds;
-			_previousTime = now;
+			// Time update and simulation
+			double now = EditorApplication.timeSinceStartup;
+			double deltaTime = now - _lastTicks;
+			_lastTicks = now;
 
 			if (_isPlaying)
 			{
-				_time += (float)deltaTime / 1000;
-				if (_time > FXDef.Duration)
+				_time += (float)deltaTime;
+				var main = _particleSystem.main;
+				float clampDuration = main.duration > 0f ? main.duration : Mathf.Max(0.01f, FXDef.Duration);
+				if (_time > clampDuration)
 				{
-					if (!_particleSystem.main.loop)
+					if (!main.loop)
 					{
-						_time = FXDef.Duration;
+						_time = clampDuration;
 						_isPlaying = false;
 					}
 				}
 			}
-			_particleSystem.Simulate(_time, true, _restart);
+
+			_particleSystem.Simulate(_time, withChildren: true, restart: _restart);
+			_restart = false; // restart only on the first simulate after a reset
 			SceneView.RepaintAll();
 		}
 
@@ -138,6 +149,8 @@ namespace BlueCheese.App.Editor
 		{
 			EditorGUILayout.BeginVertical("box");
 			EditorGUILayout.LabelField("Scalers", EditorStyles.boldLabel);
+
+			// Existing scalers list
 			for (int i = 0; i < _scalersProperty.arraySize; i++)
 			{
 				var scalerProperty = _scalersProperty.GetArrayElementAtIndex(i);
@@ -149,28 +162,37 @@ namespace BlueCheese.App.Editor
 				EditorGUILayout.PropertyField(curveProperty, GUIContent.none);
 				if (GUILayout.Button(EditorIcon.Cross, GUILayout.Width(30), GUILayout.Height(18)))
 				{
+					// Make it undoable and ensure the change is committed this frame
+					Undo.RecordObject(target, "Remove Scaler");
 					_scalersProperty.DeleteArrayElementAtIndex(i);
+					serializedObject.ApplyModifiedProperties();
+					EditorUtility.SetDirty(target);
+					GUIUtility.ExitGUI(); // bail to avoid layout issues after structural change
 				}
+
 				EditorGUILayout.EndHorizontal();
 			}
+
 			EditorGUILayout.Space();
 			EditorGUILayout.BeginHorizontal();
 
-			// Extract current scalers and convert to a HashSet for efficient lookup
-			HashSet<FXScaler.Type> currentScalers = FXDef.Scalers.Select(s => s.type).ToHashSet();
-			currentScalers.Add(FXScaler.Type.None);
+			// Build current type set from SerializedProperty to avoid nulls
+			HashSet<FXScaler.Type> currentScalers = new HashSet<FXScaler.Type>();
+			for (int i = 0; i < _scalersProperty.arraySize; i++)
+			{
+				var scalerProperty = _scalersProperty.GetArrayElementAtIndex(i);
+				var typeProperty = scalerProperty.FindPropertyRelative(nameof(FXScaler.type));
+				currentScalers.Add((FXScaler.Type)typeProperty.enumValueIndex);
+			}
+			currentScalers.Add(FXScaler.Type.None); // never add 'None'
 
-			// Get all possible scalers, excluding 'None', and filter out the current scalers
-			List<string> availableScalers = Enum.GetValues(typeof(FXScaler.Type))
+			var availableScalers = Enum.GetValues(typeof(FXScaler.Type))
 				.Cast<FXScaler.Type>()
 				.Except(currentScalers)
 				.Select(x => x.ToString())
 				.ToList();
 
-			// Insert the placeholder at the beginning
 			availableScalers.Insert(0, "< Add Scaler >");
-
-			// Convert to array
 			var scalers = availableScalers.ToArray();
 
 			_selectedScalerIndex = EditorGUILayout.Popup(_selectedScalerIndex, scalers);
@@ -178,43 +200,42 @@ namespace BlueCheese.App.Editor
 			{
 				_scalersProperty.InsertArrayElementAtIndex(_scalersProperty.arraySize);
 				var newScalerProperty = _scalersProperty.GetArrayElementAtIndex(_scalersProperty.arraySize - 1);
-				var newTypeProperty = newScalerProperty.FindPropertyRelative(nameof(FXScaler.type));
-				var newCurveProperty = newScalerProperty.FindPropertyRelative(nameof(FXScaler.curve));
-				newTypeProperty.enumValueIndex = (int)Enum.Parse<FXScaler.Type>(scalers[_selectedScalerIndex]);
-				newCurveProperty.animationCurveValue = AnimationCurve.Constant(0, 1, 1);
+				newScalerProperty.FindPropertyRelative(nameof(FXScaler.type)).enumValueIndex = (int)Enum.Parse<FXScaler.Type>(scalers[_selectedScalerIndex]);
+				newScalerProperty.FindPropertyRelative(nameof(FXScaler.curve)).animationCurveValue = AnimationCurve.Constant(0, 1, 1);
 				_selectedScalerIndex = 0;
 			}
+
 			EditorGUILayout.EndHorizontal();
 			EditorGUILayout.EndVertical();
 		}
 
 		public override bool RequiresConstantRepaint() => _isPreviewReady && _isPlaying;
 
-		public override bool HasPreviewGUI() => _isPreviewReady;
+		public override bool HasPreviewGUI() => _isPreviewReady && _particleSystem != null;
 
 		public override void OnInteractivePreviewGUI(Rect rect, GUIStyle background)
 		{
-			if (!_isPreviewReady) return;
+			if (!_isPreviewReady || _particleSystem == null) return;
+
+			EnsureRTSize(rect);
 
 			_particleSystem.transform.position = Vector3.up * 2f;
-			_previewObject.layer = 30;
-
-			// Set camera position and render the preview
+			// Camera placement
 			var vect = -_particleSystem.transform.forward * 5f + Vector3.up * 2f;
 			vect *= FXDef._previewSettings.zoom;
+
 			_previewCamera.backgroundColor = FXDef._previewSettings.backgroundColor;
 			_previewCamera.transform.position = _particleSystem.transform.position + vect;
 			_previewCamera.transform.LookAt(_particleSystem.transform.position);
 			_previewCamera.clearFlags = FXDef._previewSettings.showSkybox ? CameraClearFlags.Skybox : CameraClearFlags.Color;
-			_previewCamera.overrideSceneCullingMask = (ulong)(1 << _previewObject.layer);
+			_previewCamera.targetTexture = _previewTexture;
 			_previewCamera.Render();
 
-			// Draw the RenderTexture in the preview area
+			// Draw the texture
 			GUI.DrawTexture(rect, _previewTexture, ScaleMode.ScaleToFit, false);
 
-			// Header
+			// Header bar
 			GUI.Label(new Rect(rect.xMin, rect.yMin, rect.width, 30), GUIContent.none, EditorStyles.textArea);
-
 			if (GUI.Button(new Rect(rect.xMin + 10, rect.yMin + 5, 30, 20), EditorIcon.Restart))
 			{
 				RestartPreview();
@@ -228,11 +249,15 @@ namespace BlueCheese.App.Editor
 				PlayPreview();
 			}
 
-			GUI.enabled = !_isPlaying;
-			_time = GUI.HorizontalSlider(new Rect(rect.xMin + 100, rect.yMin + 5, rect.width - 120, 20), _time, 0f, _particleSystem.main.duration);
-			GUI.enabled = true;
+			using (new EditorGUI.DisabledScope(_isPlaying))
+			{
+				float sliderMax = Mathf.Max(0.01f, _particleSystem.main.duration);
+				_time = GUI.HorizontalSlider(new Rect(rect.xMin + 100, rect.yMin + 5, rect.width - 160, 20), _time, 0f, sliderMax);
+			}
 
-			// Footer
+			GUI.Label(new Rect(rect.xMax - 55, rect.yMin + 5, 50, 20), $"{_time:0.00}s");
+
+			// Footer bar
 			GUI.Label(new Rect(rect.xMin, rect.yMax - 30, rect.width, 30), GUIContent.none, EditorStyles.textArea);
 			GUI.Label(new Rect(rect.xMin + 10, rect.yMax - 25, 50, 20), "Zoom");
 			FXDef._previewSettings.zoom = GUI.HorizontalSlider(new Rect(rect.xMin + 60, rect.yMax - 25, 100, 20), FXDef._previewSettings.zoom, 0.5f, 3f);
@@ -251,6 +276,23 @@ namespace BlueCheese.App.Editor
 			{
 				FXDef._previewSettings.showSkybox = !FXDef._previewSettings.showSkybox;
 			});
+		}
+
+		private void EnsureRTSize(Rect rect)
+		{
+			int w = Mathf.Clamp(Mathf.CeilToInt(rect.width), 64, 2048);
+			int h = Mathf.Clamp(Mathf.CeilToInt(rect.height), 64, 2048);
+			if (_previewTexture == null || _rtSize.x != w || _rtSize.y != h)
+			{
+				if (_previewTexture != null)
+				{
+					_previewCamera.targetTexture = null;
+					_previewTexture.Release();
+					DestroyImmediate(_previewTexture);
+				}
+				_previewTexture = new RenderTexture(w, h, 16);
+				_rtSize = new Vector2Int(w, h);
+			}
 		}
 
 		private void ShowFooterButton(Rect rect, int index, Color bgColor, Texture2D icon, bool isSelected, Action onClick)
@@ -278,7 +320,7 @@ namespace BlueCheese.App.Editor
 		private void PlayPreview()
 		{
 			_isPlaying = true;
-			if (_time >= _particleSystem.main.duration)
+			if (_particleSystem != null && _time >= Mathf.Max(0.01f, _particleSystem.main.duration))
 			{
 				RestartPreview();
 			}
@@ -300,6 +342,7 @@ namespace BlueCheese.App.Editor
 
 			if (_previewCamera != null)
 			{
+				_previewCamera.targetTexture = null;
 				DestroyImmediate(_previewCamera.gameObject);
 				_previewCamera = null;
 			}
@@ -316,6 +359,14 @@ namespace BlueCheese.App.Editor
 				DestroyImmediate(_previewObject.gameObject);
 				_previewObject = null;
 			}
+		}
+
+		private static void SetLayerRecursively(GameObject go, int layer)
+		{
+			go.layer = layer;
+			var transforms = go.GetComponentsInChildren<Transform>(true);
+			for (int i = 0; i < transforms.Length; i++)
+				transforms[i].gameObject.layer = layer;
 		}
 	}
 }
