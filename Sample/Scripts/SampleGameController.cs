@@ -2,21 +2,24 @@
 // Copyright (c) 2025 BlueCheese Games All rights reserved
 //
 
+using BlueCheese.Core;
 using BlueCheese.Core.ServiceLocator;
 using BlueCheese.Core.Utils;
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace BlueCheese.App.Sample
 {
 	[Serializable]
-	public enum SampleEnum { OptionA, OptionB, OptionC, OptionD }
+	public enum SampleEnum : long { OptionA, OptionB, OptionC, OptionD }
 
 	public class SampleGameController : MonoBehaviour
 	{
 		[SerializeField] private FlagEnum<SampleEnum> _sampleFlagEnum;
+		[SerializeField, SearchableEnum] private MyEnumWrapper _testSearchableEnum;
 		[SerializeField] private LocalizedText _counterText;
 		[SerializeField] private AssetRef<PrefabCollection> _spawnedPrefabs;
 		[SerializeField] private float _spawnInterval = 1f;
@@ -91,5 +94,90 @@ namespace BlueCheese.App.Sample
 
 			pool.Despawn(spawnedInstance, _spawnLifetime);
 		}
+	}
+
+	[Serializable]
+	public class MyEnumWrapper
+	{
+		[SerializeField] private MyEnum value;
+
+		public MyEnum Value => value;
+
+		public static implicit operator MyEnum(MyEnumWrapper w) => w != null ? w.value : default;
+	}
+
+
+	[Serializable]
+	public enum MyEnum
+	{
+		Value0,
+		Value1,
+		Value2,
+		Value3,
+		Value4,
+		Value5,
+		Value6,
+		Value7,
+		Value8,
+		Value9,
+		Value10,
+		Value11,
+		Value12,
+		Value13,
+		Value14,
+		Value15,
+		Value16,
+		Value17,
+		Value18,
+		Value19,
+		Value20,
+		Value21,
+		Value22,
+		Value23,
+		Value24,
+		Value25,
+		Value26,
+		Value27,
+		Value28,
+		Value29,
+		Value30,
+		Value31,
+		Value32,
+		Value33,
+		Value34,
+		Value35,
+		Value36,
+		Value37,
+		Value38,
+		Value39,
+		Value40,
+		Value41,
+		Value42,
+		Value43,
+		Value44,
+		Value45,
+		Value46,
+		Value47,
+		Value48,
+		Value49,
+		Value50,
+		Value51,
+		Value52,
+		Value53,
+		Value54,
+		Value55,
+		Value56,
+		Value57,
+		Value58,
+		Value59,
+		Value60,
+		Value61,
+		Value62,
+		Value63,
+		Value64,
+		Value65,
+		Value66,
+		Value67,
+		Value68,
 	}
 }

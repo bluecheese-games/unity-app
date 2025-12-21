@@ -13,31 +13,24 @@ namespace BlueCheese.App
 		[SerializeField] private TMP_Text _text;
 		[SerializeField] private TranslationKey _translationKey;
 
-		private bool _needsUpdate = true;
-
 		private void Start()
 		{
 			SignalAPI.Subscribe<ChangeLanguageSignal>(OnChangeLanguage, this);
+			UpdateText();
 		}
 
 		private void OnChangeLanguage(ChangeLanguageSignal signal)
 		{
-			_needsUpdate = true;
+			UpdateText();
 		}
 
-		private void Update()
-		{
-			if (_needsUpdate)
-			{
-				UpdateText();
-				_needsUpdate = false;
-			}
-		}
-
-		public void SetParameter(int index, string value)
+		public void SetParameter(int index, string value, bool immediateUpdate = true)
 		{
 			_translationKey.SetParameter(index, value);
-			_needsUpdate = true;
+			if (immediateUpdate)
+			{
+				UpdateText();
+			}
 		}
 
 		public void UpdateText()

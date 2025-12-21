@@ -12,6 +12,7 @@ using UnityEngine;
 
 namespace BlueCheese.App.Editor
 {
+
 	public class TranslationTableWindow : EditorWindow
 	{
 		public static void Open(TranslationTableAsset asset)
@@ -330,11 +331,15 @@ namespace BlueCheese.App.Editor
 							var item = _asset.Items.FirstOrDefault(i => i.Key == key);
 							if (item != null)
 							{
-								if (table.TryAddItem(item))
+								if (table.TryAddItem(item.Clone()))
 								{
 									_asset.RemoveKey(key);
 									_keysToRemove.Add(key);
 									_needsRefresh = true;
+								}
+								else
+								{
+									EditorUtility.DisplayDialog("Error", $"Key '{key}' already exists in table '{table.Name}'", "Ok");
 								}
 							}
 						}

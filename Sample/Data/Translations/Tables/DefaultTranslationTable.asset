@@ -32,13 +32,13 @@ MonoBehaviour:
     LastModified: 638948316855801626
     LastValidated: 638948316865559510
     Status: 0
-  - Key: test
+  - Key: UI.TEMP
     Translations:
     - Language: 11
-      Value: en
+      Value: New Text
     - Language: 15
-      Value: fr
-    LastModified: 638979414165981460
+      Value: 
+    LastModified: 638980357297701733
     LastValidated: 0
     Status: 1
-  _lastModified: 638979414165981460
+  _lastModified: 638979531920357495
