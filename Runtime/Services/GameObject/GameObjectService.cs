@@ -4,7 +4,6 @@
 
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using BlueCheese.Core.Utils;
 
 namespace BlueCheese.App
 {
@@ -24,14 +23,29 @@ namespace BlueCheese.App
 
         public void DontDestroyOnLoad(GameObject obj) => GameObject.DontDestroyOnLoad(obj);
 
-        public T Find<T>(bool includeInactive = false) where T : Component => GameObject.FindFirstObjectByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude);
+        public T Find<T>(bool includeInactive = false) where T : Component =>
+            GameObject.FindFirstObjectByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude);
 
-        public T[] FindAll<T>(bool includeInactive = false) where T : Component => GameObject.FindObjectsOfType<T>(includeInactive);
+        public T[] FindAll<T>(bool includeInactive = false) where T : Component =>
+            GameObject.FindObjectsByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 
-		public async UniTask<GameObject> InstantiateAsync(GameObject prefab) => await GameObject.InstantiateAsync(prefab);
+		public async UniTask<GameObject> InstantiateAsync(GameObject prefab)
+		{
+			var op = GameObject.InstantiateAsync(prefab);
+            await op;
+            return op.Result[0];
+		}
 
-		public async UniTask<T> InstantiateAsync<T>(T prefab) where T : Component => await GameObject.InstantiateAsync<T>(prefab);
+		public async UniTask<T> InstantiateAsync<T>(T prefab) where T : Component
+        {
+            var obj = await InstantiateAsync(prefab.gameObject);
+            return obj.GetComponent<T>();
+        }
 
-		public async UniTask<T> InstantiateAsync<T>(GameObject prefab) where T : Component => (await GameObject.InstantiateAsync(prefab)).GetComponent<T>();
+		public async UniTask<T> InstantiateAsync<T>(GameObject prefab) where T : Component
+		{
+            var obj =  await InstantiateAsync(prefab);
+            return obj.GetComponent<T>();
+		}
 	}
 }
