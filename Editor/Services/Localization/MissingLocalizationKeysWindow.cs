@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2025 BlueCheese Games All rights reserved
+// Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
 #if UNITY_EDITOR
@@ -594,7 +594,7 @@ namespace BlueCheese.Tools.Editor
 						{
 							GUILayout.Space(8);
 
-							// Object path — wider now
+							// Object path ï¿½ wider now
 							EditorGUILayout.LabelField(item.ObjectPath, GUILayout.Width(320));
 
 							// Key
