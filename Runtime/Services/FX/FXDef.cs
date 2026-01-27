@@ -96,6 +96,7 @@ namespace BlueCheese.App
 			public Color backgroundColor = Color.black;
 			public bool showSkybox = false;
 			[Range(0.1f, 5f)] public float zoom = 1f;
+			[Range(0f, 1f)] public float scalerRatio = 1f;
 		}
 	}
 }

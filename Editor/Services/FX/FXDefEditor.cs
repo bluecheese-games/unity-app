@@ -16,7 +16,7 @@ namespace BlueCheese.App.Editor
 	{
 		private readonly Color[] _backgroundColors = new[] { Color.black, Color.gray, Color.white };
 
-		public FXDef FXDef => (FXDef)target;
+		public FXDef TargetFXDef => (FXDef)target;
 
 		private GameObject _previewObject;
 		private ParticleSystem _particleSystem;
@@ -43,10 +43,10 @@ namespace BlueCheese.App.Editor
 			SetupPreview();
 			RestartPreview();
 
-			_prefabProperty = serializedObject.FindProperty(nameof(FXDef.Prefab));
-			_overrideDurationProperty = serializedObject.FindProperty(nameof(FXDef.OverrideDuration));
-			_durationProperty = serializedObject.FindProperty(nameof(FXDef.Duration));
-			_scalersProperty = serializedObject.FindProperty(nameof(FXDef.Scalers));
+			_prefabProperty = serializedObject.FindProperty(nameof(TargetFXDef.Prefab));
+			_overrideDurationProperty = serializedObject.FindProperty(nameof(TargetFXDef.OverrideDuration));
+			_durationProperty = serializedObject.FindProperty(nameof(TargetFXDef.Duration));
+			_scalersProperty = serializedObject.FindProperty(nameof(TargetFXDef.Scalers));
 
 			_lastTicks = EditorApplication.timeSinceStartup;
 		}
@@ -54,10 +54,10 @@ namespace BlueCheese.App.Editor
 		private void SetupPreview()
 		{
 			if (_isPreviewReady) return;
-			if (FXDef.Prefab == null) return;
-			if (!FXDef.Prefab.GetComponent<ParticleSystem>()) return;
+			if (TargetFXDef.Prefab == null) return;
+			if (!TargetFXDef.Prefab.GetComponent<ParticleSystem>()) return;
 
-			_previewObject = Instantiate(FXDef.Prefab);
+			_previewObject = Instantiate(TargetFXDef.Prefab);
 			_previewObject.transform.SetPositionAndRotation(Vector3.down * 200f, default);
 			_previewObject.hideFlags = HideFlags.HideAndDontSave | HideFlags.NotEditable;
 
@@ -94,13 +94,13 @@ namespace BlueCheese.App.Editor
 				return; // avoid using stale state this frame
 			}
 
-			if (FXDef.Prefab == null)
+			if (TargetFXDef.Prefab == null)
 			{
 				serializedObject.ApplyModifiedProperties();
 				return;
 			}
 
-			if (!FXDef.Prefab.GetComponent<ParticleSystem>())
+			if (!TargetFXDef.Prefab.GetComponent<ParticleSystem>())
 			{
 				EditorGUILayout.HelpBox("The prefab must have a ParticleSystem component", MessageType.Error);
 				serializedObject.ApplyModifiedProperties();
@@ -129,7 +129,7 @@ namespace BlueCheese.App.Editor
 			{
 				_time += (float)deltaTime;
 				var main = _particleSystem.main;
-				float clampDuration = main.duration > 0f ? main.duration : Mathf.Max(0.01f, FXDef.Duration);
+				float clampDuration = main.duration > 0f ? main.duration : Mathf.Max(0.01f, TargetFXDef.Duration);
 				if (_time > clampDuration)
 				{
 					if (!main.loop)
@@ -137,6 +137,13 @@ namespace BlueCheese.App.Editor
 						_time = clampDuration;
 						_isPlaying = false;
 					}
+				}
+
+				// Apply scalers in the preview
+				float ratio = TargetFXDef._previewSettings.scalerRatio;
+				foreach (var scaler in TargetFXDef.Scalers)
+				{
+					scaler.Apply(_particleSystem, ratio);
 				}
 			}
 
@@ -222,12 +229,12 @@ namespace BlueCheese.App.Editor
 			_particleSystem.transform.position = Vector3.up * 2f;
 			// Camera placement
 			var vect = -_particleSystem.transform.forward * 5f + Vector3.up * 2f;
-			vect *= FXDef._previewSettings.zoom;
+			vect *= TargetFXDef._previewSettings.zoom;
 
-			_previewCamera.backgroundColor = FXDef._previewSettings.backgroundColor;
+			_previewCamera.backgroundColor = TargetFXDef._previewSettings.backgroundColor;
 			_previewCamera.transform.position = _particleSystem.transform.position + vect;
 			_previewCamera.transform.LookAt(_particleSystem.transform.position);
-			_previewCamera.clearFlags = FXDef._previewSettings.showSkybox ? CameraClearFlags.Skybox : CameraClearFlags.Color;
+			_previewCamera.clearFlags = TargetFXDef._previewSettings.showSkybox ? CameraClearFlags.Skybox : CameraClearFlags.Color;
 			_previewCamera.targetTexture = _previewTexture;
 			_previewCamera.Render();
 
@@ -260,22 +267,26 @@ namespace BlueCheese.App.Editor
 			// Footer bar
 			GUI.Label(new Rect(rect.xMin, rect.yMax - 30, rect.width, 30), GUIContent.none, EditorStyles.textArea);
 			GUI.Label(new Rect(rect.xMin + 10, rect.yMax - 25, 50, 20), "Zoom");
-			FXDef._previewSettings.zoom = GUI.HorizontalSlider(new Rect(rect.xMin + 60, rect.yMax - 25, 100, 20), FXDef._previewSettings.zoom, 0.5f, 3f);
+			TargetFXDef._previewSettings.zoom = GUI.HorizontalSlider(new Rect(rect.xMin + 60, rect.yMax - 25, 60, 20), TargetFXDef._previewSettings.zoom, 0.5f, 3f);
 
 			int index = 0;
 			for (; index < _backgroundColors.Length; index++)
 			{
 				Color color = _backgroundColors[index];
-				ShowFooterButton(rect, index, color, EditorIcon.Valid, color == FXDef._previewSettings.backgroundColor, () =>
+				ShowFooterButton(rect, index, color, EditorIcon.Valid, color == TargetFXDef._previewSettings.backgroundColor, () =>
 				{
-					FXDef._previewSettings.backgroundColor = color;
+					TargetFXDef._previewSettings.backgroundColor = color;
 				});
 			}
 
-			ShowFooterButton(rect, index, Color.white, EditorIcon.Skybox, FXDef._previewSettings.showSkybox, () =>
+			ShowFooterButton(rect, index, Color.white, EditorIcon.Skybox, TargetFXDef._previewSettings.showSkybox, () =>
 			{
-				FXDef._previewSettings.showSkybox = !FXDef._previewSettings.showSkybox;
+				TargetFXDef._previewSettings.showSkybox = !TargetFXDef._previewSettings.showSkybox;
 			});
+
+			// Show the scaler ratio slider at bottom right
+			GUI.Label(new Rect(rect.xMax - 100, rect.yMax - 25, 50, 20), "Scaler");
+			TargetFXDef._previewSettings.scalerRatio = GUI.HorizontalSlider(new Rect(rect.xMax - 50, rect.yMax - 25, 40, 20), TargetFXDef._previewSettings.scalerRatio, 0f, 1f);
 		}
 
 		private void EnsureRTSize(Rect rect)
@@ -299,11 +310,11 @@ namespace BlueCheese.App.Editor
 		{
 			if (isSelected)
 			{
-				GUI.Label(new Rect(rect.xMin + 168 + index * 35, rect.yMax - 27, 34, 24), GUIContent.none, EditorStyles.selectionRect);
+				GUI.Label(new Rect(rect.xMin + 128 + index * 35, rect.yMax - 27, 34, 24), GUIContent.none, EditorStyles.selectionRect);
 			}
 
 			GUI.backgroundColor = bgColor;
-			if (GUI.Button(new Rect(rect.xMin + 170 + index * 35, rect.yMax - 25, 30, 20), icon))
+			if (GUI.Button(new Rect(rect.xMin + 130 + index * 35, rect.yMax - 25, 30, 20), icon))
 			{
 				onClick();
 			}

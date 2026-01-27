@@ -12,11 +12,11 @@ namespace BlueCheese.App
 		private float _rateOverTime;
 		private float _rateOverDistance;
 
-		protected override void Initialize()
+		public override void Initialize(ParticleSystem ps)
 		{
-			var emission = _ps.emission;
-			_burstCounts = new float[_ps.emission.burstCount];
-			for (int i = 0; i < _ps.emission.burstCount; i++)
+			var emission = ps.emission;
+			_burstCounts = new float[ps.emission.burstCount];
+			for (int i = 0; i < ps.emission.burstCount; i++)
 			{
 				_burstCounts[i] = emission.GetBurst(i).count.constant;
 			}
@@ -24,10 +24,10 @@ namespace BlueCheese.App
 			_rateOverDistance = emission.rateOverDistanceMultiplier;
 		}
 
-		public override void Apply(float ratio)
+		public override void Apply(ParticleSystem ps, float ratio)
 		{
-			var emission = _ps.emission;
-			for (int i = 0; i < _ps.emission.burstCount; i++)
+			var emission = ps.emission;
+			for (int i = 0; i < ps.emission.burstCount; i++)
 			{
 				var burst = emission.GetBurst(i);
 				burst.count = Mathf.RoundToInt(_burstCounts[i] * ratio);
