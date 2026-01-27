@@ -8,16 +8,13 @@ namespace BlueCheese.App
 {
 	public abstract class FXScalerBase : MonoBehaviour
 	{
-		protected ParticleSystem _ps;
-
 		private void Awake()
 		{
-			_ps = GetComponent<ParticleSystem>();
-			Initialize();
+			Initialize(GetComponent<ParticleSystem>());
 		}
 
-		protected abstract void Initialize();
+		public abstract void Initialize(ParticleSystem ps);
 
-		public abstract void Apply(float ratio);
+		public abstract void Apply(ParticleSystem ps, float ratio);
 	}
 }

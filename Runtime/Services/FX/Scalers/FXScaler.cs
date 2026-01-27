@@ -17,6 +17,7 @@ namespace BlueCheese.App
 			None,
 			ParticleCount,
 			ParticleSize,
+			StartSpeed,
 		}
 
 		[HideInInspector]
@@ -35,14 +36,15 @@ namespace BlueCheese.App
 			FXScalerBase scaler = CreateScalerComponent(ps);
 			if (scaler != null)
 			{
-				scaler.Apply(value);
+				scaler.Apply(ps, value);
 			}
 		}
 
 		private readonly FXScalerBase CreateScalerComponent(ParticleSystem ps) => type switch
 		{
-			Type.ParticleCount => ps.AddOrGetComponent<FXScalerParticleCount>(),
-			Type.ParticleSize => ps.AddOrGetComponent<FXScalerParticleSize>(),
+			Type.ParticleCount => ps.AddOrGetComponent<FXScalerParticleCount>(scaler => scaler.Initialize(ps)),
+			Type.ParticleSize => ps.AddOrGetComponent<FXScalerParticleSize>(scaler => scaler.Initialize(ps)),
+			Type.StartSpeed => ps.AddOrGetComponent<FXScalerParticleStartSpeed>(scaler => scaler.Initialize(ps)),
 			_ => null,
 		};
 	}

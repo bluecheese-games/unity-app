@@ -6,19 +6,17 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-	public class FXScalerParticleSize : FXScalerBase
+	public class FXScalerParticleStartSpeed : FXScalerBase
 	{
-		private float _startSize;
-
+		private float _startSpeed;
 		public override void Initialize(ParticleSystem ps)
 		{
-			_startSize = ps.main.startSizeMultiplier;
+			_startSpeed = ps.main.startSpeedMultiplier;
 		}
-
 		public override void Apply(ParticleSystem ps, float ratio)
 		{
 			var main = ps.main;
-			main.startSizeMultiplier = _startSize * ratio;
+			main.startSpeedMultiplier = _startSpeed * ratio;
 		}
 	}
 }
