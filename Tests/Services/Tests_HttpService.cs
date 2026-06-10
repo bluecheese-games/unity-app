@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.Net;
 using Cysharp.Threading.Tasks;
 using System;
-using BlueCheese.Core.ServiceLocator;
 using System.Threading.Tasks;
+using BlueCheese.Core.DI;
 
 namespace BlueCheese.Tests.Services
 {
@@ -25,16 +25,18 @@ namespace BlueCheese.Tests.Services
 		{
 			_fakeHttpClient = new FakeHttpClient();
 			_fakeLogger = new FakeLogger<HttpService>();
-			var options = new HttpService.Options { BaseUri = new Uri("http://example.com") };
-			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
-			ServiceContainer.Default.Register<IJsonService, NewtonSoftJsonService>();
-			ServiceContainer.Default.Startup();
+			var settings = new OptionsWrapper<HttpService.Settings>(new HttpService.Settings { BaseUri = new Uri("http://example.com") });
+			_httpService = new HttpService(_fakeHttpClient, _fakeLogger, settings);
+
+			var serviceContainer = new ServiceContainer();
+			serviceContainer.Register<IJsonService, NewtonSoftJsonService>();
+			ServiceLocator.Initialize(serviceContainer);
 		}
 
 		[TearDown]
 		public void TearDown()
 		{
-			ServiceContainer.Default.Reset();
+			ServiceLocator.Dispose();
 		}
 
 		[Test]
@@ -115,8 +117,8 @@ namespace BlueCheese.Tests.Services
 			_fakeHttpClient.GetAsyncResult = expectedResponse;
 			var middleware1 = new FakeHttpMiddleware();
 			var middleware2 = new FakeHttpMiddleware();
-			var options = new HttpService.Options { Middlewares = new List<IHttpMiddleware> { middleware1, middleware2 } };
-			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
+			var settings = new OptionsWrapper<HttpService.Settings>(new HttpService.Settings { Middlewares = new List<IHttpMiddleware> { middleware1, middleware2 } });
+			_httpService = new HttpService(_fakeHttpClient, _fakeLogger, settings);
 
 			// Act
 			var response = await _httpService.GetAsync(request);
@@ -139,8 +141,9 @@ namespace BlueCheese.Tests.Services
 			var request = new HttpGetRequest("test");
 			var expectedResponse = new IHttpClient.Result(false, "Error message", 500);
 			_fakeHttpClient.GetAsyncResult = expectedResponse;
-			var options = new HttpService.Options { BaseUri = new Uri("http://example.com") };
-			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
+			var options = new HttpService.Settings { BaseUri = new Uri("http://example.com") };
+			var settings = new OptionsWrapper<HttpService.Settings>(options);
+			_httpService = new HttpService(_fakeHttpClient, _fakeLogger, settings);
 
 			// Act
 			var response = await _httpService.GetAsync(request);
@@ -158,8 +161,9 @@ namespace BlueCheese.Tests.Services
 			var request = new HttpPostRequest("test");
 			var expectedResponse = new IHttpClient.Result(false, "Error message", 500);
 			_fakeHttpClient.PostAsyncResult = expectedResponse;
-			var options = new HttpService.Options { BaseUri = new Uri("http://example.com") };
-			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
+			var options = new HttpService.Settings { BaseUri = new Uri("http://example.com") };
+			var settings = new OptionsWrapper<HttpService.Settings>(options);
+			_httpService = new HttpService(_fakeHttpClient, _fakeLogger, settings);
 
 			// Act
 			var response = await _httpService.PostAsync(request);
@@ -177,8 +181,9 @@ namespace BlueCheese.Tests.Services
 			var request = new HttpGetRequest("test");
 			var expectedResponse = new IHttpClient.Result(false, "Error message", 500);
 			_fakeHttpClient.GetAsyncResult = expectedResponse;
-			var options = new HttpService.Options { BaseUri = new Uri("http://example.com"), LogRequests = true };
-			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
+			var options = new HttpService.Settings { BaseUri = new Uri("http://example.com"), LogRequests = true };
+			var settings = new OptionsWrapper<HttpService.Settings>(options);
+			_httpService = new HttpService(_fakeHttpClient, _fakeLogger, settings);
 
 			// Act
 			var response = await _httpService.GetAsync(request);
@@ -195,8 +200,9 @@ namespace BlueCheese.Tests.Services
 			var request = new HttpPostRequest("test");
 			var expectedResponse = new IHttpClient.Result(false, "Error message", 500);
 			_fakeHttpClient.PostAsyncResult = expectedResponse;
-			var options = new HttpService.Options { BaseUri = new Uri("http://example.com"), LogRequests = true };
-			_httpService = new HttpService(options, _fakeHttpClient, _fakeLogger);
+			var options = new HttpService.Settings { BaseUri = new Uri("http://example.com"), LogRequests = true };
+			var settings = new OptionsWrapper<HttpService.Settings>(options);
+			_httpService = new HttpService(_fakeHttpClient, _fakeLogger, settings);
 
 			// Act
 			var response = await _httpService.PostAsync(request);

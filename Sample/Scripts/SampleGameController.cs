@@ -2,23 +2,22 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core;
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.DI;
 using BlueCheese.Core.Utils;
 using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace BlueCheese.App.Sample
 {
 	[Serializable]
-	public enum SampleEnum : long { OptionA, OptionB, OptionC, OptionD }
+	public enum SampleEnum { OptionA, OptionB, OptionC, OptionD }
 
 	public class SampleGameController : MonoBehaviour
 	{
 		[SerializeField] private FlagEnum<SampleEnum> _sampleFlagEnum;
+		[SerializeField, ButtonsEnum] private SampleEnum _buttonsEnum;
 		[SerializeField, SearchableEnum] private MyEnumWrapper _testSearchableEnum;
 		[SerializeField] private LocalizedText _counterText;
 		[SerializeField] private AssetRef<PrefabCollection> _spawnedPrefabs;
@@ -26,6 +25,8 @@ namespace BlueCheese.App.Sample
 		[SerializeField] private float _spawnForce = 3f;
 		[SerializeField] private float _spawnLifetime = 5f;
 		[SerializeField] private SoundFX _spawnSFX = "SphereSpawn";
+		[PoolOptions(Capacity = 20, FillAmount = 10, UseContainer = true)]
+		[SerializeField] private Pool<GameObject> _testPool;
 
 		[Injectable] private IGameObjectPoolService _poolService;
 		[Injectable] private IRandomService _random;
@@ -35,7 +36,7 @@ namespace BlueCheese.App.Sample
 
 		private void Awake()
 		{
-			Services.Inject(this);
+			ServiceInjector.Inject(this);
 			Assert.IsNotNull(_poolService);
 
 			DevMetricRuntime.Record("SpawnController_Awake", Time.realtimeSinceStartup);
@@ -43,7 +44,7 @@ namespace BlueCheese.App.Sample
 
 		private void OnEnable()
 		{
-			InvokeRepeating(nameof(Spawn), 1f, _spawnInterval);
+			//InvokeRepeating(nameof(Spawn), 1f, _spawnInterval);
 		}
 
 		private void OnDisable()
@@ -68,6 +69,9 @@ namespace BlueCheese.App.Sample
 
 		private void Spawn()
 		{
+			_testPool.Spawn(5f);
+			return;
+
 			Log.Debug("Spawn", this);
 			var prefab = _spawnedPrefabs.Asset.GetRandom();
 			var pool = prefab.GetPool();

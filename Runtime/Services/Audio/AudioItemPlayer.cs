@@ -2,7 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.DI;
 using BlueCheese.Core.Utils;
 using System;
 using System.Collections;
@@ -54,7 +54,7 @@ namespace BlueCheese.App
 				return false;
 			}
 
-			var audioService = Services.Get<IAudioService>();
+			var audioService = ServiceLocator.Resolve<IAudioService>();
 
 			_audioSource.clip = item.Clip;
 			_audioSource.volume = item.Volume * sound.Options.Volume * audioService.MasterSoundVolume;
@@ -91,7 +91,7 @@ namespace BlueCheese.App
 				return range.x;
 			}
 
-			return Services.Get<IRandomService>().Next(range.x, range.y);
+			return ServiceLocator.Resolve<IRandomService>().Next(range.x, range.y);
 		}
 
 		virtual public bool PlayMusic(AudioItem item, MusicOptions options)
@@ -101,7 +101,7 @@ namespace BlueCheese.App
 				return false;
 			}
 
-			var audioService = Services.Get<IAudioService>();
+			var audioService = ServiceLocator.Resolve<IAudioService>();
 
 			_audioSource.clip = item.Clip;
 			_audioSource.volume = item.Volume * options.Volume * audioService.MasterSoundVolume;

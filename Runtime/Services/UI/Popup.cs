@@ -7,9 +7,9 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-    [RequireComponent(typeof(Canvas), typeof(UIView))]
-    public class Popup : MonoBehaviour
-    {
+    [RequireComponent(typeof(Canvas))]
+    public class Popup : UIViewBehaviour
+	{
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ReloadDomain()
         {
@@ -24,12 +24,10 @@ namespace BlueCheese.App
         public PopupResult Result { get; private set; }
 
         private Canvas _canvas;
-        private UIView _uiView;
 
         private void Awake()
         {
             _canvas = GetComponent<Canvas>();
-            _uiView = GetComponent<UIView>();
         }
 
         private void OnEnable()
@@ -46,10 +44,14 @@ namespace BlueCheese.App
             }
         }
 
-        public async UniTask<PopupResult> ShowAsync()
+		public void Show() => ToggleableView.Toggle(true);
+
+		public void Hide() => ToggleableView.Toggle(false);
+
+		public async UniTask<PopupResult> ShowAsync()
         {
-            gameObject.SetActive(true);
-            while(gameObject.activeSelf)
+			ToggleableView.Toggle(true);
+			while (gameObject.activeSelf)
             {
                 await UniTask.Yield();
             }
@@ -59,10 +61,11 @@ namespace BlueCheese.App
         public void SetResult(PopupResult result)
         {
             Result = result;
-            _uiView.Hide();
-        }
+            ToggleableView.Toggle(false);
+		}
 
         public void Ok() => SetResult(PopupResult.Ok);
+
         public void Cancel() => SetResult(PopupResult.Cancel);
     }
 }

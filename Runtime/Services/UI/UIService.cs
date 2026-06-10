@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BlueCheese.App
 {
@@ -14,8 +13,6 @@ namespace BlueCheese.App
         private readonly IGameObjectPoolService _poolService;
         private readonly Dictionary<string, UIView> _viewsByName = new();
         private readonly Dictionary<UIView, IGameObjectPool> _pools = new();
-        private readonly List<UIView> _viewList = new();
-        private UIView _currentView;
         private bool _isInitialized;
 
         public UIService(IAssetLoaderService asserLoader, IGameObjectPoolService pooolService)
@@ -49,7 +46,7 @@ namespace BlueCheese.App
             }
         }
 
-        public UIView CreateView(string viewName)
+        public UIView SpawnView(string viewName)
         {
             if (!_viewsByName.TryGetValue(viewName, out var view) ||
                 !_pools.TryGetValue(view, out var pool))
@@ -60,40 +57,13 @@ namespace BlueCheese.App
             return pool.Spawn<UIView>();
         }
 
-        public void RegisterView(UIView view)
+        public void DespawnView(UIView view)
         {
-            _viewList.Add(view);
-            UpdateCurrentView();
-        }
-
-        public void UnregisterView(UIView view)
-        {
-            _viewList.Remove(view);
-            if (_pools.TryGetValue(view, out var pool))
+            if (!_pools.TryGetValue(view, out var pool))
             {
-                pool.Despawn(view.gameObject);
+                throw new Exception($"Unable to despawn UIView with name: {view.name}");
             }
-            UpdateCurrentView();
-        }
-
-        private void UpdateCurrentView()
-        {
-            if (_currentView != null)
-            {
-                _currentView.Focus(false);
-            }
-
-            if (_viewList.Count == 0)
-            {
-                _currentView = null;
-            }
-            else
-            {
-                _currentView = _viewList.Last();
-
-                // Focus current view
-                _currentView.Focus(true);
-            }
+            pool.Despawn(view);
         }
     }
 }

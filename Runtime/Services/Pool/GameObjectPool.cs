@@ -3,6 +3,7 @@
 //
 
 using BlueCheese.Core;
+using BlueCheese.Core.DI;
 using BlueCheese.Core.Utils;
 using System;
 using System.Collections;
@@ -61,9 +62,6 @@ namespace BlueCheese.App
 			Fill(options.FillAmount);
 		}
 
-		/// <summary>
-		/// Fill the pool with amount of instances.
-		/// </summary>
 		public void Fill(int amount)
 		{
 			if (amount <= 0)
@@ -71,7 +69,7 @@ namespace BlueCheese.App
 				return;
 			}
 
-			for (int i = _inactiveItems.Count; i < amount; i++)
+			for (int i = _inactiveItems.Count + _activeItems.Count; i < amount; i++)
 			{
 				Add(CreateItem(false));
 			}
@@ -80,21 +78,13 @@ namespace BlueCheese.App
 		public GameObject Spawn()
 		{
 			var item = GetOrCreateItem();
-			if (item == null)
-			{
-				return null;
-			}
-			return item.gameObject;
+			return item != null ? item.gameObject : null;
 		}
 
 		public T Spawn<T>() where T : Component
 		{
 			var item = GetOrCreateItem();
-			if (item == null)
-			{
-				return null;
-			}
-			return item.GetComponent<T>();
+			return item != null ? item.GetComponent<T>() : null;
 		}
 
 		private PoolItem GetOrCreateItem()
@@ -103,18 +93,23 @@ namespace BlueCheese.App
 			if (_inactiveItems.Count > 0)
 			{
 				item = _inactiveItems.First();
+				_inactiveItems.Remove(item);
+
 				item.Recycle();
 				if (!item.gameObject.activeSelf)
 				{
 					item.gameObject.SetActive(true);
 				}
-				_inactiveItems.Remove(item);
 			}
 			else
 			{
 				item = CreateItem(true);
 			}
-			_activeItems.Add(item);
+
+			if (item != null)
+			{
+				_activeItems.Add(item);
+			}
 			return item;
 		}
 
@@ -128,14 +123,12 @@ namespace BlueCheese.App
 					case PoolOverflow.Ignore:
 						break;
 					case PoolOverflow.LogError:
-						if (count == _options.Capacity)
-						{
-							_logger.LogError($"Pool<{(_prefab != null ? _prefab.name : _componentType.Name)}> overflows capacity ({_options.Capacity})");
-						}
+						_logger.LogError($"Pool<{(_prefab != null ? _prefab.name : _componentType.Name)}> overflows capacity ({_options.Capacity})");
 						break;
 					case PoolOverflow.RecycleActive:
-						_activeItems.First().Despawn();
-						break;
+						var oldest = _activeItems.First();
+						Despawn(oldest.gameObject);
+						return GetOrCreateItem();
 					case PoolOverflow.ReturnsNull:
 						return null;
 				}
@@ -145,10 +138,17 @@ namespace BlueCheese.App
 
 			if (_componentType != null)
 			{
-				obj.AddComponent(_componentType);
+				if (obj.GetComponent(_componentType) == null)
+				{
+					obj.AddComponent(_componentType);
+				}
 				obj.name = $"PoolItem<{_componentType.Name}>";
 			}
+
 			var item = obj.AddOrGetComponent<PoolItem>();
+			item.Pool = this;
+			item.hideFlags = HideFlags.HideInInspector;
+
 			if (_container != null)
 			{
 				obj.transform.SetParent(_container);
@@ -157,8 +157,7 @@ namespace BlueCheese.App
 			{
 				_gameObjectService.DontDestroyOnLoad(obj);
 			}
-			item.hideFlags = HideFlags.HideInInspector;
-			item.Pool = this;
+
 			return item;
 		}
 
@@ -171,43 +170,50 @@ namespace BlueCheese.App
 			}
 			else if (_prefab != null)
 			{
-				bool active = _prefab.activeSelf;
-				_prefab.SetActive(enabled);
+				if (!enabled)
+				{
+					_prefab.SetActive(false);
+				}
 				obj = _gameObjectService.Instantiate(_prefab);
-				_prefab.SetActive(active);
 			}
 			else
 			{
-				obj = _gameObjectService.CreateEmptyObject();
-				obj.SetActive(enabled);
+				obj = _gameObjectService.CreateEmptyObject(name: $"PoolItem<{(_componentType != null ? _componentType.Name : "Empty")}>");
 			}
+
+			obj.SetActive(enabled);
 			return obj;
 		}
 
 		private void Add(PoolItem item)
 		{
+			if (item == null) return;
+
 			if (item.gameObject.activeSelf)
 			{
 				item.gameObject.SetActive(false);
 			}
 
+			_activeItems.Remove(item);
+
 			int count = _inactiveItems.Count + _activeItems.Count;
-			if (count >= _options.Capacity)
+			if (count >= _options.Capacity && _options.Overflow != PoolOverflow.Ignore)
 			{
-				GameObject.Destroy(item.gameObject);
+				_gameObjectService.Destroy(item.gameObject);
 			}
 			else
 			{
 				_inactiveItems.Add(item);
-				_activeItems.Remove(item);
 			}
 		}
 
 		public void Despawn(GameObject obj, float delay = 0f)
 		{
+			if (obj == null) return;
+
 			if (!obj.TryGetComponent<PoolItem>(out var item))
 			{
-				_logger.LogError("GameObject has no PoolItem component");
+				_logger.LogError($"GameObject {obj.name} has no PoolItem component and cannot be despawned to this pool.");
 				return;
 			}
 
@@ -223,47 +229,47 @@ namespace BlueCheese.App
 
 		public void Despawn<T>(T objectComponent, float delay = 0f) where T : Component
 		{
-			Despawn(objectComponent.gameObject, delay);
+			if (objectComponent != null)
+			{
+				Despawn(objectComponent.gameObject, delay);
+			}
 		}
 
 		public void Delete(GameObject obj)
 		{
-			if (!obj.TryGetComponent<PoolItem>(out var item))
+			if (obj != null && obj.TryGetComponent<PoolItem>(out var item))
 			{
-				_logger.LogError("GameObject has no PoolItem component");
-				return;
+				_inactiveItems.Remove(item);
+				_activeItems.Remove(item);
 			}
-
-			_inactiveItems.Remove(item);
-			_activeItems.Remove(item);
 		}
 
 		public void DespawnAll(float delay = 0f)
 		{
-			foreach (var item in _inactiveItems)
+			var itemsToDespawn = _activeItems.ToList();
+			foreach (var item in itemsToDespawn)
 			{
-				item.GetComponent<PoolItem>().Despawn(delay);
+				item.Despawn(delay);
 			}
 		}
 
 		public void DeleteAll()
 		{
+			var allItems = _inactiveItems.Concat(_activeItems).ToList();
+			foreach (var item in allItems)
+			{
+				if (item != null && item.gameObject != null)
+				{
+					_gameObjectService.Destroy(item.gameObject);
+				}
+			}
 			_inactiveItems.Clear();
+			_activeItems.Clear();
 		}
 
 		public void Destroy()
 		{
-			foreach (var item in _inactiveItems)
-			{
-				_gameObjectService.Destroy(item.gameObject);
-			}
-			_inactiveItems.Clear();
-
-			foreach (var item in _activeItems)
-			{
-				_gameObjectService.Destroy(item.gameObject);
-			}
-			_activeItems.Clear();
+			DeleteAll();
 
 			if (_container != null)
 			{
@@ -273,7 +279,6 @@ namespace BlueCheese.App
 		}
 
 		public int CountInUse => _activeItems.Count;
-
 		public int CountAvailable => _inactiveItems.Count;
 
 		public class PoolItem : MonoBehaviour
@@ -286,10 +291,13 @@ namespace BlueCheese.App
 				if (_despawnCoroutine != null)
 				{
 					StopCoroutine(_despawnCoroutine);
+					_despawnCoroutine = null;
 				}
-				foreach (var recyclable in GetComponents<IRecyclable>())
+
+				var recyclables = GetComponents<IRecyclable>();
+				for (int i = 0; i < recyclables.Length; i++)
 				{
-					recyclable.OnRecycle();
+					recyclables[i].OnRecycle();
 				}
 			}
 
@@ -312,23 +320,27 @@ namespace BlueCheese.App
 			private IEnumerator DespawnRoutine(float delay)
 			{
 				yield return new WaitForSeconds(delay);
+				_despawnCoroutine = null;
 				Despawn();
 			}
 
 			public void Despawn()
 			{
-				foreach (var despawnable in GetComponents<IDespawnable>())
+				var despawnables = GetComponents<IDespawnable>();
+				for (int i = 0; i < despawnables.Length; i++)
 				{
-					despawnable.OnDespawn();
+					despawnables[i].OnDespawn();
 				}
 				Pool.Add(this);
 			}
 
 			private void OnDestroy()
 			{
-				Pool.Delete(gameObject);
+				if (Pool != null)
+				{
+					Pool.Delete(gameObject);
+				}
 			}
 		}
 	}
-
 }

@@ -26,7 +26,7 @@ namespace BlueCheese.App
 			_gameObjectService = gameObjectService;
 		}
 
-		public DateTime Now => DateTime.Now;
+		public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
 
         public void Initialize()
         {

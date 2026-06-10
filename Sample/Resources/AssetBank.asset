@@ -13,12 +13,21 @@ MonoBehaviour:
   m_Name: AssetBank
   m_EditorClassIdentifier: 
   _assets:
+  - Name: FXCollection
+    Guid: e9c01a8643525d34b82a4bcf213ea0ca
+    TypeName: BlueCheese.App.Sample.FXCollection, BlueCheese.App.Sample, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    Tags:
+      _values:
+      - FX
+    LoadMode: 0
   - Name: Spheres
     Guid: 235ff34154c644a4c872eaebb2b7dc7f
     TypeName: BlueCheese.Core.Utils.PrefabCollection, BlueCheese.Core, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
     Tags:
-      _values: []
+      _values:
+      - Sphere
     LoadMode: 0
   - Name: TranslationTables
     Guid: 04683e4ab1b1b7c4ea3dc449ea3d98af

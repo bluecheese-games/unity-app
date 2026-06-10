@@ -2,7 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.DI;
 using UnityEngine;
 
 namespace BlueCheese.App.Sample
@@ -26,12 +26,12 @@ namespace BlueCheese.App.Sample
 
         private void RegisterAppServices(ServiceContainer container)
         {
-			// Register your app services here
-			container.Register<IAudioService, AudioService>()
-                .WithOptions(() => new AudioService.Options
-				{
-                    AudioBanks = new[] { _audioBank }
-				});
+            // Register your app services here
+            container.Register<IAudioService, AudioService>();
+            container.Configure<AudioService.AudioSettings>((settings) =>
+			{
+                settings.AudioBanks = new[] { _audioBank };
+			});
 		}
     }
 }

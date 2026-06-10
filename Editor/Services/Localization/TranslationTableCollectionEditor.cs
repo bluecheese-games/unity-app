@@ -82,7 +82,7 @@ namespace BlueCheese.App.Editor
 				};
 				if (tableAsset != null)
 				{
-					EditorGUILayout.LabelField($"Modified: {tableAsset.LastModified.ToLocalTime().TimeAgo()}", lastModifiedStyle, GUILayout.ExpandWidth(true), GUILayout.MinWidth(200));
+					EditorGUILayout.LabelField($"Modified: {tableAsset.LastModified.TimeAgo()}", lastModifiedStyle, GUILayout.ExpandWidth(true), GUILayout.MinWidth(200));
 				}
 				EditorGUILayout.EndHorizontal();
 				if (tableAsset != null && keyCount > 0)
@@ -109,7 +109,7 @@ namespace BlueCheese.App.Editor
 
 		private void DrawDuplicates()
 		{
-			var assetFinder = EditorServices.Get<IAssetFinderService>();
+			var assetFinder = EditorServiceLocator.Get<IAssetFinderService>();
 			var translationTables = assetFinder
 				.FindAssetsInResources<ScriptableObject>()
 				.OfType<ITranslationTableAsset>()

@@ -2,7 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.DI;
 using System.Net;
 
 namespace BlueCheese.App
@@ -16,7 +16,7 @@ namespace BlueCheese.App
 
         private HttpResponse() { }
 
-        public T GetData<T>() => Services.Get<IJsonService>().Deserialize<T>(JsonData);
+        public T GetData<T>() => ServiceLocator.Resolve<IJsonService>().Deserialize<T>(JsonData);
 
         public static IHttpResponse Success(string jsonData, HttpStatusCode statusCode = HttpStatusCode.OK) => new HttpResponse()
         {

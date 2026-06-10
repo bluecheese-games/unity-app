@@ -17,7 +17,7 @@ namespace BlueCheese.App.Editor
 			var hasOptionsProperty = property.FindPropertyRelative("HasOptions");
 			var optionsProperty = property.FindPropertyRelative("Options");
 			var optionsInitializedProperty = optionsProperty.FindPropertyRelative("_isInitialized");
-			EditorAudioService audioService = EditorServices.Get<EditorAudioService>();
+			EditorAudioService audioService = EditorServiceLocator.Get<EditorAudioService>();
 			string[] keys = audioService.AllSounds;
 
 			// Initialize options if not already initialized

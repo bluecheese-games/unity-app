@@ -25,7 +25,7 @@ namespace BlueCheese.App
 
 			if (_languages.Count == 0)
 			{
-				var defaultLanguage = EditorServices.Get<ILocalizationService>().DefaultLanguage;
+				var defaultLanguage = EditorServiceLocator.Get<ILocalizationService>().DefaultLanguage;
 				AddLanguage(defaultLanguage);
 				UnityEditor.EditorUtility.SetDirty(this);
 				UnityEditor.AssetDatabase.SaveAssets();
@@ -38,7 +38,7 @@ namespace BlueCheese.App
 		public IDictionary<string, string> GetTranslations(Language language)
 		{
 			var translations = new Dictionary<string, string>();
-			foreach (var item in _items)
+			foreach (var item in Items)
 			{
 				if (item.TryGetTranslation(language, out var translation))
 				{
@@ -50,17 +50,26 @@ namespace BlueCheese.App
 
 		public List<Language> Languages => _languages;
 
-		public List<string> Keys => _items?.Select(i => i.Key).ToList();
+		public List<string> Keys => Items?.Select(i => i.Key).ToList();
 
-		public List<TranslationItem> Items => _items;
-
-		public DateTime LastModified
+		public List<TranslationItem> Items
 		{
-			get => new(_lastModified);
+			get
+			{
+#if UNITY_EDITOR
+				if (_items == null) Validate();
+#endif
+				return _items;
+			}
+		}
+
+		public DateTimeOffset LastModified
+		{
+			get => new(_lastModified, TimeSpan.Zero);
 			set => _lastModified = value.Ticks;
 		}
 
-		public int Count(TranslationStatus status) => _items.Count(i => i.Status == status);
+		public int Count(TranslationStatus status) => Items.Count(i => i.Status == status);
 
 		public string GetTranslation(string key, Language language)
 		{
@@ -72,7 +81,7 @@ namespace BlueCheese.App
 			return string.Empty;
 		}
 
-		private TranslationItem GetItem(string key) => _items.FirstOrDefault(i => i.Key == key);
+		private TranslationItem GetItem(string key) => Items.FirstOrDefault(i => i.Key == key);
 
 		public bool IsLanguageSupported(Language language) => Languages.Contains(language);
 
@@ -110,7 +119,7 @@ namespace BlueCheese.App
 			_languages ??= new List<Language>();
 			if (_languages.Contains(language)) return;
 			_languages.Add(language);
-			foreach (var item in _items)
+			foreach (var item in Items)
 			{
 				item.SetTranslation(language, "");
 			}

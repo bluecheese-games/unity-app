@@ -8,29 +8,7 @@ using UnityEngine;
 namespace BlueCheese.App
 {
 	[CreateAssetMenu(menuName = "Collection/Translation Table Collection", fileName = "TranslationTableCollection")]
-	public class TranslationTableCollection : Collection<TranslationTableAsset>
+	public class TranslationTableCollection : AutoCollection<TranslationTableAsset>
 	{
-#if UNITY_EDITOR
-		public override void OnRegister()
-		{
-			base.OnRegister();
-
-			// Get TranslationTableAsset
-			var translationService = EditorServices.Get<EditorTranslationService>();
-			var assets = translationService.GetTranslationTableAssets(true);
-
-			// Cleanup empty or null entries
-			_items.RemoveAll(item => item == null);
-
-			// Add any assets that are not already in the collection
-			foreach (var asset in assets)
-			{
-				if (!_items.Contains(asset))
-				{
-					_items.Add(asset);
-				}
-			}
-		}
-#endif
 	}
 }

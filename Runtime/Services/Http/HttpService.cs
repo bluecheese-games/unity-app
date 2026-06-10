@@ -2,7 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.DI;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -13,13 +13,13 @@ namespace BlueCheese.App
 {
 	public class HttpService : IHttpService
 	{
-		public struct Options : IOptions
+		public class Settings
 		{
 			public bool LogRequests;
 			public Uri BaseUri;
 			public List<IHttpMiddleware> Middlewares;
 
-			public Options UseMiddleware<T>(T middleware) where T : IHttpMiddleware
+			public Settings UseMiddleware<T>(T middleware) where T : IHttpMiddleware
 			{
 				Middlewares ??= new List<IHttpMiddleware>();
 				Middlewares.Add(middleware);
@@ -29,18 +29,18 @@ namespace BlueCheese.App
 
 		private readonly IHttpClient _httpClient;
 		private readonly ILogger<HttpService> _logger;
-		private readonly Options _options = default;
+		private readonly Settings _settings = default;
 		private readonly List<IHttpMiddleware> _middlewares = new();
 
-		public HttpService(Options options, IHttpClient httpClient, ILogger<HttpService> loggerService)
+		public HttpService(IHttpClient httpClient, ILogger<HttpService> loggerService, IOptions<Settings> settings)
 		{
-			_options = options;
+			_settings = settings.Value;
 			_httpClient = httpClient;
 			_logger = loggerService;
 
-			if (_options.Middlewares != null)
+			if (_settings.Middlewares != null)
 			{
-				_middlewares.AddRange(_options.Middlewares);
+				_middlewares.AddRange(_settings.Middlewares);
 			}
 		}
 
@@ -50,14 +50,14 @@ namespace BlueCheese.App
 
 		private async UniTask<IHttpResponse> ProcessRequestAsync(IHttpRequest request, HttpMethod method)
 		{
-			if (!request.TryGetUri(_options.BaseUri, out var uri))
+			if (!request.TryGetUri(_settings.BaseUri, out var uri))
 			{
 				return HttpResponse.Failure($"Bad Url: {request.Url}", HttpStatusCode.BadRequest);
 			}
 
 			_middlewares?.ForEach(middleware => middleware.HandleRequest(request));
 
-			if (_options.LogRequests)
+			if (_settings.LogRequests)
 			{
 				_logger.LogInfo($"{method}: {uri}");
 			}
@@ -80,7 +80,7 @@ namespace BlueCheese.App
 
 			_middlewares?.ForEach(middleware => middleware.HandleResponse(httpResponse));
 
-			if (_options.LogRequests && !result.IsSuccess)
+			if (_settings.LogRequests && !result.IsSuccess)
 			{
 				_logger.LogError($"Request failed with error: {result.Content}");
 			}

@@ -2,7 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.DI;
 using System;
 using Cysharp.Threading.Tasks;
 
@@ -29,6 +29,6 @@ namespace BlueCheese.App
 		/// <summary>
 		/// The current DateTime
 		/// </summary>
-		DateTime Now { get; }
+		DateTimeOffset UtcNow { get; }
     }
 }

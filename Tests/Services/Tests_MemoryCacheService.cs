@@ -58,7 +58,7 @@ namespace BlueCheese.Tests.Services
 		[Test]
 		public void Test_Set_WithExpirationDate()
 		{
-			var expirationDate = DateTime.Now.AddDays(1);
+			var expirationDate = DateTimeOffset.UtcNow.AddDays(1);
 
 			_service.Set("foo", "bar")
 				.WithExpirationDate(expirationDate);
@@ -132,14 +132,14 @@ namespace BlueCheese.Tests.Services
 
 		private class TestClockService : IClockService
 		{
-			public DateTime Now => _now;
+			public DateTimeOffset UtcNow => _utcNow;
 
 			public event TickEventHandler OnTick;
 			public event Action OnTickSecond;
 			public event AsyncTickEventHandler OnTickAsync;
 			public event AsyncTickSecondEventHandler OnTickSecondAsync;
 
-			private DateTime _now = DateTime.Now;
+			private DateTimeOffset _utcNow = DateTimeOffset.UtcNow;
 
 			event TickSecondEventHandler IClockService.OnTickSecond
 			{
@@ -168,12 +168,12 @@ namespace BlueCheese.Tests.Services
 
 			public void SetNow(DateTime now)
 			{
-				_now = now;
+				_utcNow = now;
 			}
 
 			public void AddTime(TimeSpan time)
 			{
-				_now += time;
+				_utcNow += time;
 			}
 		}
 	}

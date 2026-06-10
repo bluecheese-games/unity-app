@@ -3,6 +3,7 @@
 //
 
 using BlueCheese.App;
+using BlueCheese.Core.DI;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Globalization;
@@ -13,14 +14,14 @@ namespace BlueCheese.Tests.Services
 	public class Tests_LocalizationService
 	{
 		private ILocalStorageService _localStorage;
-		private LocalizationService.Options _options;
+		private LocalizationService.Settings _options;
 		private LocalizationService _localizationService;
 
 		[SetUp]
 		public void SetUp()
 		{
 			_localStorage = new FakeLocalStorageService();
-			_options = new LocalizationService.Options
+			_options = new LocalizationService.Settings
 			{
 				DefaultLanguage = Language.English,
 				SupportedLanguages = new List<Language>
@@ -29,7 +30,8 @@ namespace BlueCheese.Tests.Services
 					Language.French
 				}
 			};
-			_localizationService = new LocalizationService(_localStorage, _options);
+			var settings = new OptionsWrapper<LocalizationService.Settings>(_options);
+			_localizationService = new LocalizationService(_localStorage, settings);
 			_localizationService.Initialize();
 		}
 
@@ -94,7 +96,8 @@ namespace BlueCheese.Tests.Services
 			{
 				Language.Spanish
 			};
-			_localizationService = new LocalizationService(_localStorage, _options);
+			var settings = new OptionsWrapper<LocalizationService.Settings>(_options);
+			_localizationService = new LocalizationService(_localStorage, settings);
 			var expectedCurrentLanguage = _options.DefaultLanguage;
 
 			// Act

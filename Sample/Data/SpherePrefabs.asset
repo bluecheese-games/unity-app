@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Spheres
   Tags:
-    _values: []
+    _values:
+    - Sphere
   RegisterInAssetBank: 1
   LoadMode: 0
   _items:

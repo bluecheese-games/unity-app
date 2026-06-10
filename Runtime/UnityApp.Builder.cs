@@ -2,7 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.DI;
 
 namespace BlueCheese.App
 {
@@ -15,8 +15,8 @@ namespace BlueCheese.App
 
             public Builder()
             {
-                _app.ServiceContainer = ServiceContainer.Default;
-            }
+                _app.ServiceContainer = new ServiceContainer();
+			}
 
             public Builder(ServiceContainer serviceContainer)
             {

@@ -2,7 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.DI;
 using System;
 using UnityEngine;
 
@@ -24,7 +24,7 @@ namespace BlueCheese.App
 			{
 				Options = SoundOptions.Default;
 			}
-			Services.Get<IAudioService>().PlaySound(this);
+			ServiceLocator.Resolve<IAudioService>().PlaySound(this);
 		}
 
 		public void Play(Vector3 position)
@@ -48,12 +48,12 @@ namespace BlueCheese.App
 
 		public readonly void Stop()
 		{
-			Services.Get<IAudioService>().StopSound(this);
+			ServiceLocator.Resolve<IAudioService>().StopSound(this);
 		}
 
 		public readonly void Stop(float fadeOutDuration)
 		{
-			Services.Get<IAudioService>().StopSound(this, fadeOutDuration);
+			ServiceLocator.Resolve<IAudioService>().StopSound(this, fadeOutDuration);
 		}
 
 		public static implicit operator SoundFX(string name) => new() { Name = name };

@@ -2,7 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.DI;
 using System;
 using UnityEngine;
 
@@ -18,7 +18,7 @@ namespace BlueCheese.App
 			_fxDef = fxDef;
 		}
 
-		private readonly FXInstance CreateInstance() => Services.Get<IFXService>().CreateFX(_fxDef);
+		private readonly FXInstance CreateInstance() => ServiceLocator.Resolve<IFXService>().CreateFX(_fxDef);
 
 		public readonly FXInstance Play(Transform target, Vector3 offset = default, float scale = 1f)
 		{
