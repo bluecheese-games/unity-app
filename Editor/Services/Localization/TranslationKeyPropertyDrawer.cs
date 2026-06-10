@@ -25,7 +25,7 @@ namespace BlueCheese.App.Editor
 
 		private void DrawTranslationKeyProperty(SerializedProperty property)
 		{
-			var translationService = EditorServices.Get<EditorTranslationService>();
+			var translationService = EditorServiceLocator.Get<EditorTranslationService>();
 			var keys = translationService.GetAllKeys();
 			bool isValid = keys.Contains(property.FindPropertyRelative("_key").stringValue);
 
@@ -58,7 +58,7 @@ namespace BlueCheese.App.Editor
 
 			if (!string.IsNullOrEmpty(pluralKeyProperty.stringValue))
 			{
-				var keys = EditorServices.Get<EditorTranslationService>().GetAllKeys();
+				var keys = EditorServiceLocator.Get<EditorTranslationService>().GetAllKeys();
 				EditorGUIHelper.DrawSearchableKeyProperty(pluralKeyProperty, new GUIContent("PluralKey"), keys);
 			}
 			else
@@ -120,7 +120,7 @@ namespace BlueCheese.App.Editor
 				{
 					Undo.RecordObject(table, "Add Translation Key");
 					var item = table.AddItem(keyProperty.stringValue);
-					var translationService = EditorServices.Get<EditorTranslationService>();
+					var translationService = EditorServiceLocator.Get<EditorTranslationService>();
 					var language = translationService.DefaultLanguage;
 					var localizedText = (LocalizedText)property.serializedObject.targetObject;
 					var tmpText = localizedText.GetComponent<TMPro.TextMeshProUGUI>();

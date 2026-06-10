@@ -25,7 +25,7 @@ namespace BlueCheese.App
 				}
 				else
 				{
-					Initialize(EditorServices.Get<ITranslationService>());
+					Initialize(EditorServiceLocator.Get<ITranslationService>());
 				}
 			}
 			if (_translationService == null)
@@ -45,7 +45,7 @@ namespace BlueCheese.App
 				}
 				else
 				{
-					Initialize(EditorServices.Get<ITranslationService>());
+					Initialize(EditorServiceLocator.Get<ITranslationService>());
 				}
 			}
 			if (_translationService == null)

@@ -36,12 +36,12 @@ namespace BlueCheese.App
         {
             if (!TryGet(key, out var entry))
             {
-                entry = CacheEntry.Create(createFunc(), () => _clock.Now);
+                entry = CacheEntry.Create(createFunc(), () => _clock.UtcNow);
             }
             return entry;
         }
 
-        public CacheEntry Set(string key, string value) => _entries[key] = CacheEntry.Create(value, () => _clock.Now);
+        public CacheEntry Set(string key, string value) => _entries[key] = CacheEntry.Create(value, () => _clock.UtcNow);
 
         public bool TryGet(string key, out CacheEntry entry)
         {

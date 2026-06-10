@@ -10,23 +10,22 @@ namespace BlueCheese.App
     {
         public string Value { get; private set; }
 
-        public DateTime? ExpirationDate { get; private set; }
+        public DateTimeOffset? ExpirationDate { get; private set; }
 
         public bool HasExpirationDate => ExpirationDate != null;
 
-        public bool IsExpired => ExpirationDate != null && DateTime.UtcNow > ExpirationDate;
-
+        public bool IsExpired => ExpirationDate != null && DateTimeOffset.UtcNow > ExpirationDate;
         public TimeSpan ExpiresIn => ExpirationDate != null ? ExpirationDate.Value - _getNow() : TimeSpan.Zero;
 
-        private readonly Func<DateTime> _getNow;
+        private readonly Func<DateTimeOffset> _getNow;
 
-		static public CacheEntry Create(string value, Func<DateTime> getNow = null) => new(value, getNow);
+		static public CacheEntry Create(string value, Func<DateTimeOffset> getNow = null) => new(value, getNow);
 
-		private CacheEntry(string value, Func<DateTime> getNow = null)
+		private CacheEntry(string value, Func<DateTimeOffset> getNow = null)
         {
             Value = value;
             ExpirationDate = null;
-            _getNow = getNow ??= () => DateTime.Now;
+            _getNow = getNow ??= () => DateTimeOffset.UtcNow;
         }
 
         public CacheEntry WithExpirationTime(TimeSpan time)
@@ -35,7 +34,7 @@ namespace BlueCheese.App
             return this;
         }
 
-        public CacheEntry WithExpirationDate(DateTime expirationDate)
+        public CacheEntry WithExpirationDate(DateTimeOffset expirationDate)
         {
             ExpirationDate = expirationDate;
             return this;

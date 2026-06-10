@@ -2,7 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.DI;
 using System;
 using UnityEngine;
 
@@ -13,7 +13,7 @@ namespace BlueCheese.App
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         private static void ReloadDomain()
         {
-            ServiceContainer.Default.Reset();
+            ServiceLocator.Dispose();
         }
 
         public ServiceContainer ServiceContainer { get; private set; }
@@ -37,7 +37,7 @@ namespace BlueCheese.App
 
         public void Run()
         {
-            ServiceContainer.Startup();
+            ServiceLocator.Initialize(ServiceContainer);
             Application.quitting += Stop;
         }
 
@@ -49,7 +49,7 @@ namespace BlueCheese.App
         private void Stop()
         {
             Application.quitting -= Stop;
-            ServiceContainer.Shutdown();
+            ServiceLocator.Dispose();
         }
     }
 }

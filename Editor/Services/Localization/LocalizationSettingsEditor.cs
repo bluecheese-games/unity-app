@@ -42,7 +42,7 @@ namespace BlueCheese.App.Editor
 		private void DrawSupportedLanguages()
 		{
 			EditorGUIHelper.DrawTitle("Supported Languages");
-			Language currentLanguage = EditorServices.Get<ILocalizationService>().CurrentLanguage;
+			Language currentLanguage = EditorServiceLocator.Get<ILocalizationService>().CurrentLanguage;
 
 			float columnsWidth = (EditorGUIUtility.currentViewWidth - 70) / 3;
 			var enumPopupStyle = new GUIStyle(EditorStyles.popup)
@@ -79,7 +79,7 @@ namespace BlueCheese.App.Editor
 				{
 					if (GUILayout.Button("Set as current", GUILayout.Width(columnsWidth)))
 					{
-						EditorServices.Get<ILocalizationService>().SetCurrentLanguage(language);
+						EditorServiceLocator.Get<ILocalizationService>().SetCurrentLanguage(language);
 						RefreshTexts();
 					}
 				}

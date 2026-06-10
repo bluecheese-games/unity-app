@@ -2,7 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.DI;
 using BlueCheese.Core.Signals;
 using System;
 using System.Collections.Generic;
@@ -15,24 +15,24 @@ namespace BlueCheese.App
 		private const string _currentLanguageKey = "CurrentLanguage";
 
 		private readonly ILocalStorageService _localStorage;
-		private readonly Options _options;
+		private readonly Settings _settings;
 
-		public LocalizationService(ILocalStorageService localStorage, Options options)
+		public LocalizationService(ILocalStorageService localStorage, IOptions<Settings> settings)
 		{
 			_localStorage = localStorage;
-			_options = options ?? Options.Default;
+			_settings = settings.Value ?? Settings.Default;
 		}
 
 		public Language DeviceLanguage { get; private set; }
 		public Language DefaultLanguage { get; private set; }
 		public Language CurrentLanguage { get; private set; }
 
-		public IReadOnlyList<Language> SupportedLanguages => _options.SupportedLanguages;
+		public IReadOnlyList<Language> SupportedLanguages => _settings.SupportedLanguages;
 
 		public void Initialize()
 		{
 			DeviceLanguage = LangUtilities.GetLanguage(Application.systemLanguage);
-			DefaultLanguage = _options.DefaultLanguage;
+			DefaultLanguage = _settings.DefaultLanguage;
 
 			// Load current language from local storage
 			var backupValue = IsSupported(DeviceLanguage) ? DeviceLanguage.ToString() : DefaultLanguage.ToString();
@@ -41,12 +41,12 @@ namespace BlueCheese.App
 
 		private bool IsSupported(Language language)
 		{
-			if (_options.SupportedLanguages == null || _options.SupportedLanguages.Count == 0)
+			if (_settings.SupportedLanguages == null || _settings.SupportedLanguages.Count == 0)
 			{
 				// If no supported languages are specified, all languages are considered supported
 				return true;
 			}
-			return _options.SupportedLanguages.Contains(language);
+			return _settings.SupportedLanguages.Contains(language);
 		}
 
 		public void SetCurrentLanguage(Language language)
@@ -60,14 +60,14 @@ namespace BlueCheese.App
 		}
 
 		[Serializable]
-		public class Options : IOptions
+		public class Settings
 		{
 			public Language DefaultLanguage = Language.English;
 			public List<Language> SupportedLanguages;
 
-			public static Options Default = new();
+			public static Settings Default = new();
 
-			public static Options FromResourcesOrDefault(string path = "LocalizationSettings")
+			public static Settings FromResourcesOrDefault(string path = "LocalizationSettings")
 			{
 				var settings = Resources.Load<LocalizationSettingsAsset>(path);
 				return settings != null ? settings.Options : Default;

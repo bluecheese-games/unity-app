@@ -13,7 +13,7 @@ namespace BlueCheese.App
 		public Language DefaultLanguage = Language.English;
 		public List<Language> SupportedLanguages;
 
-		public LocalizationService.Options Options => new()
+		public LocalizationService.Settings Options => new()
 		{
 			DefaultLanguage = DefaultLanguage,
 			SupportedLanguages = SupportedLanguages

@@ -105,7 +105,7 @@ namespace BlueCheese.App.Editor
 				fixedHeight = 20
 			};
 
-			var localizationService = EditorServices.Get<ILocalizationService>();
+			var localizationService = EditorServiceLocator.Get<ILocalizationService>();
 			List<string> languageNames = localizationService.SupportedLanguages
 				.Except(_asset.Languages)
 				.Select(x => x.ToString())
@@ -230,7 +230,7 @@ namespace BlueCheese.App.Editor
 				if (item.Status == TranslationStatus.Validated)
 				{
 					GUI.color = Color.green;
-					string validatedTime = new DateTime(item.LastValidated).ToLocalTime().TimeAgo();
+					string validatedTime = new DateTimeOffset(item.LastValidated, TimeSpan.Zero).TimeAgo();
 					EditorGUILayout.LabelField(new GUIContent(EditorIcon.Valid, $"Validated {validatedTime}"), GUILayout.Width(20));
 					GUI.color = Color.white;
 				}
@@ -238,7 +238,7 @@ namespace BlueCheese.App.Editor
 				if (item.Status == TranslationStatus.Modified)
 				{
 					GUI.color = Color.yellow;
-					string modifiedTime = new DateTime(item.LastModified).ToLocalTime().TimeAgo();
+					string modifiedTime = new DateTimeOffset(item.LastModified, TimeSpan.Zero).TimeAgo();
 					EditorGUILayout.LabelField(new GUIContent(EditorIcon.Warning, $"Modified {modifiedTime}"), GUILayout.Width(20));
 					GUI.color = Color.white;
 
@@ -310,7 +310,7 @@ namespace BlueCheese.App.Editor
 				_needsRefresh = true;
 			});
 			string moveToTitle = $"Move {selected} to...";
-			var translationService = EditorServices.Get<EditorTranslationService>();
+			var translationService = EditorServiceLocator.Get<EditorTranslationService>();
 			TranslationTableAsset[] allTables = translationService.GetTranslationTableAssets()?
 				.Where(t => t != _asset)
 				.ToArray();

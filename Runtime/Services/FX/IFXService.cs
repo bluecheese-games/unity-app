@@ -3,7 +3,7 @@
 //
 
 using BlueCheese.Core;
-using BlueCheese.Core.ServiceLocator;
+using BlueCheese.Core.DI;
 using System;
 using System.Collections.Generic;
 
