@@ -12,7 +12,7 @@ using UnityEngine;
 namespace BlueCheese.App.Editor
 {
 	[CustomEditor(typeof(FXDef))]
-	public class FXDefEditor : UnityEditor.Editor
+	public class FXDefEditor : AssetBaseEditor
 	{
 		private readonly Color[] _backgroundColors = new[] { Color.black, Color.gray, Color.white };
 
@@ -37,8 +37,10 @@ namespace BlueCheese.App.Editor
 
 		private Vector2Int _rtSize;
 
-		private void OnEnable()
+		protected override void OnEnable()
 		{
+			base.OnEnable();
+
 			CleanupPreview();
 			SetupPreview();
 			RestartPreview();
@@ -342,8 +344,9 @@ namespace BlueCheese.App.Editor
 			_isPlaying = false;
 		}
 
-		private void OnDisable()
+		protected override void OnDisable()
 		{
+			base.OnDisable();
 			CleanupPreview();
 		}
 

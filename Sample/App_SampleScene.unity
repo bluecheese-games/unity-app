@@ -754,6 +754,8 @@ MonoBehaviour:
   _counterText: {fileID: 949288740}
   _spawnedPrefabs:
     Guid: 235ff34154c644a4c872eaebb2b7dc7f
+  _config:
+    Guid: 3fd7c9cd3f91d3f4c866f370fe2ad6c9
   _spawnInterval: 0.5
   _spawnForce: 12
   _spawnLifetime: 2

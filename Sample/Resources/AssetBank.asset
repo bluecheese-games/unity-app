@@ -13,6 +13,15 @@ MonoBehaviour:
   m_Name: AssetBank
   m_EditorClassIdentifier: 
   _assets:
+  - Name: ExplodeFX
+    Guid: c0228b673e6aee84985c1e290433b5bd
+    TypeName: BlueCheese.App.FXDef, BlueCheese.App, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    Tags:
+      _values:
+      - FX
+    LoadMode: 1
+    BundleKey: FX
   - Name: FXCollection
     Guid: e9c01a8643525d34b82a4bcf213ea0ca
     TypeName: BlueCheese.App.Sample.FXCollection, BlueCheese.App.Sample, Version=0.0.0.0,
@@ -20,7 +29,26 @@ MonoBehaviour:
     Tags:
       _values:
       - FX
-    LoadMode: 0
+    LoadMode: 1
+    BundleKey: FX
+  - Name: SampleConfig
+    Guid: 3fd7c9cd3f91d3f4c866f370fe2ad6c9
+    TypeName: BlueCheese.Core.Config.ConfigAsset, BlueCheese.Core, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    Tags:
+      _values:
+      - Config
+    LoadMode: 1
+    BundleKey: Config
+  - Name: SphereFX
+    Guid: 606f0fc46252e1b47b1f48c1a4883b39
+    TypeName: BlueCheese.App.FXDef, BlueCheese.App, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    Tags:
+      _values:
+      - FX
+    LoadMode: 1
+    BundleKey: FX
   - Name: Spheres
     Guid: 235ff34154c644a4c872eaebb2b7dc7f
     TypeName: BlueCheese.Core.Utils.PrefabCollection, BlueCheese.Core, Version=0.0.0.0,
@@ -28,7 +56,8 @@ MonoBehaviour:
     Tags:
       _values:
       - Sphere
-    LoadMode: 0
+    LoadMode: 1
+    BundleKey: 
   - Name: TranslationTables
     Guid: 04683e4ab1b1b7c4ea3dc449ea3d98af
     TypeName: BlueCheese.App.TranslationTableCollection, BlueCheese.App, Version=0.0.0.0,
@@ -36,4 +65,5 @@ MonoBehaviour:
     Tags:
       _values:
       - Localization
-    LoadMode: 0
+    LoadMode: 1
+    BundleKey: Localization

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
+using BlueCheese.Core.Config;
 using BlueCheese.Core.DI;
 using BlueCheese.Core.Utils;
 using System;
@@ -21,6 +22,7 @@ namespace BlueCheese.App.Sample
 		[SerializeField, SearchableEnum] private MyEnumWrapper _testSearchableEnum;
 		[SerializeField] private LocalizedText _counterText;
 		[SerializeField] private AssetRef<PrefabCollection> _spawnedPrefabs;
+		[SerializeField] private AssetRef<ConfigAsset> _config;
 		[SerializeField] private float _spawnInterval = 1f;
 		[SerializeField] private float _spawnForce = 3f;
 		[SerializeField] private float _spawnLifetime = 5f;
@@ -45,6 +47,8 @@ namespace BlueCheese.App.Sample
 		private void OnEnable()
 		{
 			//InvokeRepeating(nameof(Spawn), 1f, _spawnInterval);
+
+			Debug.Log(_config.Asset.Get<string>("TestKey", "DefaultValue"));
 		}
 
 		private void OnDisable()

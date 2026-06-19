@@ -3,6 +3,7 @@
 //
 
 using BlueCheese.Core.Editor;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,6 +12,26 @@ namespace BlueCheese.App.Editor
 	[CustomPropertyDrawer(typeof(SoundFX))]
 	public class SoundFXPropertyDrawer : PropertyDrawer
 	{
+		private const float PlayButtonWidth = 30f;
+		private const float PlayButtonSpacing = 2f;
+
+		public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+		{
+			float line = EditorGUIUtility.singleLineHeight;
+			float spacing = EditorGUIUtility.standardVerticalSpacing;
+
+			// SFX field line + "Has options" line
+			float height = line + spacing + line;
+
+			if (property.FindPropertyRelative("HasOptions").boolValue)
+			{
+				var optionsProperty = property.FindPropertyRelative("Options");
+				height += spacing + EditorGUI.GetPropertyHeight(optionsProperty, true);
+			}
+
+			return height;
+		}
+
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 		{
 			var nameProperty = property.FindPropertyRelative("Name");
@@ -18,7 +39,6 @@ namespace BlueCheese.App.Editor
 			var optionsProperty = property.FindPropertyRelative("Options");
 			var optionsInitializedProperty = optionsProperty.FindPropertyRelative("_isInitialized");
 			EditorAudioService audioService = EditorServiceLocator.Get<EditorAudioService>();
-			string[] keys = audioService.AllSounds;
 
 			// Initialize options if not already initialized
 			if (!optionsInitializedProperty.boolValue)
@@ -27,35 +47,51 @@ namespace BlueCheese.App.Editor
 				optionsInitializedProperty.boolValue = true;
 			}
 
-			EditorGUIHelper.DrawSearchableKeyProperty(nameProperty, label, keys);
-			bool isPlaying = audioService.IsPlaying();
+			// Prepend a "None" entry mapping to an empty key so the sound can be cleared.
+			string[] sounds = audioService.AllSounds;
+			string[] keys = sounds.Prepend(string.Empty).ToArray();
+			string[] labels = sounds.Prepend("None").ToArray();
 
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.PrefixLabel(" ");
+			float line = EditorGUIUtility.singleLineHeight;
+			float spacing = EditorGUIUtility.standardVerticalSpacing;
 
-			EditorGUILayout.LabelField("Test", GUILayout.Width(30));
-			GUI.color = Color.yellow;
-			if (isPlaying && GUILayout.Button(EditorIcon.Stop, GUILayout.Width(30)))
+			// Line 1: SFX selection field + play/stop button on the right
+			var fieldRect = new Rect(position.x, position.y, position.width - PlayButtonWidth - PlayButtonSpacing, line);
+			var buttonRect = new Rect(position.xMax - PlayButtonWidth, position.y, PlayButtonWidth, line);
+
+			EditorGUIHelper.DrawSearchableKeyProperty(fieldRect, nameProperty, label, keys, labels);
+
+			if (audioService.IsPlaying())
 			{
-				audioService.StopAll();
+				var prevColor = GUI.color;
+				GUI.color = Color.yellow;
+				if (GUI.Button(buttonRect, new GUIContent(EditorIcon.Stop, "Stop")))
+				{
+					audioService.StopAll();
+				}
+				GUI.color = prevColor;
 			}
-			GUI.color = Color.white;
-			if (!isPlaying && GUILayout.Button(EditorIcon.Play, GUILayout.Width(30)))
+			else
 			{
-				audioService.PlaySound((SoundFX)property.boxedValue);
+				using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(nameProperty.stringValue)))
+				{
+					if (GUI.Button(buttonRect, new GUIContent(EditorIcon.Play, "Play")))
+					{
+						audioService.PlaySound((SoundFX)property.boxedValue);
+					}
+				}
 			}
 
-			EditorGUILayout.Space(10, true);
+			// Line 2: Has options toggle
+			var hasOptionsRect = new Rect(position.x, position.y + line + spacing, position.width, line);
+			EditorGUI.PropertyField(hasOptionsRect, hasOptionsProperty, new GUIContent("Has options"));
 
-			EditorGUILayout.LabelField(new GUIContent("Has options"), GUILayout.Width(70));
-			EditorGUILayout.PropertyField(hasOptionsProperty, GUIContent.none, GUILayout.Width(70));
-
-			EditorGUILayout.EndHorizontal();
-
+			// Options block
 			if (hasOptionsProperty.boolValue)
 			{
+				var optionsRect = new Rect(position.x, hasOptionsRect.yMax + spacing, position.width, EditorGUI.GetPropertyHeight(optionsProperty, true));
 				EditorGUI.indentLevel++;
-				EditorGUILayout.PropertyField(optionsProperty);
+				EditorGUI.PropertyField(optionsRect, optionsProperty, true);
 				EditorGUI.indentLevel--;
 			}
 		}

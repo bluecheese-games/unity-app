@@ -12,6 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a1bdc0242c401f49809133adb11027b, type: 3}
   m_Name: SphereFX
   m_EditorClassIdentifier: 
+  Name: SphereFX
+  Tags:
+    _values:
+    - FX
+  RegisterInAssetBank: 1
+  LoadMode: 1
+  BundleKey: FX
   Prefab: {fileID: 606945414687814149, guid: 671748f0590825a439bbbdc18be53ea6, type: 3}
   OverrideDuration: 0
   Duration: 3
