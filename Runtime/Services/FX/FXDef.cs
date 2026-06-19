@@ -2,6 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
+using BlueCheese.Core.Utils;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -9,7 +10,7 @@ using UnityEngine;
 namespace BlueCheese.App
 {
 	[CreateAssetMenu(menuName = "FX/FXDef", fileName = "New FX")]
-	public class FXDef : ScriptableObject
+	public class FXDef : AssetBase
 	{
 		[Header("Prefab & Timing")]
 		public GameObject Prefab;
@@ -47,8 +48,11 @@ namespace BlueCheese.App
 			AutoDeriveDuration();
 		}
 
-		private void OnValidate()
+#if UNITY_EDITOR
+		protected override void OnValidate()
 		{
+			base.OnValidate();
+
 			if (!OverrideDuration)
 			{
 				AutoDeriveDuration();
@@ -67,6 +71,7 @@ namespace BlueCheese.App
 				}
 			}
 		}
+#endif
 
 		[ContextMenu("Recompute Duration from Prefab")]
 		private void AutoDeriveDuration()

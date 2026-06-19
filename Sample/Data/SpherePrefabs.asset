@@ -17,7 +17,8 @@ MonoBehaviour:
     _values:
     - Sphere
   RegisterInAssetBank: 1
-  LoadMode: 0
+  LoadMode: 1
+  BundleKey: 
   _items:
   - {fileID: 7658002209671511108, guid: c77e1f5b32f16d840b20e342b5aa4018, type: 3}
   - {fileID: 3670112285062335086, guid: 1cd8672ec8f89fa458695abe4a57840d, type: 3}
