@@ -15,48 +15,56 @@ namespace BlueCheese.App
 		[SerializeField] private string _pluralKey;
 		[SerializeField] private string[] _parameters;
 
-		private int? _pluralValue;
-
 		public readonly string Key => _key;
 		public readonly string PluralKey => _pluralKey;
 		public readonly IReadOnlyList<string> Parameters => _parameters;
-		public readonly bool IsValid => Translator.HasTranslation(this);
 
-		private int GetPluralValue()
-		{
-			if (_pluralValue == null && _parameters != null && _parameters.Length > 0)
-			{
-				// Extract plural value from parameters
-				foreach (string p in _parameters)
-				{
-					if (int.TryParse(p, out int intValue))
-					{
-						_pluralValue = intValue;
-						break;
-					}
-				}
-			}
-			return _pluralValue.HasValue ? _pluralValue.Value : 0;
-		}
+		/// <summary>
+		/// True when a key has been assigned. This is a cheap structural check; it does
+		/// not perform a translation lookup. Use <see cref="HasTranslation"/> for that.
+		/// </summary>
+		public readonly bool IsValid => !string.IsNullOrEmpty(_key);
 
 		public TranslationKey(string key, string[] parameters = null, string pluralKey = null)
 		{
 			_key = key;
 			_parameters = parameters;
 			_pluralKey = pluralKey;
-			_pluralValue = null;
 		}
 
-		public void SetParameter(int index, string value)
+		/// <summary>
+		/// Returns a copy of this key with the parameter at <paramref name="index"/> replaced.
+		/// The original key is left untouched (TranslationKey is immutable).
+		/// </summary>
+		public readonly TranslationKey WithParameter(int index, string value)
 		{
-			if (index >= 0 && index < _parameters.Length && value != _parameters[index])
+			if (_parameters == null || index < 0 || index >= _parameters.Length || _parameters[index] == value)
 			{
-				_parameters[index] = value;
-				_pluralValue = null;
+				return this;
 			}
+
+			var parameters = (string[])_parameters.Clone();
+			parameters[index] = value;
+			return new TranslationKey(_key, parameters, _pluralKey);
 		}
 
-		public string Format(string singular, string plural = null)
+		private readonly int GetPluralValue()
+		{
+			if (_parameters != null)
+			{
+				// Use the first parameter that parses as an integer as the plural count.
+				foreach (string p in _parameters)
+				{
+					if (int.TryParse(p, out int intValue))
+					{
+						return intValue;
+					}
+				}
+			}
+			return 0;
+		}
+
+		public readonly string Format(string singular, string plural = null)
 		{
 			if (_parameters == null || _parameters.Length == 0)
 			{
@@ -70,6 +78,7 @@ namespace BlueCheese.App
 		}
 
 		public readonly string Translate() => Translator.Translate(this);
+		public readonly bool HasTranslation() => Translator.HasTranslation(this);
 
 		public static implicit operator string(TranslationKey key) => key.Translate();
 		public static implicit operator TranslationKey(string key) => new(key);

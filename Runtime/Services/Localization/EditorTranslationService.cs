@@ -2,9 +2,7 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BlueCheese.App
 {
@@ -48,11 +46,7 @@ namespace BlueCheese.App
 		private List<TranslationTableAsset> FindAssets()
 		{
 #if UNITY_EDITOR
-			var assets = UnityEditor.AssetDatabase.FindAssets($"t:{nameof(TranslationTableAsset)}")
-				.Select(UnityEditor.AssetDatabase.GUIDToAssetPath)
-				.Select(UnityEditor.AssetDatabase.LoadAssetAtPath<TranslationTableAsset>)
-				.OrderBy(asset => asset.Name);
-			return assets.ToList();
+			return TranslationAssetFinder.FindAllTables();
 #else
 			return new List<TranslationTableAsset>();
 #endif

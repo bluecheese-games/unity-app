@@ -65,7 +65,7 @@ namespace BlueCheese.App
 			public Language DefaultLanguage = Language.English;
 			public List<Language> SupportedLanguages;
 
-			public static Settings Default = new();
+			public static Settings Default => new();
 
 			public static Settings FromResourcesOrDefault(string path = "LocalizationSettings")
 			{

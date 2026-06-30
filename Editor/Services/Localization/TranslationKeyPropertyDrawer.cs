@@ -49,7 +49,20 @@ namespace BlueCheese.App.Editor
 		private void DrawKey(SerializedProperty property, string[] keys)
 		{
 			var keyProperty = property.FindPropertyRelative("_key");
-			EditorGUIHelper.DrawSearchableKeyProperty(keyProperty, new GUIContent("Key"), keys);
+
+			// Prepend a "None" entry that maps to an empty key, so a LocalizedText can opt out
+			// of translation. The label shown is "None" while the stored key stays empty.
+			var keysWithNone = new string[keys.Length + 1];
+			var labelsWithNone = new string[keys.Length + 1];
+			keysWithNone[0] = string.Empty;
+			labelsWithNone[0] = "None";
+			for (int i = 0; i < keys.Length; i++)
+			{
+				keysWithNone[i + 1] = keys[i];
+				labelsWithNone[i + 1] = keys[i];
+			}
+
+			EditorGUIHelper.DrawSearchableKeyProperty(keyProperty, new GUIContent("Key"), keysWithNone, labelsWithNone);
 		}
 
 		private void DrawPluralKey(SerializedProperty property)
