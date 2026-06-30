@@ -73,7 +73,7 @@ namespace BlueCheese.Tools.Editor
 			if (_searchFolders.Count == 0) _searchFolders.Add("Assets");
 			LoadIgnored();
 			RefreshTranslationAssetsCache();
-			_defaultLanguage = FindDefaultLanguage();
+			_defaultLanguage = TranslationAssetFinder.FindDefaultLanguage();
 
 			// Initialize bulk destination
 			if (_allTableAssets != null && _allTableAssets.Length > 0)
@@ -85,13 +85,7 @@ namespace BlueCheese.Tools.Editor
 
 		private void RefreshTranslationAssetsCache()
 		{
-			var guids = AssetDatabase.FindAssets($"t:{nameof(TranslationTableAsset)}");
-			_allTableAssets = guids
-				.Select(g => AssetDatabase.LoadAssetAtPath<TranslationTableAsset>(AssetDatabase.GUIDToAssetPath(g)))
-				.Where(a => a != null)
-				.OrderBy(a => a.name)
-				.ToArray();
-
+			_allTableAssets = TranslationAssetFinder.FindAllTables().ToArray();
 			_allTableAssetNames = _allTableAssets.Select(a => a.name).ToArray();
 
 			// keep bulk destination index in sync if possible
@@ -105,18 +99,6 @@ namespace BlueCheese.Tools.Editor
 					_bulkDestination = _allTableAssets[0];
 				}
 			}
-		}
-
-		private Language FindDefaultLanguage()
-		{
-			var guid = AssetDatabase.FindAssets($"t:{nameof(LocalizationSettingsAsset)}").FirstOrDefault();
-			if (!string.IsNullOrEmpty(guid))
-			{
-				var path = AssetDatabase.GUIDToAssetPath(guid);
-				var settings = AssetDatabase.LoadAssetAtPath<LocalizationSettingsAsset>(path);
-				if (settings != null) return settings.DefaultLanguage;
-			}
-			return Language.English;
 		}
 
 		private void LoadIgnored()
@@ -138,39 +120,14 @@ namespace BlueCheese.Tools.Editor
 			EditorPrefs.SetString(PrefsKeyIgnored, raw);
 		}
 
-		private static HashSet<string> GetAllExistingKeysFromAllAssets()
-		{
-			var all = new HashSet<string>(StringComparer.Ordinal);
-			foreach (var guid in AssetDatabase.FindAssets($"t:{nameof(TranslationTableAsset)}"))
-			{
-				var asset = AssetDatabase.LoadAssetAtPath<TranslationTableAsset>(AssetDatabase.GUIDToAssetPath(guid));
-				if (!asset) continue;
-
-				// Read serialized keys; avoids depending on internals
-				var so = new SerializedObject(asset);
-				var items = so.FindProperty("_items");
-				if (items is { isArray: true })
-				{
-					for (int i = 0; i < items.arraySize; i++)
-					{
-						var el = items.GetArrayElementAtIndex(i);
-						var key = el.FindPropertyRelative("Key")?.stringValue;
-						if (!string.IsNullOrEmpty(key))
-							all.Add(key);
-					}
-				}
-			}
-			return all;
-		}
-
 		private void Scan()
 		{
 			_work.Clear();
 			_warnings.Clear();
 			RefreshTranslationAssetsCache();
-			_defaultLanguage = FindDefaultLanguage();
+			_defaultLanguage = TranslationAssetFinder.FindDefaultLanguage();
 
-			var knownKeys = GetAllExistingKeysFromAllAssets();
+			var knownKeys = TranslationAssetFinder.GetAllKeys();
 			var searchIn = _searchFolders.ToArray();
 
 			var prefabGuids = AssetDatabase.FindAssets("t:Prefab", searchIn);

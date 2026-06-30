@@ -14,23 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _languages: 0b0000000f000000
   _items:
-  - Key: sample.counter
+  - Key: sample.sphere.counter
     Translations:
     - Language: 11
       Value: 'Sphere: {0}'
     - Language: 15
       Value: "Sph\xE8re : {0}"
-    LastModified: 638950209623257519
-    LastValidated: 638950210136497943
+    LastModified: 639184381305847765
+    LastValidated: 639184381324386340
     Status: 0
-  - Key: sample.counter.plural
+  - Key: sample.sphere.counter.plural
     Translations:
     - Language: 11
       Value: 'Spheres: {0}'
     - Language: 15
       Value: "Sph\xE8res : {0}"
-    LastModified: 638948316855801626
-    LastValidated: 638948316865559510
+    LastModified: 639184361487961402
+    LastValidated: 639184361790243070
     Status: 0
   - Key: UI.TEMP
     Translations:
@@ -41,4 +41,247 @@ MonoBehaviour:
     LastModified: 638980357297701733
     LastValidated: 0
     Status: 1
-  _lastModified: 638979531920357495
+  - Key: aa
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310143948324
+    LastValidated: 0
+    Status: 1
+  - Key: bb
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310166898422
+    LastValidated: 0
+    Status: 1
+  - Key: cc
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310182686267
+    LastValidated: 0
+    Status: 1
+  - Key: dd
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310197337619
+    LastValidated: 0
+    Status: 1
+  - Key: ee
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310213314413
+    LastValidated: 0
+    Status: 1
+  - Key: ff
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310232077396
+    LastValidated: 0
+    Status: 1
+  - Key: gg
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310247099130
+    LastValidated: 0
+    Status: 1
+  - Key: hh
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310263581739
+    LastValidated: 0
+    Status: 1
+  - Key: ii
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310282332334
+    LastValidated: 0
+    Status: 1
+  - Key: jj
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310299915844
+    LastValidated: 0
+    Status: 1
+  - Key: kk
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310318900348
+    LastValidated: 0
+    Status: 1
+  - Key: ll
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310335973371
+    LastValidated: 0
+    Status: 1
+  - Key: mm
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310360772236
+    LastValidated: 0
+    Status: 1
+  - Key: nn
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310377952357
+    LastValidated: 0
+    Status: 1
+  - Key: oo
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310393884217
+    LastValidated: 0
+    Status: 1
+  - Key: pp
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310409224970
+    LastValidated: 0
+    Status: 1
+  - Key: qq
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310429408413
+    LastValidated: 0
+    Status: 1
+  - Key: rr
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310447146435
+    LastValidated: 0
+    Status: 1
+  - Key: ss
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310479481999
+    LastValidated: 0
+    Status: 1
+  - Key: tt
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310514160883
+    LastValidated: 0
+    Status: 1
+  - Key: uu
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310678609092
+    LastValidated: 0
+    Status: 1
+  - Key: vv
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184310708222491
+    LastValidated: 0
+    Status: 1
+  - Key: ww
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184311501624648
+    LastValidated: 0
+    Status: 1
+  - Key: xx
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184311527749108
+    LastValidated: 0
+    Status: 1
+  - Key: yy
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184311548762189
+    LastValidated: 0
+    Status: 1
+  - Key: zz
+    Translations:
+    - Language: 11
+      Value: 
+    - Language: 15
+      Value: 
+    LastModified: 639184336169976016
+    LastValidated: 0
+    Status: 1
+  - Key: foo
+    Translations:
+    - Language: 11
+      Value: bar
+    - Language: 15
+      Value: 
+    LastModified: 639184369773072900
+    LastValidated: 0
+    Status: 1
+  _lastModified: 639184381305847765

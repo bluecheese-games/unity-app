@@ -26,7 +26,7 @@ namespace BlueCheese.App
 
 		public void SetParameter(int index, string value, bool immediateUpdate = true)
 		{
-			_translationKey.SetParameter(index, value);
+			_translationKey = _translationKey.WithParameter(index, value);
 			if (immediateUpdate)
 			{
 				UpdateText();
@@ -50,7 +50,9 @@ namespace BlueCheese.App
 				_text = GetComponent<TMP_Text>();
 			}
 
-			if (_text != null && _translationKey.IsValid)
+			// Only overwrite the preview text in the editor when an actual translation
+			// exists, so authored placeholder text isn't clobbered by the raw key.
+			if (_text != null && _translationKey.HasTranslation())
 			{
 				_text.text = _translationKey;
 			}

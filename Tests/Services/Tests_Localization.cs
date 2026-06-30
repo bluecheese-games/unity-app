@@ -194,7 +194,7 @@ namespace BlueCheese.Tests.Services
 	}
 
 	[TestFixture]
-	public class TranslationServiceTests
+	public class Tests_TranslationService
 	{
 		private ILocalizationService _localization;
 		private IAssetLoaderService _assetLoader;

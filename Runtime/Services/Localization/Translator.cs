@@ -15,44 +15,25 @@ namespace BlueCheese.App
 			_translationService = translationService;
 		}
 
+		private static bool TryGetService(out ITranslationService service)
+		{
+			// Outside play mode, lazily resolve the editor translation service on first use.
+			if (_translationService == null && !Application.isPlaying)
+			{
+				Initialize(EditorServiceLocator.Get<ITranslationService>());
+			}
+			service = _translationService;
+			return service != null;
+		}
+
 		public static bool HasTranslation(TranslationKey translationKey)
 		{
-			if (_translationService == null)
-			{
-				if (Application.isPlaying)
-				{
-					return false;
-				}
-				else
-				{
-					Initialize(EditorServiceLocator.Get<ITranslationService>());
-				}
-			}
-			if (_translationService == null)
-			{
-				return false;
-			}
-			return _translationService.HasTranslation(translationKey);
+			return TryGetService(out var service) && service.HasTranslation(translationKey);
 		}
 
 		public static string Translate(TranslationKey key)
 		{
-			if (_translationService == null)
-			{
-				if (Application.isPlaying)
-				{
-					return key.Key;
-				}
-				else
-				{
-					Initialize(EditorServiceLocator.Get<ITranslationService>());
-				}
-			}
-			if (_translationService == null)
-			{
-				return key.Key;
-			}
-			return _translationService.Translate(key);
+			return TryGetService(out var service) ? service.Translate(key) : key.Key;
 		}
 	}
 }

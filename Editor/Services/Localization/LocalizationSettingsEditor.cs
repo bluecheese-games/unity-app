@@ -21,6 +21,33 @@ namespace BlueCheese.App.Editor
 		private int _newLanguageIndex;
 		private string _searchText;
 
+		[MenuItem("Tools/Localization/Localization Settings")]
+		public static void OpenSettings()
+		{
+			var guid = AssetDatabase.FindAssets($"t:{nameof(LocalizationSettingsAsset)}").FirstOrDefault();
+			LocalizationSettingsAsset settings = string.IsNullOrEmpty(guid)
+				? null
+				: AssetDatabase.LoadAssetAtPath<LocalizationSettingsAsset>(AssetDatabase.GUIDToAssetPath(guid));
+
+			if (settings == null)
+			{
+				if (!EditorUtility.DisplayDialog("Localization Settings", "No LocalizationSettings asset found.\nCreate one in Assets/Resources?", "Create", "Cancel"))
+				{
+					return;
+				}
+				if (!AssetDatabase.IsValidFolder("Assets/Resources"))
+				{
+					AssetDatabase.CreateFolder("Assets", "Resources");
+				}
+				settings = CreateInstance<LocalizationSettingsAsset>();
+				AssetDatabase.CreateAsset(settings, "Assets/Resources/LocalizationSettings.asset");
+				AssetDatabase.SaveAssets();
+			}
+
+			Selection.activeObject = settings;
+			EditorGUIUtility.PingObject(settings);
+		}
+
 		private void OnEnable()
 		{
 			_defaultLanguageProperty = serializedObject.FindProperty(nameof(_settings.DefaultLanguage));
