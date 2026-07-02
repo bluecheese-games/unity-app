@@ -43,7 +43,7 @@ namespace BlueCheese.App
 			container.Register<ILocalizationService, LocalizationService>();
 			container.Configure<LocalizationService.Settings>((options) =>
 			{
-				var editorOptions = LocalizationService.Settings.FromResourcesOrDefault();
+				var editorOptions = LocalizationService.Settings.FromAssetBankOrDefault();
 				options.DefaultLanguage = editorOptions.DefaultLanguage;
 				options.SupportedLanguages = editorOptions.SupportedLanguages;
 			});
@@ -64,7 +64,7 @@ namespace BlueCheese.App
 		/// Use the exact Type used to register the service.
 		/// </typeparam>
 		/// <returns>A service instance</returns>
-		public static TService Get<TService>()
+		public static TService Resolve<TService>()
 		{
 			return EditorServiceContainer.Resolve<TService>();
 		}

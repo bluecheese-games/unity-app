@@ -69,40 +69,40 @@ MonoBehaviour:
   - Key: ui.stat01
     Translations:
     - Language: 11
-      Value: 
-      AITranslated: 0
-      LastModified: 639185978207286315
+      Value: Strength
+      AITranslated: 1
+      LastModified: 639185988442297221
     - Language: 15
-      Value: 
-      AITranslated: 0
-      LastModified: 639185978196091063
-    LastModified: 639185978207286315
-    LastValidated: 0
-    Status: 1
+      Value: Force
+      AITranslated: 1
+      LastModified: 639185987723394789
+    LastModified: 639185988442297221
+    LastValidated: 639185988486713519
+    Status: 0
   - Key: ui.stat02
     Translations:
     - Language: 11
-      Value: 
-      AITranslated: 0
-      LastModified: 639185976833317874
+      Value: Health
+      AITranslated: 1
+      LastModified: 639185988359751590
     - Language: 15
-      Value: 
-      AITranslated: 0
-      LastModified: 639185976760498210
-    LastModified: 639185976833317874
+      Value: "Sant\xE9"
+      AITranslated: 1
+      LastModified: 639185988359751590
+    LastModified: 639185988359751590
     LastValidated: 0
     Status: 1
   - Key: life.answer
     Translations:
     - Language: 11
-      Value: 
-      AITranslated: 0
-      LastModified: 639185978239367035
+      Value: 42
+      AITranslated: 1
+      LastModified: 639185987744538560
     - Language: 15
-      Value: 
-      AITranslated: 0
-      LastModified: 639185978229561939
-    LastModified: 639185978239367035
+      Value: 42
+      AITranslated: 1
+      LastModified: 639185988370980610
+    LastModified: 639185988370980610
     LastValidated: 0
     Status: 1
   - Key: life.question
@@ -120,6 +120,6 @@ MonoBehaviour:
     LastModified: 639185194443140114
     LastValidated: 0
     Status: 1
-  _lastModified: 639185978239367035
+  _lastModified: 639185988442297221
   _sourceType: 
   _sourcePath: 

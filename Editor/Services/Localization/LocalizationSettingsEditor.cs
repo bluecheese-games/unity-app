@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace BlueCheese.App.Editor
 {
-	[CustomEditor(typeof(LocalizationSettingsAsset))]
+	[CustomEditor(typeof(LocalizationSettingsAsset), isFallback = true)]
 	public class LocalizationSettingsEditor : UnityEditor.Editor
 	{
 		private SerializedProperty _defaultLanguageProperty;
@@ -69,7 +69,7 @@ namespace BlueCheese.App.Editor
 		private void DrawSupportedLanguages()
 		{
 			EditorGUIHelper.DrawTitle("Supported Languages");
-			Language currentLanguage = EditorServiceLocator.Get<ILocalizationService>().CurrentLanguage;
+			Language currentLanguage = EditorServiceLocator.Resolve<ILocalizationService>().CurrentLanguage;
 
 			float columnsWidth = (EditorGUIUtility.currentViewWidth - 70) / 3;
 			var enumPopupStyle = new GUIStyle(EditorStyles.popup)
@@ -106,7 +106,7 @@ namespace BlueCheese.App.Editor
 				{
 					if (GUILayout.Button("Set as current", GUILayout.Width(columnsWidth)))
 					{
-						EditorServiceLocator.Get<ILocalizationService>().SetCurrentLanguage(language);
+						EditorServiceLocator.Resolve<ILocalizationService>().SetCurrentLanguage(language);
 						RefreshTexts();
 					}
 				}
@@ -147,7 +147,7 @@ namespace BlueCheese.App.Editor
 
 		private void RefreshTexts()
 		{
-			foreach (var localizedText in FindObjectsOfType<LocalizedText>())
+			foreach (var localizedText in FindObjectsByType<LocalizedText>(sortMode: FindObjectsSortMode.None))
 			{
 				localizedText.UpdateText();
 			}

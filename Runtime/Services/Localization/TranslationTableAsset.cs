@@ -67,7 +67,7 @@ namespace BlueCheese.App
 
 			if (_languages.Count == 0)
 			{
-				var defaultLanguage = EditorServiceLocator.Get<ILocalizationService>().DefaultLanguage;
+				var defaultLanguage = EditorServiceLocator.Resolve<ILocalizationService>().DefaultLanguage;
 				AddLanguage(defaultLanguage);
 				UnityEditor.EditorUtility.SetDirty(this);
 				UnityEditor.AssetDatabase.SaveAssets();

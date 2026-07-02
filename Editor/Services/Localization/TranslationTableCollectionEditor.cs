@@ -109,7 +109,7 @@ namespace BlueCheese.App.Editor
 
 		private void DrawDuplicates()
 		{
-			var assetFinder = EditorServiceLocator.Get<IAssetFinderService>();
+			var assetFinder = EditorServiceLocator.Resolve<IAssetFinderService>();
 			var translationTables = assetFinder
 				.FindAssetsInResources<ScriptableObject>()
 				.OfType<ITranslationTableAsset>()

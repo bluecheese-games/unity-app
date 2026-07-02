@@ -2,13 +2,14 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
+using BlueCheese.Core.Utils;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace BlueCheese.App
 {
 	[CreateAssetMenu(menuName = "Localization/Settings", fileName = "LocalizationSettings")]
-    public class LocalizationSettingsAsset : ScriptableObject
+    public class LocalizationSettingsAsset : AssetBase
 	{
 		public Language DefaultLanguage = Language.English;
 		public List<Language> SupportedLanguages;

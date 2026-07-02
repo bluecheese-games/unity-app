@@ -45,6 +45,11 @@ namespace BlueCheese.App
 
 		private void OnValidate()
 		{
+			if (Application.isPlaying)
+			{
+				return;
+			}
+
 			if (_text == null)
 			{
 				_text = GetComponent<TMP_Text>();

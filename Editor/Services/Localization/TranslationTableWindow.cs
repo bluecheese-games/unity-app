@@ -236,7 +236,7 @@ namespace BlueCheese.App.Editor
 			root.Add(BuildTabBar());
 
 			Asset.Validate();
-			var localization = EditorServiceLocator.Get<ILocalizationService>();
+			var localization = EditorServiceLocator.Resolve<ILocalizationService>();
 			_supportedLanguages = localization.SupportedLanguages ?? Array.Empty<Language>();
 			_defaultLanguage = localization.DefaultLanguage;
 
@@ -1667,7 +1667,7 @@ namespace BlueCheese.App.Editor
 
 			// Rebuild the editor translation cache (reads the in-memory, possibly unsaved assets) and
 			// point the Translator at it, so LocalizedText in open scenes reflect the edit immediately.
-			var translationService = EditorServiceLocator.Get<EditorTranslationService>();
+			var translationService = EditorServiceLocator.Resolve<EditorTranslationService>();
 			translationService.Refresh();
 			Translator.Initialize(translationService);
 

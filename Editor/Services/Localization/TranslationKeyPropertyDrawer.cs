@@ -16,7 +16,7 @@ namespace BlueCheese.App.Editor
 		private const float Spacing = 2f;
 		private const float OpenButtonWidth = 28f;
 
-		private static string[] GetKeys() => EditorServiceLocator.Get<EditorTranslationService>().GetAllKeys();
+		private static string[] GetKeys() => EditorServiceLocator.Resolve<EditorTranslationService>().GetAllKeys();
 
 		public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
 		{
@@ -149,7 +149,7 @@ namespace BlueCheese.App.Editor
 				return;
 			}
 
-			var tables = EditorServiceLocator.Get<EditorTranslationService>().GetTranslationTableAssets();
+			var tables = EditorServiceLocator.Resolve<EditorTranslationService>().GetTranslationTableAssets();
 			if (tables == null || tables.Count == 0)
 			{
 				EditorUtility.DisplayDialog("Create Key", "Create a Translation Table first.", "OK");
@@ -179,7 +179,7 @@ namespace BlueCheese.App.Editor
 			}
 			Undo.RecordObject(table, "Add Translation Key");
 			var item = table.AddItem(newKey);
-			var service = EditorServiceLocator.Get<EditorTranslationService>();
+			var service = EditorServiceLocator.Resolve<EditorTranslationService>();
 			item.SetTranslation(service.DefaultLanguage, GetSourceText(property));
 			service.Refresh();
 			EditorUtility.SetDirty(table);
@@ -214,7 +214,7 @@ namespace BlueCheese.App.Editor
 
 		private static void OpenTableForKey(string key)
 		{
-			var table = EditorServiceLocator.Get<EditorTranslationService>()
+			var table = EditorServiceLocator.Resolve<EditorTranslationService>()
 				.GetTranslationTableAssets()
 				.FirstOrDefault(t => t != null && t.Keys != null && t.Keys.Contains(key));
 			if (table != null)

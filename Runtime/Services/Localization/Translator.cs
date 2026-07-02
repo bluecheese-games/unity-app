@@ -2,12 +2,19 @@
 // Copyright (c) 2026 BlueCheese Games All rights reserved
 //
 
+using BlueCheese.Core.DI;
 using UnityEngine;
 
 namespace BlueCheese.App
 {
 	public static class Translator
 	{
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetDomain()
+		{
+			_translationService = null;
+		}
+
 		private static ITranslationService _translationService;
 
 		public static void Initialize(ITranslationService translationService)
@@ -20,8 +27,15 @@ namespace BlueCheese.App
 			// Outside play mode, lazily resolve the editor translation service on first use.
 			if (_translationService == null && !Application.isPlaying)
 			{
-				Initialize(EditorServiceLocator.Get<ITranslationService>());
+				Initialize(EditorServiceLocator.Resolve<ITranslationService>());
 			}
+
+			// During play mode, lazily resolve the runtime translation service on first use.
+			if (_translationService == null)
+			{
+				_translationService = ServiceLocator.Resolve<ITranslationService>();
+			}
+
 			service = _translationService;
 			return service != null;
 		}

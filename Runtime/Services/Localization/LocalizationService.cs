@@ -4,6 +4,7 @@
 
 using BlueCheese.Core.DI;
 using BlueCheese.Core.Signals;
+using BlueCheese.Core.Utils;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -70,6 +71,12 @@ namespace BlueCheese.App
 			public static Settings FromResourcesOrDefault(string path = "LocalizationSettings")
 			{
 				var settings = Resources.Load<LocalizationSettingsAsset>(path);
+				return settings != null ? settings.Options : Default;
+			}
+
+			public static Settings FromAssetBankOrDefault()
+			{
+				var settings = AssetBank.GetAssetOfType<LocalizationSettingsAsset>();
 				return settings != null ? settings.Options : Default;
 			}
 		}

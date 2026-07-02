@@ -12,5 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8a08ff858b4f3b46ae8366b10255942, type: 3}
   m_Name: LocalizationSettings
   m_EditorClassIdentifier: 
+  Name: LocalizationSettings
+  Tags:
+    _values:
+    - Localization
+  RegisterInAssetBank: 1
+  LoadMode: 0
+  BundleKey: 
   DefaultLanguage: 11
   SupportedLanguages: 0b0000000f000000

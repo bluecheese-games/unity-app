@@ -33,7 +33,7 @@ namespace BlueCheese.App
 			builder.ServiceContainer.Register<ILocalizationService, LocalizationService>();
 			builder.ServiceContainer.Configure<LocalizationService.Settings>((options) =>
 			{
-				var localizationOptions = LocalizationService.Settings.FromResourcesOrDefault();
+				var localizationOptions = LocalizationService.Settings.FromAssetBankOrDefault();
 				options.DefaultLanguage = localizationOptions.DefaultLanguage;
 				options.SupportedLanguages = localizationOptions.SupportedLanguages;
 			});

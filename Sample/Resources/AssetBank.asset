@@ -31,6 +31,15 @@ MonoBehaviour:
       - FX
     LoadMode: 1
     BundleKey: FX
+  - Name: LocalizationSettings
+    Guid: 2fd14a188312c1f4b86cfafb706695f8
+    TypeName: BlueCheese.App.LocalizationSettingsAsset, BlueCheese.App, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+    Tags:
+      _values:
+      - Localization
+    LoadMode: 0
+    BundleKey: 
   - Name: SampleConfig
     Guid: 3fd7c9cd3f91d3f4c866f370fe2ad6c9
     TypeName: BlueCheese.Core.Config.ConfigAsset, BlueCheese.Core, Version=0.0.0.0,
