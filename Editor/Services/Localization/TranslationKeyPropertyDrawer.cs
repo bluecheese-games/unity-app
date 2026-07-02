@@ -3,8 +3,8 @@
 //
 
 using BlueCheese.Core.Editor;
-using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,139 +13,232 @@ namespace BlueCheese.App.Editor
 	[CustomPropertyDrawer(typeof(TranslationKey))]
 	public class TranslationKeyPropertyDrawer : PropertyDrawer
 	{
-		private int _selectedTableIndex = 0;
+		private const float Spacing = 2f;
+		private const float OpenButtonWidth = 28f;
+
+		private static string[] GetKeys() => EditorServiceLocator.Get<EditorTranslationService>().GetAllKeys();
+
+		public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+		{
+			float line = EditorGUIUtility.singleLineHeight;
+			var key = property.FindPropertyRelative("_key").stringValue;
+			bool valid = !string.IsNullOrEmpty(key) && GetKeys().Contains(key);
+
+			float height = line; // key selector line (always shown)
+
+			if (valid && property.isExpanded)
+			{
+				height += Spacing + line; // plural key row
+				var parameters = property.FindPropertyRelative("_parameters");
+				height += Spacing + (parameters.arraySize > 0 ? EditorGUI.GetPropertyHeight(parameters, true) : line);
+			}
+			return height;
+		}
 
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 		{
-			if (EditorGUI.PropertyField(position, property, label))
+			float line = EditorGUIUtility.singleLineHeight;
+			var keyProperty = property.FindPropertyRelative("_key");
+			var key = keyProperty.stringValue;
+			var keys = GetKeys();
+			bool valid = !string.IsNullOrEmpty(key) && keys.Contains(key);
+
+			BuildChoicesWithNone(keys, out var choices, out var choiceLabels);
+
+			// Offered in the search dropdown when the typed text matches no existing key.
+			void CreateNew(string newKey) => CreateKey(property, newKey);
+
+			var firstLine = new Rect(position.x, position.y, position.width, line);
+
+			// Valid key: a foldout arrow (to reveal plural/parameters) at the far left; the label/field
+			// are indented one step so the arrow has room. The field itself is always drawn by the helper
+			// through PrefixLabel, so it aligns exactly with the other inspector fields.
+			if (valid)
 			{
-				DrawTranslationKeyProperty(property);
-			}
-		}
-
-		private void DrawTranslationKeyProperty(SerializedProperty property)
-		{
-			var translationService = EditorServiceLocator.Get<EditorTranslationService>();
-			var keys = translationService.GetAllKeys();
-			bool isValid = keys.Contains(property.FindPropertyRelative("_key").stringValue);
-
-			EditorGUILayout.BeginVertical("box");
-			DrawKey(property, keys);
-
-			if (isValid)
-			{
-				DrawPluralKey(property);
-				EditorGUI.indentLevel++;
-				DrawParameters(property);
-				EditorGUI.indentLevel--;
+				var arrowRect = new Rect(firstLine.x, firstLine.y, 14f, line);
+				property.isExpanded = EditorGUI.Foldout(arrowRect, property.isExpanded, GUIContent.none, toggleOnLabelClick: true);
 			}
 			else
 			{
-				DrawCreateKey(property, translationService.GetTranslationTableAssets());
+				property.isExpanded = false;
 			}
-			EditorGUILayout.EndVertical();
+
+			int previousIndent = EditorGUI.indentLevel;
+			if (valid)
+			{
+				EditorGUI.indentLevel++;
+			}
+			DrawKeyFieldWithOpen(firstLine, keyProperty, label, choices, choiceLabels, keys, CreateNew);
+			EditorGUI.indentLevel = previousIndent;
+
+			if (valid && property.isExpanded)
+			{
+				float y = position.y + line + Spacing;
+				EditorGUI.indentLevel++;
+				y = DrawPluralKey(position, y, property, keys);
+				DrawParameters(position, y, property);
+				EditorGUI.indentLevel--;
+			}
 		}
 
-		private void DrawKey(SerializedProperty property, string[] keys)
+		private static void BuildChoicesWithNone(string[] keys, out string[] choices, out string[] labels)
 		{
-			var keyProperty = property.FindPropertyRelative("_key");
-
-			// Prepend a "None" entry that maps to an empty key, so a LocalizedText can opt out
-			// of translation. The label shown is "None" while the stored key stays empty.
-			var keysWithNone = new string[keys.Length + 1];
-			var labelsWithNone = new string[keys.Length + 1];
-			keysWithNone[0] = string.Empty;
-			labelsWithNone[0] = "None";
+			choices = new string[keys.Length + 1];
+			labels = new string[keys.Length + 1];
+			choices[0] = string.Empty;
+			labels[0] = "None";
 			for (int i = 0; i < keys.Length; i++)
 			{
-				keysWithNone[i + 1] = keys[i];
-				labelsWithNone[i + 1] = keys[i];
+				choices[i + 1] = keys[i];
+				labels[i + 1] = keys[i];
 			}
-
-			EditorGUIHelper.DrawSearchableKeyProperty(keyProperty, new GUIContent("Key"), keysWithNone, labelsWithNone);
 		}
 
-		private void DrawPluralKey(SerializedProperty property)
+		private float DrawPluralKey(Rect position, float y, SerializedProperty property, string[] keys)
 		{
+			float line = EditorGUIUtility.singleLineHeight;
 			var pluralKeyProperty = property.FindPropertyRelative("_pluralKey");
+			var rowRect = new Rect(position.x, y, position.width, line);
 
 			if (!string.IsNullOrEmpty(pluralKeyProperty.stringValue))
 			{
-				var keys = EditorServiceLocator.Get<EditorTranslationService>().GetAllKeys();
-				EditorGUIHelper.DrawSearchableKeyProperty(pluralKeyProperty, new GUIContent("PluralKey"), keys);
+				// Include a "None" entry so the plural key can be cleared (removes the plural form).
+				BuildChoicesWithNone(keys, out var choices, out var choiceLabels);
+				DrawKeyFieldWithOpen(rowRect, pluralKeyProperty, new GUIContent("Plural Key"), choices, choiceLabels, keys, onCreateNew: null);
 			}
-			else
+			else if (GUI.Button(EditorGUI.IndentedRect(rowRect), "Add Plural Form"))
 			{
-				if (GUILayout.Button("Add Plural Form"))
+				pluralKeyProperty.stringValue = property.FindPropertyRelative("_key").stringValue + ".plural";
+				var parameters = property.FindPropertyRelative("_parameters");
+				if (parameters.arraySize == 0)
 				{
-					var keyProperty = property.FindPropertyRelative("_key");
-					var parametersProperty = property.FindPropertyRelative("_parameters");
-					pluralKeyProperty.stringValue = keyProperty.stringValue + ".plural";
-					if (parametersProperty.arraySize == 0)
-					{
-						parametersProperty.arraySize = 1;
-						parametersProperty.GetArrayElementAtIndex(0).stringValue = "0";
-					}
+					parameters.arraySize = 1;
+					parameters.GetArrayElementAtIndex(0).stringValue = "0";
 				}
 			}
+			return y + line + Spacing;
 		}
 
-		private void DrawParameters(SerializedProperty property)
+		private float DrawParameters(Rect position, float y, SerializedProperty property)
 		{
-			var parametersProperty = property.FindPropertyRelative("_parameters");
-			if (parametersProperty.arraySize > 0)
+			float line = EditorGUIUtility.singleLineHeight;
+			var parameters = property.FindPropertyRelative("_parameters");
+
+			if (parameters.arraySize > 0)
 			{
-				EditorGUILayout.PropertyField(parametersProperty, new GUIContent("Parameters"), true);
+				float height = EditorGUI.GetPropertyHeight(parameters, true);
+				EditorGUI.PropertyField(new Rect(position.x, y, position.width, height), parameters, new GUIContent("Parameters"), true);
+				return y + height + Spacing;
 			}
-			else
+
+			var rowRect = new Rect(position.x, y, position.width, line);
+			if (GUI.Button(EditorGUI.IndentedRect(rowRect), "Add Parameters"))
 			{
-				if (GUILayout.Button("Add Parameters"))
-				{
-					parametersProperty.arraySize = 1;
-				}
+				parameters.arraySize = 1;
 			}
+			return y + line + Spacing;
 		}
 
-		private void DrawCreateKey(SerializedProperty property, List<TranslationTableAsset> translationTableAssets)
+		// Creates a new key from the search dropdown. Picks the table directly if there is only one,
+		// otherwise lets the user choose via a context menu.
+		private void CreateKey(SerializedProperty property, string newKey)
 		{
+			newKey = newKey?.Trim();
+			if (string.IsNullOrEmpty(newKey))
+			{
+				return;
+			}
+
+			var tables = EditorServiceLocator.Get<EditorTranslationService>().GetTranslationTableAssets();
+			if (tables == null || tables.Count == 0)
+			{
+				EditorUtility.DisplayDialog("Create Key", "Create a Translation Table first.", "OK");
+				return;
+			}
+
+			if (tables.Count == 1)
+			{
+				CreateKeyInTable(property, tables[0], newKey);
+				return;
+			}
+
+			var menu = new GenericMenu();
+			foreach (var candidate in tables)
+			{
+				var table = candidate;
+				menu.AddItem(new GUIContent($"Create in {table.Name}"), false, () => CreateKeyInTable(property, table, newKey));
+			}
+			menu.ShowAsContext();
+		}
+
+		private void CreateKeyInTable(SerializedProperty property, TranslationTableAsset table, string newKey)
+		{
+			if (table == null)
+			{
+				return;
+			}
+			Undo.RecordObject(table, "Add Translation Key");
+			var item = table.AddItem(newKey);
+			var service = EditorServiceLocator.Get<EditorTranslationService>();
+			item.SetTranslation(service.DefaultLanguage, GetSourceText(property));
+			service.Refresh();
+			EditorUtility.SetDirty(table);
+
 			var keyProperty = property.FindPropertyRelative("_key");
-			if (keyProperty.stringValue == "")
+			keyProperty.stringValue = newKey;
+			keyProperty.serializedObject.ApplyModifiedProperties();
+		}
+
+		// Draws the searchable key field, plus a small icon button (when the key exists) to open the
+		// containing table in the Translation Editor.
+		private static void DrawKeyFieldWithOpen(Rect rect, SerializedProperty keyProperty, GUIContent label, string[] choices, string[] choiceLabels, string[] validKeys, System.Action<string> onCreateNew)
+		{
+			var key = keyProperty.stringValue;
+			bool canOpen = !string.IsNullOrEmpty(key) && validKeys.Contains(key);
+
+			var fieldRect = canOpen ? new Rect(rect.x, rect.y, rect.width - OpenButtonWidth, rect.height) : rect;
+			EditorGUIHelper.DrawSearchableKeyProperty(fieldRect, keyProperty, label, choices, choiceLabels, onCreateNew: onCreateNew);
+
+			if (canOpen)
 			{
-				return;
-			}
-			if (translationTableAssets.Count == 0)
-			{
-				EditorGUILayout.HelpBox("No Translation Table Assets found in Resources folder. Create one first.", MessageType.Info);
-				return;
-			}
-			// Show a popup to select which translation table to add the key to
-			string[] tableNames = translationTableAssets.Select(t => t.Name).ToArray();
-			EditorGUILayout.BeginHorizontal();
-			var enumPopupStyle = new GUIStyle(EditorStyles.popup)
-			{
-				fixedHeight = 20
-			};
-			_selectedTableIndex = EditorGUILayout.Popup("Add Key To Table", _selectedTableIndex, tableNames, enumPopupStyle);
-			if (GUILayout.Button(EditorIcon.Plus, GUILayout.Width(30)))
-			{
-				var table = translationTableAssets[_selectedTableIndex];
-				if (table != null)
+				var buttonRect = new Rect(fieldRect.xMax + 2f, rect.y, OpenButtonWidth - 2f, rect.height);
+				var previousIconSize = EditorGUIUtility.GetIconSize();
+				EditorGUIUtility.SetIconSize(new Vector2(16, 16));
+				if (GUI.Button(buttonRect, new GUIContent(EditorIcon.Open, "Open in Translation Editor")))
 				{
-					Undo.RecordObject(table, "Add Translation Key");
-					var item = table.AddItem(keyProperty.stringValue);
-					var translationService = EditorServiceLocator.Get<EditorTranslationService>();
-					var language = translationService.DefaultLanguage;
-					var localizedText = (LocalizedText)property.serializedObject.targetObject;
-					var tmpText = localizedText.GetComponent<TMPro.TextMeshProUGUI>();
-					var textValue = tmpText.text;
+					OpenTableForKey(key);
+				}
+				EditorGUIUtility.SetIconSize(previousIconSize);
+			}
+		}
 
-					item.SetTranslation(language, textValue);
-					translationService.Refresh();
+		private static void OpenTableForKey(string key)
+		{
+			var table = EditorServiceLocator.Get<EditorTranslationService>()
+				.GetTranslationTableAssets()
+				.FirstOrDefault(t => t != null && t.Keys != null && t.Keys.Contains(key));
+			if (table != null)
+			{
+				TranslationTableWindow.Open(table, key);
+			}
+		}
 
-					EditorUtility.SetDirty(table);
+		// Robustly resolves the source text to seed the default-language translation.
+		private static string GetSourceText(SerializedProperty property)
+		{
+			if (property.serializedObject.targetObject is LocalizedText localizedText)
+			{
+				if (property.serializedObject.FindProperty("_text")?.objectReferenceValue is TMP_Text referenced)
+				{
+					return referenced.text;
+				}
+				var component = localizedText.GetComponentInChildren<TMP_Text>(true);
+				if (component != null)
+				{
+					return component.text;
 				}
 			}
-			EditorGUILayout.EndHorizontal();
+			return string.Empty;
 		}
 	}
 }

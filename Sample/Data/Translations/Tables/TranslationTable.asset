@@ -18,9 +18,33 @@ MonoBehaviour:
     Translations:
     - Language: 11
       Value: en
+      AITranslated: 0
     - Language: 15
       Value: fr
+      AITranslated: 0
     LastModified: 638979414165981460
     LastValidated: 0
     Status: 1
-  _lastModified: 638979416223269529
+  - Key: plop
+    Translations:
+    - Language: 11
+      Value: Plop
+      AITranslated: 1
+    - Language: 15
+      Value: Plop
+      AITranslated: 1
+    LastModified: 639185851624166916
+    LastValidated: 0
+    Status: 1
+  - Key: foo
+    Translations:
+    - Language: 11
+      Value: Foo
+      AITranslated: 1
+    - Language: 15
+      Value: Truc
+      AITranslated: 1
+    LastModified: 639185840046274255
+    LastValidated: 639185840219832646
+    Status: 0
+  _lastModified: 639185851624166916

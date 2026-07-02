@@ -17,271 +17,91 @@ MonoBehaviour:
   - Key: sample.sphere.counter
     Translations:
     - Language: 11
-      Value: 'Sphere: {0}'
+      Value: 'Spheres: {0}'
+      AITranslated: 1
     - Language: 15
-      Value: "Sph\xE8re : {0}"
-    LastModified: 639184381305847765
-    LastValidated: 639184381324386340
+      Value: "Sph\xE8res : {0}"
+      AITranslated: 1
+    LastModified: 639185121741220340
+    LastValidated: 639185121779138189
     Status: 0
   - Key: sample.sphere.counter.plural
     Translations:
     - Language: 11
       Value: 'Spheres: {0}'
+      AITranslated: 1
     - Language: 15
       Value: "Sph\xE8res : {0}"
-    LastModified: 639184361487961402
-    LastValidated: 639184361790243070
+      AITranslated: 1
+    LastModified: 639185069702273139
+    LastValidated: 639185070139151132
     Status: 0
   - Key: UI.TEMP
     Translations:
     - Language: 11
       Value: New Text
+      AITranslated: 0
     - Language: 15
-      Value: 
-    LastModified: 638980357297701733
+      Value: Nouveau
+      AITranslated: 1
+    LastModified: 639185061464498259
     LastValidated: 0
     Status: 1
-  - Key: aa
+  - Key: project.name
     Translations:
     - Language: 11
-      Value: 
+      Value: Bluecheese Sample Project
+      AITranslated: 1
     - Language: 15
-      Value: 
-    LastModified: 639184310143948324
-    LastValidated: 0
-    Status: 1
-  - Key: bb
+      Value: "Projet D\xE9mo Bluecheese"
+      AITranslated: 1
+    LastModified: 639185078350588739
+    LastValidated: 639185078443782348
+    Status: 0
+  - Key: ui.stat01
     Translations:
     - Language: 11
-      Value: 
+      Value: Strength
+      AITranslated: 1
     - Language: 15
-      Value: 
-    LastModified: 639184310166898422
+      Value: Force
+      AITranslated: 1
+    LastModified: 639185068128008017
     LastValidated: 0
     Status: 1
-  - Key: cc
+  - Key: ui.stat02
     Translations:
     - Language: 11
-      Value: 
+      Value: Health
+      AITranslated: 1
     - Language: 15
-      Value: 
-    LastModified: 639184310182686267
+      Value: PV
+      AITranslated: 1
+    LastModified: 639185068277086382
     LastValidated: 0
     Status: 1
-  - Key: dd
+  - Key: life.answer
     Translations:
     - Language: 11
-      Value: 
+      Value: 42
+      AITranslated: 1
     - Language: 15
-      Value: 
-    LastModified: 639184310197337619
+      Value: 42
+      AITranslated: 1
+    LastModified: 639185205686328822
     LastValidated: 0
     Status: 1
-  - Key: ee
+  - Key: life.question
     Translations:
     - Language: 11
-      Value: 
+      Value: 'According to the book and the movie H2G2, the ultimate answer to life
+        is:'
+      AITranslated: 0
     - Language: 15
-      Value: 
-    LastModified: 639184310213314413
+      Value: "Selon le livre et le film H2G2, la r\xE9ponse ultime \xE0 la vie est
+        :"
+      AITranslated: 1
+    LastModified: 639185194443140114
     LastValidated: 0
     Status: 1
-  - Key: ff
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310232077396
-    LastValidated: 0
-    Status: 1
-  - Key: gg
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310247099130
-    LastValidated: 0
-    Status: 1
-  - Key: hh
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310263581739
-    LastValidated: 0
-    Status: 1
-  - Key: ii
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310282332334
-    LastValidated: 0
-    Status: 1
-  - Key: jj
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310299915844
-    LastValidated: 0
-    Status: 1
-  - Key: kk
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310318900348
-    LastValidated: 0
-    Status: 1
-  - Key: ll
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310335973371
-    LastValidated: 0
-    Status: 1
-  - Key: mm
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310360772236
-    LastValidated: 0
-    Status: 1
-  - Key: nn
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310377952357
-    LastValidated: 0
-    Status: 1
-  - Key: oo
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310393884217
-    LastValidated: 0
-    Status: 1
-  - Key: pp
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310409224970
-    LastValidated: 0
-    Status: 1
-  - Key: qq
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310429408413
-    LastValidated: 0
-    Status: 1
-  - Key: rr
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310447146435
-    LastValidated: 0
-    Status: 1
-  - Key: ss
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310479481999
-    LastValidated: 0
-    Status: 1
-  - Key: tt
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310514160883
-    LastValidated: 0
-    Status: 1
-  - Key: uu
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310678609092
-    LastValidated: 0
-    Status: 1
-  - Key: vv
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184310708222491
-    LastValidated: 0
-    Status: 1
-  - Key: ww
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184311501624648
-    LastValidated: 0
-    Status: 1
-  - Key: xx
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184311527749108
-    LastValidated: 0
-    Status: 1
-  - Key: yy
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184311548762189
-    LastValidated: 0
-    Status: 1
-  - Key: zz
-    Translations:
-    - Language: 11
-      Value: 
-    - Language: 15
-      Value: 
-    LastModified: 639184336169976016
-    LastValidated: 0
-    Status: 1
-  - Key: foo
-    Translations:
-    - Language: 11
-      Value: bar
-    - Language: 15
-      Value: 
-    LastModified: 639184369773072900
-    LastValidated: 0
-    Status: 1
-  _lastModified: 639184381305847765
+  _lastModified: 639185205686328822

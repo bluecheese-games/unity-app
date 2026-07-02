@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -28,14 +29,18 @@ namespace BlueCheese.App.Editor
 			public readonly string ObjectPath;
 			public readonly string ComponentType;
 			public readonly bool IsPlural;
+			public readonly int MaxChars;         // estimated character budget from the UI (0 = unknown/unconstrained)
+			public readonly string[] SiblingTexts; // other texts found under the same parent object
 
-			public Reference(string assetPath, bool isScene, string objectPath, string componentType, bool isPlural)
+			public Reference(string assetPath, bool isScene, string objectPath, string componentType, bool isPlural, int maxChars, string[] siblingTexts)
 			{
 				AssetPath = assetPath;
 				IsScene = isScene;
 				ObjectPath = objectPath;
 				ComponentType = componentType;
 				IsPlural = isPlural;
+				MaxChars = maxChars;
+				SiblingTexts = siblingTexts;
 			}
 		}
 
@@ -106,13 +111,15 @@ namespace BlueCheese.App.Editor
 						enter = false;
 						var keyProp = iterator.FindPropertyRelative("_key");
 						var pluralProp = iterator.FindPropertyRelative("_pluralKey");
+						int maxChars = EstimateMaxChars(component);
+						var siblings = GatherSiblingTexts(component);
 						if (keyProp != null && keyProp.stringValue == key)
 						{
-							results.Add(new Reference(path, isScene, GetHierarchyPath(component.transform), component.GetType().Name, isPlural: false));
+							results.Add(new Reference(path, isScene, GetHierarchyPath(component.transform), component.GetType().Name, isPlural: false, maxChars, siblings));
 						}
 						if (pluralProp != null && pluralProp.stringValue == key)
 						{
-							results.Add(new Reference(path, isScene, GetHierarchyPath(component.transform), component.GetType().Name, isPlural: true));
+							results.Add(new Reference(path, isScene, GetHierarchyPath(component.transform), component.GetType().Name, isPlural: true, maxChars, siblings));
 						}
 					}
 				}
@@ -216,6 +223,58 @@ namespace BlueCheese.App.Editor
 		}
 
 		#endregion
+
+		// Rough UI character budget from the TMP field size and font size (0 = unknown/unconstrained).
+		private static int EstimateMaxChars(Component component)
+		{
+			var tmp = component.GetComponent<TMP_Text>();
+			if (tmp == null || tmp.enableAutoSizing)
+			{
+				return 0;
+			}
+			if (component.transform is not RectTransform rectTransform)
+			{
+				return 0;
+			}
+			var rect = rectTransform.rect;
+			float fontSize = tmp.fontSize;
+			if (rect.width <= 1f || fontSize <= 0f)
+			{
+				return 0;
+			}
+			int perLine = Mathf.Max(1, Mathf.FloorToInt(rect.width / (fontSize * 0.5f)));
+			int lines = Mathf.Max(1, Mathf.FloorToInt(rect.height / (fontSize * 1.2f)));
+			return perLine * lines;
+		}
+
+		// Collects the text values of other TMP_Text components under the same parent object,
+		// to give the AI nearby-UI context (e.g. neighbouring labels/buttons).
+		private static string[] GatherSiblingTexts(Component component)
+		{
+			var parent = component.transform.parent;
+			if (parent == null)
+			{
+				return System.Array.Empty<string>();
+			}
+			var texts = new List<string>();
+			foreach (var tmp in parent.GetComponentsInChildren<TMP_Text>(true))
+			{
+				if (tmp.gameObject == component.gameObject)
+				{
+					continue; // skip the text on the key's own object
+				}
+				var value = tmp.text;
+				if (!string.IsNullOrWhiteSpace(value) && !texts.Contains(value))
+				{
+					texts.Add(value);
+					if (texts.Count >= 10)
+					{
+						break;
+					}
+				}
+			}
+			return texts.ToArray();
+		}
 
 		private static string GetHierarchyPath(Transform transform)
 		{

@@ -39,12 +39,12 @@ namespace BlueCheese.App.Editor
 			window.Show();
 		}
 
-		public static void Open(TranslationTableAsset asset)
+		public static void Open(TranslationTableAsset asset, string selectKey = null)
 		{
 			var window = GetWindow<TranslationTableWindow>();
 			window.titleContent = new GUIContent(WindowTitle);
 			window.minSize = new Vector2(980, 520);
-			window.OpenTable(asset);
+			window.OpenTable(asset, selectKey);
 			window.Show();
 		}
 
@@ -88,6 +88,10 @@ namespace BlueCheese.App.Editor
 		private bool _scanning;
 		private EditorApplication.CallbackFunction _scanStep;
 
+		// Transient AI alternatives for the item currently shown in the detail panel.
+		private TItem _alternativesItem;
+		private readonly Dictionary<Language, List<string>> _alternatives = new();
+
 		private TranslationTableAsset Asset => _active.Asset;
 
 		#region Lifecycle
@@ -118,11 +122,18 @@ namespace BlueCheese.App.Editor
 		{
 			Undo.undoRedoPerformed -= OnUndoRedo;
 			StopScan();
+			ClearAlternatives();
+		}
+
+		private void ClearAlternatives()
+		{
+			_alternativesItem = null;
+			_alternatives.Clear();
 		}
 
 		private void CreateGUI() => RebuildUI();
 
-		public void OpenTable(TranslationTableAsset asset)
+		public void OpenTable(TranslationTableAsset asset, string selectKey = null)
 		{
 			if (asset == null)
 			{
@@ -135,7 +146,30 @@ namespace BlueCheese.App.Editor
 				_tabs.Add(tab);
 			}
 			_active = tab;
+
+			// Optionally select a specific key: clear filters so its row is visible, then edit it.
+			if (!string.IsNullOrEmpty(selectKey))
+			{
+				asset.Validate();
+				var item = asset.Items.FirstOrDefault(i => i.Key == selectKey);
+				if (item != null)
+				{
+					tab.SearchText = string.Empty;
+					tab.StatusFilter = AllStatuses;
+					tab.EditingItem = item;
+				}
+			}
+
 			RebuildUI();
+
+			if (!string.IsNullOrEmpty(selectKey) && _active.EditingItem != null && _listView != null)
+			{
+				int index = _filtered.IndexOf(_active.EditingItem);
+				if (index >= 0)
+				{
+					_listView.ScrollToItem(index);
+				}
+			}
 		}
 
 		private void OnUndoRedo()
@@ -162,6 +196,7 @@ namespace BlueCheese.App.Editor
 		private void RebuildUI()
 		{
 			StopScan();
+			ClearAlternatives();
 
 			var root = rootVisualElement;
 			root.Clear();
@@ -213,15 +248,15 @@ namespace BlueCheese.App.Editor
 			left.Add(_listView);
 			main.Add(left);
 
-			_detailPanel = new ScrollView
+			_detailPanel = new VisualElement
 			{
 				style =
 				{
 					flexShrink = 0,
 					width = 420,
+					flexDirection = FlexDirection.Column,
 					borderLeftWidth = 1,
 					borderLeftColor = new Color(0, 0, 0, 0.3f),
-					paddingLeft = 8, paddingRight = 8, paddingTop = 6, paddingBottom = 6,
 				},
 			};
 			main.Add(_detailPanel);
@@ -427,6 +462,7 @@ namespace BlueCheese.App.Editor
 			header.Add(new Label { style = { width = 20 } }); // status icon column
 			header.Add(new Label("Key") { style = { flexGrow = 1, flexBasis = 0, unityFontStyleAndWeight = FontStyle.Bold } });
 			header.Add(new Label($"Default ({LangUtilities.GetLanguageCode(_defaultLanguage)})") { style = { flexGrow = 1, flexBasis = 0, unityFontStyleAndWeight = FontStyle.Bold } });
+			header.Add(new Label { style = { width = 16, flexShrink = 0 } }); // AI marker column
 
 			return header;
 		}
@@ -522,6 +558,7 @@ namespace BlueCheese.App.Editor
 			row.Add(new Image { name = "status", style = { width = 16, height = 16, marginLeft = 2, marginRight = 2, flexShrink = 0 } });
 			row.Add(new Label { name = "key", style = { flexGrow = 1, flexBasis = 0, overflow = Overflow.Hidden, textOverflow = TextOverflow.Ellipsis, unityTextOverflowPosition = TextOverflowPosition.End } });
 			row.Add(new Label { name = "def", style = { flexGrow = 1, flexBasis = 0, opacity = 0.7f, overflow = Overflow.Hidden, textOverflow = TextOverflow.Ellipsis } });
+			row.Add(new Label { name = "ai", style = { width = 16, flexShrink = 0, unityTextAlign = TextAnchor.MiddleCenter } });
 
 			return row;
 		}
@@ -539,11 +576,17 @@ namespace BlueCheese.App.Editor
 
 			element.Q<Label>("key").text = item.Key;
 			element.Q<Label>("def").text = Asset.GetTranslation(item.Key, _defaultLanguage);
+
+			var aiLabel = element.Q<Label>("ai");
+			bool anyAI = item.Translations.Any(t => t.AITranslated);
+			aiLabel.text = anyAI ? "✨" : string.Empty;
+			aiLabel.tooltip = anyAI ? "Contains AI-translated text" : null;
 		}
 
 		private void OnRowSelectionChanged(IEnumerable<object> selection)
 		{
 			StopScan();
+			ClearAlternatives();
 			_active.EditingItem = selection.FirstOrDefault() as TItem;
 			ShowDetail();
 		}
@@ -703,7 +746,10 @@ namespace BlueCheese.App.Editor
 
 			var item = _active.EditingItem;
 
-			_detailPanel.Add(new Label("Edit Key") { style = { unityFontStyleAndWeight = FontStyle.Bold, fontSize = 14, marginBottom = 6 } });
+			// Scrollable area: key + translations (can grow tall without hiding the docked details).
+			var scroll = new ScrollView { style = { flexGrow = 1, paddingLeft = 8, paddingRight = 8, paddingTop = 6 } };
+
+			scroll.Add(new Label("Edit Key") { style = { unityFontStyleAndWeight = FontStyle.Bold, fontSize = 14, marginBottom = 6 } });
 
 			// Key (rename on focus out) with an inline scan loader to its right.
 			var keyRow = new VisualElement { style = { flexDirection = FlexDirection.Row, alignItems = Align.Center } };
@@ -712,26 +758,68 @@ namespace BlueCheese.App.Editor
 			keyRow.Add(_keyField);
 			_keyLoader = new Label { tooltip = "Searching references…", style = { marginLeft = 6, minWidth = 64, unityTextAlign = TextAnchor.MiddleLeft, display = _scanning ? DisplayStyle.Flex : DisplayStyle.None } };
 			keyRow.Add(_keyLoader);
-			_detailPanel.Add(keyRow);
+			scroll.Add(keyRow);
 
-			_detailPanel.Add(new Label("Translations") { style = { unityFontStyleAndWeight = FontStyle.Bold, marginTop = 8, marginBottom = 2 } });
+			scroll.Add(new Label("Translations") { style = { unityFontStyleAndWeight = FontStyle.Bold, marginTop = 8, marginBottom = 2 } });
 
 			foreach (var language in Asset.Languages)
 			{
 				var captured = language;
-				var field = new TextField(language.ToString()) { multiline = true, value = Asset.GetTranslation(item.Key, language) };
+
+				// AI-translated: show a selector (in place of the field) with a reset button.
+				if (_alternativesItem == item && _alternatives.TryGetValue(language, out var options))
+				{
+					var row = new VisualElement { style = { flexDirection = FlexDirection.Row, alignItems = Align.Center, marginBottom = 2 } };
+
+					var picker = new DropdownField(language.ToString()) { choices = options, style = { flexGrow = 1, flexBasis = 0, minWidth = 0 } };
+					int current = options.IndexOf(Asset.GetTranslation(item.Key, language));
+					picker.index = current >= 0 ? current : 0;
+					picker.RegisterValueChangedCallback(evt =>
+					{
+						Undo.RecordObject(Asset, "Choose AI Alternative");
+						Asset.SetTranslation(captured, item.Key, evt.newValue, aiTranslated: true);
+						AfterMutation();
+						RefreshList();
+					});
+					row.Add(picker);
+
+					var reset = new Button(() => ResetTranslation(item, captured))
+					{
+						text = "×",
+						tooltip = "Reset: clear the translation and discard alternatives",
+						style = { width = 20, marginLeft = 4 },
+					};
+					row.Add(reset);
+
+					scroll.Add(row);
+					continue;
+				}
+
+				// Regular editable field.
+				var fieldRow = new VisualElement { style = { flexDirection = FlexDirection.Row, alignItems = Align.FlexStart } };
+				var field = new TextField(language.ToString()) { multiline = true, value = Asset.GetTranslation(item.Key, language), style = { flexGrow = 1, flexBasis = 0, minWidth = 0 } };
 				field.style.whiteSpace = WhiteSpace.Normal;
 				field.RegisterCallback<FocusOutEvent>(_ => CommitTranslation(item, captured, field));
-				_detailPanel.Add(field);
+				fieldRow.Add(field);
+				if (item.TryGetTranslation(language, out var translation) && translation.AITranslated)
+				{
+					fieldRow.Add(new Label("✨") { tooltip = "AI-translated (edit to clear)", style = { marginLeft = 4, marginTop = 2 } });
+				}
+				scroll.Add(fieldRow);
 			}
 
-			_detailPanel.Add(BuildDetailInfo(item));
-			_detailPanel.Add(BuildDetailActions(item));
+			_detailPanel.Add(scroll);
+
+			// Docked bottom: status/dates and actions stay visible regardless of translation length.
+			var footer = new VisualElement { style = { flexShrink = 0, paddingLeft = 8, paddingRight = 8, paddingTop = 4, paddingBottom = 6, borderTopWidth = 1, borderTopColor = new Color(0, 0, 0, 0.3f) } };
+			footer.Add(BuildDetailInfo(item));
+			footer.Add(BuildDetailActions(item));
+			_detailPanel.Add(footer);
 		}
 
 		private VisualElement BuildDetailInfo(TItem item)
 		{
-			var box = new VisualElement { style = { marginTop = 10, paddingTop = 6, borderTopWidth = 1, borderTopColor = new Color(0, 0, 0, 0.3f) } };
+			var box = new VisualElement();
 
 			var statusRow = new VisualElement { style = { flexDirection = FlexDirection.Row, alignItems = Align.Center, marginBottom = 2 } };
 			statusRow.Add(new Label("Status:") { style = { width = 70, opacity = 0.7f } });
@@ -741,6 +829,15 @@ namespace BlueCheese.App.Editor
 
 			box.Add(InfoLine("Modified:", TimeAgoOrDash(item.LastModified)));
 			box.Add(InfoLine("Validated:", TimeAgoOrDash(item.LastValidated)));
+
+			var aiLanguages = item.Translations
+				.Where(t => t.AITranslated && t.IsValid)
+				.Select(t => t.Language.ToString())
+				.ToList();
+			if (aiLanguages.Count > 0)
+			{
+				box.Add(InfoLine("AI:", string.Join(", ", aiLanguages)));
+			}
 			return box;
 		}
 
@@ -755,6 +852,10 @@ namespace BlueCheese.App.Editor
 		private VisualElement BuildDetailActions(TItem item)
 		{
 			var container = new VisualElement { style = { marginTop = 10 } };
+
+			var translate = new Button(() => TranslateWithAI(item)) { text = "✨ Translate with AI" };
+			translate.style.marginBottom = 4;
+			container.Add(translate);
 
 			var references = IconButton("Find References", EditorIcon.Link, () => ScanAndListReferences(item.Key));
 			references.style.marginBottom = 4;
@@ -1136,6 +1237,133 @@ namespace BlueCheese.App.Editor
 				AssetDatabase.SaveAssets();
 				AfterMutation();
 			}, autoClose: false, autoStart: true);
+		}
+
+		#endregion
+
+		#region AI translation
+
+		private void TranslateWithAI(TItem item)
+		{
+			if (_scanning)
+			{
+				return;
+			}
+
+			var settings = AITranslationSettings.GetOrNull();
+			if (settings == null)
+			{
+				if (EditorUtility.DisplayDialog("AI Translation", "No AI Translation Settings found. Create one now?", "Create", "Cancel"))
+				{
+					AITranslationSettings.Open();
+				}
+				return;
+			}
+			if (settings.Provider == AITranslationProviderKind.None)
+			{
+				EditorUtility.DisplayDialog("AI Translation", "No AI provider selected. Choose one in the AI Translation Settings.", "Ok");
+				AITranslationSettings.Open();
+				return;
+			}
+			if (string.IsNullOrEmpty(AITranslationSettings.GetApiKey(settings.Provider)))
+			{
+				EditorUtility.DisplayDialog("AI Translation", $"Set your {settings.Provider} API key in the AI Translation Settings first.", "Ok");
+				AITranslationSettings.Open();
+				return;
+			}
+
+			var allTargets = Asset.Languages.Where(l => l != _defaultLanguage).ToList();
+			if (allTargets.Count == 0)
+			{
+				EditorUtility.DisplayDialog("AI Translation", "No target languages to translate into (only the default language exists).", "Ok");
+				return;
+			}
+
+			// Default to filling only the empty languages; offer to re-translate everything otherwise.
+			var targets = allTargets.Where(l => string.IsNullOrEmpty(Asset.GetTranslation(item.Key, l))).ToList();
+			if (targets.Count == 0)
+			{
+				if (!EditorUtility.DisplayDialog("AI Translation", "All target languages already have a translation.\nRe-translate all of them?", "Re-translate", "Cancel"))
+				{
+					return;
+				}
+				targets = allTargets;
+			}
+
+			void Proceed(List<TranslationKeyReferenceFinder.Reference> references)
+			{
+				var request = AITranslationContextBuilder.Build(Asset, item, _defaultLanguage, targets, references, settings);
+				SetScanning(true);
+				if (_keyLoader != null)
+				{
+					_keyLoader.text = "✨ Translating…";
+				}
+				AIProviders.Create(settings).Translate(request, result =>
+				{
+					SetScanning(false);
+					if (!result.Success)
+					{
+						EditorUtility.DisplayDialog("AI Translation", "Failed:\n" + result.Error, "Ok");
+						return;
+					}
+					ApplyAIResult(item, result);
+				});
+			}
+
+			if (settings.IncludeUsageContext)
+			{
+				ScanReferencesInline(item.Key, Proceed);
+			}
+			else
+			{
+				Proceed(new List<TranslationKeyReferenceFinder.Reference>());
+			}
+		}
+
+		private void ApplyAIResult(TItem item, AITranslationResult result)
+		{
+			Undo.RecordObject(Asset, "AI Translate");
+
+			// Fill the default language too when it was empty and the AI proposed a source.
+			if (Asset.IsLanguageSupported(_defaultLanguage)
+				&& string.IsNullOrEmpty(Asset.GetTranslation(item.Key, _defaultLanguage))
+				&& !string.IsNullOrEmpty(result.GeneratedSource))
+			{
+				Asset.SetTranslation(_defaultLanguage, item.Key, result.GeneratedSource, aiTranslated: true);
+			}
+
+			// Apply the most probable option now; keep the extra options as transient alternatives to pick from.
+			_alternatives.Clear();
+			_alternativesItem = item;
+			foreach (var entry in result.Entries)
+			{
+				// The default language is the source, never a target: ignore it even if the model echoes it,
+				// so we don't overwrite the authored source or show alternatives for it.
+				if (entry.Language == _defaultLanguage || !Asset.IsLanguageSupported(entry.Language) || entry.Options.Count == 0)
+				{
+					continue;
+				}
+				Asset.SetTranslation(entry.Language, item.Key, entry.Options[0], aiTranslated: true);
+				_alternatives[entry.Language] = entry.Options;
+			}
+
+			AfterMutation();
+			RefreshList();
+			ShowDetail();
+		}
+
+		// Clears a translation and discards its AI alternatives (no validation), then shows an empty editable field.
+		private void ResetTranslation(TItem item, Language language)
+		{
+			Undo.RecordObject(Asset, "Reset Translation");
+			if (Asset.IsLanguageSupported(language))
+			{
+				Asset.SetTranslation(language, item.Key, string.Empty, aiTranslated: false);
+			}
+			_alternatives.Remove(language);
+			AfterMutation();
+			RefreshList();
+			ShowDetail();
 		}
 
 		#endregion

@@ -23,6 +23,7 @@ namespace BlueCheese.App.Sample
 		[SerializeField] private LocalizedText _counterText;
 		[SerializeField] private AssetRef<PrefabCollection> _spawnedPrefabs;
 		[SerializeField] private AssetRef<ConfigAsset> _config;
+		[SerializeField] private TranslationKey _plopKey;
 		[SerializeField] private float _spawnInterval = 1f;
 		[SerializeField] private float _spawnForce = 3f;
 		[SerializeField] private float _spawnLifetime = 5f;

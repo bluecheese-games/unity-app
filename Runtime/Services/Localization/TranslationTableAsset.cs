@@ -114,7 +114,7 @@ namespace BlueCheese.App
 
 		public bool IsLanguageSupported(Language language) => Languages.Contains(language);
 
-		public void SetTranslation(Language language, string key, string value)
+		public void SetTranslation(Language language, string key, string value, bool aiTranslated = false)
 		{
 			if (!IsLanguageSupported(language))
 			{
@@ -123,7 +123,7 @@ namespace BlueCheese.App
 
 			var item = GetItem(key);
 			item ??= AddItem(key);
-			item.SetTranslation(language, value);
+			item.SetTranslation(language, value, aiTranslated);
 			LastModified = DateTime.UtcNow;
 		}
 
@@ -278,16 +278,19 @@ namespace BlueCheese.App
 				}
 			}
 
-			public void SetTranslation(Language language, string value)
+			public void SetTranslation(Language language, string value, bool aiTranslated = false)
 			{
 				if (TryGetTranslation(language, out var translation))
 				{
-					if (translation.Value == value) return; // No change
+					if (translation.Value == value && translation.AITranslated == aiTranslated) return; // No change
 					translation.Value = value;
+					translation.AITranslated = aiTranslated;
 				}
 				else
 				{
-					Translations.Add(Translation.Create(language, value));
+					var created = Translation.Create(language, value);
+					created.AITranslated = aiTranslated;
+					Translations.Add(created);
 				}
 				SetModified();
 			}
@@ -315,7 +318,12 @@ namespace BlueCheese.App
 				LastModified = LastModified,
 				LastValidated = LastValidated,
 				Status = Status,
-				Translations = Translations.Select(t => Translation.Create(t.Language, t.Value)).ToList()
+				Translations = Translations.Select(t =>
+				{
+					var clone = Translation.Create(t.Language, t.Value);
+					clone.AITranslated = t.AITranslated;
+					return clone;
+				}).ToList()
 			};
 
 			[Serializable]
@@ -323,6 +331,7 @@ namespace BlueCheese.App
 			{
 				public Language Language;
 				public string Value;
+				public bool AITranslated; // true when produced by AI and not since edited by a human
 
 				public bool IsValid => Language != Language.Unknown && Value is not null;
 
