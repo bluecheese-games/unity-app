@@ -98,6 +98,7 @@ namespace BlueCheese.App
 			"fo" => Language.Faroese,
 			"is" => Language.Icelandic,
 			"hr" => Language.SerboCroatian,
+			"ms" => Language.Malay,
 			_ => Language.Unknown,
 		};
 
@@ -146,6 +147,7 @@ namespace BlueCheese.App
 			Language.Icelandic => "is",
 			Language.SerboCroatian => "hr",
 			Language.Hindi => "hi",
+			Language.Malay => "ms",
 			Language.Unknown => "xx",
 			_ => "xx",
 		};
@@ -195,6 +197,7 @@ namespace BlueCheese.App
 			Language.Icelandic => "IS",
 			Language.SerboCroatian => "HR",
 			Language.Hindi => "IN",
+			Language.Malay => "MY",
 			_ => "XX",
 		};
 	}

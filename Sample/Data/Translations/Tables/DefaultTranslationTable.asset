@@ -19,9 +19,11 @@ MonoBehaviour:
     - Language: 11
       Value: 'Spheres: {0}'
       AITranslated: 1
+      LastModified: 0
     - Language: 15
       Value: "Sph\xE8res : {0}"
       AITranslated: 1
+      LastModified: 0
     LastModified: 639185121741220340
     LastValidated: 639185121779138189
     Status: 0
@@ -30,9 +32,11 @@ MonoBehaviour:
     - Language: 11
       Value: 'Spheres: {0}'
       AITranslated: 1
+      LastModified: 0
     - Language: 15
       Value: "Sph\xE8res : {0}"
       AITranslated: 1
+      LastModified: 0
     LastModified: 639185069702273139
     LastValidated: 639185070139151132
     Status: 0
@@ -41,9 +45,11 @@ MonoBehaviour:
     - Language: 11
       Value: New Text
       AITranslated: 0
+      LastModified: 0
     - Language: 15
       Value: Nouveau
       AITranslated: 1
+      LastModified: 0
     LastModified: 639185061464498259
     LastValidated: 0
     Status: 1
@@ -52,43 +58,51 @@ MonoBehaviour:
     - Language: 11
       Value: Bluecheese Sample Project
       AITranslated: 1
+      LastModified: 0
     - Language: 15
       Value: "Projet D\xE9mo Bluecheese"
       AITranslated: 1
+      LastModified: 0
     LastModified: 639185078350588739
     LastValidated: 639185078443782348
     Status: 0
   - Key: ui.stat01
     Translations:
     - Language: 11
-      Value: Strength
-      AITranslated: 1
+      Value: 
+      AITranslated: 0
+      LastModified: 639185978207286315
     - Language: 15
-      Value: Force
-      AITranslated: 1
-    LastModified: 639185068128008017
+      Value: 
+      AITranslated: 0
+      LastModified: 639185978196091063
+    LastModified: 639185978207286315
     LastValidated: 0
     Status: 1
   - Key: ui.stat02
     Translations:
     - Language: 11
-      Value: Health
-      AITranslated: 1
+      Value: 
+      AITranslated: 0
+      LastModified: 639185976833317874
     - Language: 15
-      Value: PV
-      AITranslated: 1
-    LastModified: 639185068277086382
+      Value: 
+      AITranslated: 0
+      LastModified: 639185976760498210
+    LastModified: 639185976833317874
     LastValidated: 0
     Status: 1
   - Key: life.answer
     Translations:
     - Language: 11
-      Value: 42
-      AITranslated: 1
+      Value: 
+      AITranslated: 0
+      LastModified: 639185978239367035
     - Language: 15
-      Value: 42
-      AITranslated: 1
-    LastModified: 639185205686328822
+      Value: 
+      AITranslated: 0
+      LastModified: 639185978229561939
+    LastModified: 639185978239367035
     LastValidated: 0
     Status: 1
   - Key: life.question
@@ -97,11 +111,15 @@ MonoBehaviour:
       Value: 'According to the book and the movie H2G2, the ultimate answer to life
         is:'
       AITranslated: 0
+      LastModified: 0
     - Language: 15
       Value: "Selon le livre et le film H2G2, la r\xE9ponse ultime \xE0 la vie est
         :"
       AITranslated: 1
+      LastModified: 0
     LastModified: 639185194443140114
     LastValidated: 0
     Status: 1
-  _lastModified: 639185205686328822
+  _lastModified: 639185978239367035
+  _sourceType: 
+  _sourcePath: 

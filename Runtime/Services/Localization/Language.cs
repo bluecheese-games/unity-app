@@ -50,6 +50,7 @@ namespace BlueCheese.App
 		ChineseSimplified = 41,
 		ChineseTraditional = 42,
 		Hindi = 43,
+		Malay = 44,
 	}
 
 }

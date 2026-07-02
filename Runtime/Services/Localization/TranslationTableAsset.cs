@@ -17,6 +17,20 @@ namespace BlueCheese.App
 		[SerializeField] private List<TranslationItem> _items;
 		[SerializeField] private long _lastModified;
 
+		// Link to an external translation source (e.g. an .obd file) this table syncs with.
+		[SerializeField] private string _sourceType;   // "" = none, "obd" = local .obd file
+		[SerializeField] private string _sourcePath;   // asset path (or URL for future cloud sources)
+
+		public string SourceType => _sourceType;
+		public string SourcePath => _sourcePath;
+		public bool HasSource => !string.IsNullOrEmpty(_sourceType) && !string.IsNullOrEmpty(_sourcePath);
+
+		public void SetSource(string sourceType, string sourcePath)
+		{
+			_sourceType = sourceType;
+			_sourcePath = sourcePath;
+		}
+
 		// Runtime lookup index (key -> item) kept in sync with _items for O(1) access.
 		// Not serialized; rebuilt lazily and invalidated whenever Unity reloads the
 		// serialized data (load, reimport, undo/redo) via ISerializationCallbackReceiver.
@@ -125,6 +139,58 @@ namespace BlueCheese.App
 			item ??= AddItem(key);
 			item.SetTranslation(language, value, aiTranslated);
 			LastModified = DateTime.UtcNow;
+		}
+
+		// Sync-oriented setter: assigns a value with an explicit per-cell timestamp (used by importers).
+		// Uses light-weight language/item creation to avoid seeding phantom empty cells (which would
+		// otherwise leak back to the external source on the next sync). Returns true if the cell changed.
+		public bool ImportCell(Language language, string key, string value, long ticks)
+		{
+			EnsureLanguage(language);
+			var item = GetItem(key) ?? AddBareItem(key);
+			bool changed = item.ImportCell(language, value, ticks);
+			if (changed)
+			{
+				LastModified = DateTime.UtcNow;
+			}
+			return changed;
+		}
+
+		private void EnsureLanguage(Language language)
+		{
+			_languages ??= new List<Language>();
+			if (!_languages.Contains(language))
+			{
+				_languages.Add(language);
+				LastModified = DateTime.UtcNow;
+			}
+		}
+
+		// Adds a key with no pre-filled translations (unlike AddItem which seeds empty cells per language).
+		private TranslationItem AddBareItem(string key)
+		{
+			key = NormalizeKey(key);
+			var existing = GetItem(key);
+			if (existing != null)
+			{
+				return existing;
+			}
+			_items ??= new List<TranslationItem>();
+			var item = TranslationItem.Create(key);
+			_items.Add(item);
+			ItemsByKey[key] = item;
+			LastModified = DateTime.UtcNow;
+			return item;
+		}
+
+		public long GetCellTimestamp(string key, Language language)
+		{
+			var item = GetItem(key);
+			if (item != null && item.TryGetTranslation(language, out var translation))
+			{
+				return translation.LastModified;
+			}
+			return 0;
 		}
 
 		public void EditKey(string existingKey, string newKey)
@@ -285,14 +351,41 @@ namespace BlueCheese.App
 					if (translation.Value == value && translation.AITranslated == aiTranslated) return; // No change
 					translation.Value = value;
 					translation.AITranslated = aiTranslated;
+					translation.LastModified = DateTime.UtcNow.Ticks;
 				}
 				else
 				{
 					var created = Translation.Create(language, value);
 					created.AITranslated = aiTranslated;
+					created.LastModified = DateTime.UtcNow.Ticks;
 					Translations.Add(created);
 				}
 				SetModified();
+			}
+
+			// Sets a translation with an explicit per-cell timestamp (for external-source imports).
+			// Returns true if the value or timestamp changed.
+			public bool ImportCell(Language language, string value, long ticks)
+			{
+				var translation = Translations.FirstOrDefault(t => t.Language == language);
+				bool changed;
+				if (translation == null)
+				{
+					translation = Translation.Create(language, value);
+					Translations.Add(translation);
+					changed = true;
+				}
+				else
+				{
+					changed = translation.Value != value || translation.LastModified != ticks;
+					translation.Value = value;
+				}
+				translation.LastModified = ticks;
+				if (changed)
+				{
+					Status = TranslationStatus.Modified;
+				}
+				return changed;
 			}
 
 			public bool TryGetTranslation(Language language, out Translation translation)
@@ -322,6 +415,7 @@ namespace BlueCheese.App
 				{
 					var clone = Translation.Create(t.Language, t.Value);
 					clone.AITranslated = t.AITranslated;
+					clone.LastModified = t.LastModified;
 					return clone;
 				}).ToList()
 			};
@@ -332,6 +426,7 @@ namespace BlueCheese.App
 				public Language Language;
 				public string Value;
 				public bool AITranslated; // true when produced by AI and not since edited by a human
+				public long LastModified; // per-cell UTC ticks; drives external-source (obd/cloud) sync
 
 				public bool IsValid => Language != Language.Unknown && Value is not null;
 

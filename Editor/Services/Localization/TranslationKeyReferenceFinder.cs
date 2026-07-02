@@ -126,6 +126,88 @@ namespace BlueCheese.App.Editor
 			}
 		}
 
+		// Scans the whole project ONCE for references to any of the given keys (efficient for batches).
+		public static Dictionary<string, List<Reference>> FindReferences(IEnumerable<string> keys, System.Action<float, string> onProgress = null)
+		{
+			var keySet = new HashSet<string>(keys);
+			var results = new Dictionary<string, List<Reference>>();
+			foreach (var key in keySet)
+			{
+				results[key] = new List<Reference>();
+			}
+			if (keySet.Count == 0)
+			{
+				return results;
+			}
+
+			var prefabPaths = FindPrefabPaths();
+			var scenePaths = FindScenePaths();
+			int total = prefabPaths.Count + scenePaths.Count;
+			int done = 0;
+
+			foreach (var path in prefabPaths)
+			{
+				onProgress?.Invoke(total == 0 ? 1f : (float)done / total, path);
+				var root = PrefabUtility.LoadPrefabContents(path);
+				try { ScanRootsForKeys(new[] { root }, path, isScene: false, keySet, results); }
+				finally { PrefabUtility.UnloadPrefabContents(root); }
+				done++;
+			}
+			foreach (var path in scenePaths)
+			{
+				onProgress?.Invoke(total == 0 ? 1f : (float)done / total, path);
+				var scene = SceneManager.GetSceneByPath(path);
+				bool wasOpen = scene.IsValid() && scene.isLoaded;
+				if (!wasOpen)
+				{
+					scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+				}
+				try { ScanRootsForKeys(scene.GetRootGameObjects(), path, isScene: true, keySet, results); }
+				finally { if (!wasOpen) EditorSceneManager.CloseScene(scene, removeScene: true); }
+				done++;
+			}
+			return results;
+		}
+
+		private static void ScanRootsForKeys(IEnumerable<GameObject> roots, string path, bool isScene, HashSet<string> keys, Dictionary<string, List<Reference>> results)
+		{
+			foreach (var root in roots)
+			{
+				foreach (var component in root.GetComponentsInChildren<MonoBehaviour>(true))
+				{
+					if (component == null)
+					{
+						continue;
+					}
+					var so = new SerializedObject(component);
+					var iterator = so.GetIterator();
+					bool enter = true;
+					while (iterator.Next(enter))
+					{
+						enter = true;
+						if (iterator.propertyType != SerializedPropertyType.Generic || iterator.type != TranslationKeyType)
+						{
+							continue;
+						}
+
+						enter = false;
+						var keyProp = iterator.FindPropertyRelative("_key");
+						var pluralProp = iterator.FindPropertyRelative("_pluralKey");
+						int maxChars = EstimateMaxChars(component);
+						var siblings = GatherSiblingTexts(component);
+						if (keyProp != null && keys.Contains(keyProp.stringValue))
+						{
+							results[keyProp.stringValue].Add(new Reference(path, isScene, GetHierarchyPath(component.transform), component.GetType().Name, isPlural: false, maxChars, siblings));
+						}
+						if (pluralProp != null && keys.Contains(pluralProp.stringValue))
+						{
+							results[pluralProp.stringValue].Add(new Reference(path, isScene, GetHierarchyPath(component.transform), component.GetType().Name, isPlural: true, maxChars, siblings));
+						}
+					}
+				}
+			}
+		}
+
 		#endregion
 
 		#region Rename

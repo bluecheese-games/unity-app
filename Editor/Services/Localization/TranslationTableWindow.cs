@@ -34,7 +34,7 @@ namespace BlueCheese.App.Editor
 		{
 			var window = GetWindow<TranslationTableWindow>();
 			window.titleContent = new GUIContent(WindowTitle);
-			window.minSize = new Vector2(980, 520);
+			window.minSize = new Vector2(1200, 640);
 			window.RebuildUI();
 			window.Show();
 		}
@@ -43,7 +43,7 @@ namespace BlueCheese.App.Editor
 		{
 			var window = GetWindow<TranslationTableWindow>();
 			window.titleContent = new GUIContent(WindowTitle);
-			window.minSize = new Vector2(980, 520);
+			window.minSize = new Vector2(1200, 640);
 			window.OpenTable(asset, selectKey);
 			window.Show();
 		}
@@ -81,8 +81,14 @@ namespace BlueCheese.App.Editor
 		private ListView _listView;
 		private Toggle _selectAllToggle;
 		private Label _countLabel;
+		private Label _keyHeaderLabel;
 		private TextField _keyField;
 		private Label _keyLoader;
+
+		// Resizable "Key" column width, persisted per user.
+		private const string KeyColumnWidthPref = "BlueCheese.TranslationEditor.KeyColumnWidth";
+		private const float MinColumnWidth = 80f;
+		private float _keyColumnWidth = 240f;
 
 		// Inline reference-scan state.
 		private bool _scanning;
@@ -92,6 +98,14 @@ namespace BlueCheese.App.Editor
 		private TItem _alternativesItem;
 		private readonly Dictionary<Language, List<string>> _alternatives = new();
 
+		// Bulk "Translate selected with AI" progress state.
+		private bool _bulkTranslating;
+		private int _bulkTotal;
+		private int _bulkDone;
+		private string _bulkCurrentKey;                       // key currently being translated (row spinner)
+		private int _bulkSpinnerFrame;
+		private EditorApplication.CallbackFunction _bulkSpinnerTick;
+
 		private TranslationTableAsset Asset => _active.Asset;
 
 		#region Lifecycle
@@ -100,6 +114,7 @@ namespace BlueCheese.App.Editor
 		{
 			titleContent = new GUIContent(WindowTitle);
 			Undo.undoRedoPerformed += OnUndoRedo;
+			_keyColumnWidth = Mathf.Max(MinColumnWidth, EditorPrefs.GetFloat(KeyColumnWidthPref, 240f));
 
 			// Restore tabs after a domain reload.
 			if (_tabs.Count == 0 && _persistedAssets != null)
@@ -122,6 +137,7 @@ namespace BlueCheese.App.Editor
 		{
 			Undo.undoRedoPerformed -= OnUndoRedo;
 			StopScan();
+			StopBulkSpinner();
 			ClearAlternatives();
 		}
 
@@ -253,7 +269,7 @@ namespace BlueCheese.App.Editor
 				style =
 				{
 					flexShrink = 0,
-					width = 420,
+					width = 520,
 					flexDirection = FlexDirection.Column,
 					borderLeftWidth = 1,
 					borderLeftColor = new Color(0, 0, 0, 0.3f),
@@ -460,11 +476,67 @@ namespace BlueCheese.App.Editor
 			header.Add(_selectAllToggle);
 
 			header.Add(new Label { style = { width = 20 } }); // status icon column
-			header.Add(new Label("Key") { style = { flexGrow = 1, flexBasis = 0, unityFontStyleAndWeight = FontStyle.Bold } });
+			_keyHeaderLabel = new Label("Key") { style = { width = _keyColumnWidth, flexShrink = 0, unityFontStyleAndWeight = FontStyle.Bold } };
+			header.Add(_keyHeaderLabel);
+			header.Add(BuildColumnResizer());
 			header.Add(new Label($"Default ({LangUtilities.GetLanguageCode(_defaultLanguage)})") { style = { flexGrow = 1, flexBasis = 0, unityFontStyleAndWeight = FontStyle.Bold } });
 			header.Add(new Label { style = { width = 16, flexShrink = 0 } }); // AI marker column
 
 			return header;
+		}
+
+		// Draggable handle between the "Key" and "Default" columns; persists the chosen width.
+		private VisualElement BuildColumnResizer()
+		{
+			var resizer = new VisualElement
+			{
+				// alignSelf=Stretch is essential: in a Center-aligned row an empty element would
+				// otherwise have 0 height and be impossible to grab.
+				style =
+				{
+					width = 6, flexShrink = 0, marginLeft = 1, marginRight = 1,
+					alignSelf = Align.Stretch, minHeight = 16,
+					backgroundColor = new Color(1f, 1f, 1f, 0.15f),
+				},
+			};
+			resizer.tooltip = "Drag to resize the Key column";
+
+			bool dragging = false;
+			resizer.RegisterCallback<PointerDownEvent>(evt =>
+			{
+				dragging = true;
+				resizer.CapturePointer(evt.pointerId);
+				evt.StopPropagation();
+			});
+			resizer.RegisterCallback<PointerMoveEvent>(evt =>
+			{
+				if (!dragging)
+				{
+					return;
+				}
+				_keyColumnWidth = Mathf.Max(MinColumnWidth, _keyColumnWidth + evt.deltaPosition.x);
+				ApplyKeyColumnWidth();
+			});
+			resizer.RegisterCallback<PointerUpEvent>(evt =>
+			{
+				if (!dragging)
+				{
+					return;
+				}
+				dragging = false;
+				resizer.ReleasePointer(evt.pointerId);
+				EditorPrefs.SetFloat(KeyColumnWidthPref, _keyColumnWidth);
+			});
+			return resizer;
+		}
+
+		private void ApplyKeyColumnWidth()
+		{
+			if (_keyHeaderLabel != null)
+			{
+				_keyHeaderLabel.style.width = _keyColumnWidth;
+			}
+			_listView?.RefreshItems();
 		}
 
 		private VisualElement BuildFooter()
@@ -556,7 +628,8 @@ namespace BlueCheese.App.Editor
 			row.Add(toggle);
 
 			row.Add(new Image { name = "status", style = { width = 16, height = 16, marginLeft = 2, marginRight = 2, flexShrink = 0 } });
-			row.Add(new Label { name = "key", style = { flexGrow = 1, flexBasis = 0, overflow = Overflow.Hidden, textOverflow = TextOverflow.Ellipsis, unityTextOverflowPosition = TextOverflowPosition.End } });
+			row.Add(new Label { name = "key", style = { width = _keyColumnWidth, flexShrink = 0, overflow = Overflow.Hidden, textOverflow = TextOverflow.Ellipsis, unityTextOverflowPosition = TextOverflowPosition.End } });
+			row.Add(new VisualElement { style = { width = 8, flexShrink = 0 } }); // matches the header resizer footprint
 			row.Add(new Label { name = "def", style = { flexGrow = 1, flexBasis = 0, opacity = 0.7f, overflow = Overflow.Hidden, textOverflow = TextOverflow.Ellipsis } });
 			row.Add(new Label { name = "ai", style = { width = 16, flexShrink = 0, unityTextAlign = TextAnchor.MiddleCenter } });
 
@@ -574,13 +647,23 @@ namespace BlueCheese.App.Editor
 			statusIcon.tintColor = StatusColor(item.Status);
 			statusIcon.tooltip = StatusTooltip(item);
 
-			element.Q<Label>("key").text = item.Key;
+			var keyLabel = element.Q<Label>("key");
+			keyLabel.style.width = _keyColumnWidth; // keep in sync when the column is resized
+			keyLabel.text = item.Key;
 			element.Q<Label>("def").text = Asset.GetTranslation(item.Key, _defaultLanguage);
 
 			var aiLabel = element.Q<Label>("ai");
-			bool anyAI = item.Translations.Any(t => t.AITranslated);
-			aiLabel.text = anyAI ? "✨" : string.Empty;
-			aiLabel.tooltip = anyAI ? "Contains AI-translated text" : null;
+			if (_bulkTranslating && item.Key == _bulkCurrentKey)
+			{
+				aiLabel.text = _spinner[_bulkSpinnerFrame % _spinner.Length];
+				aiLabel.tooltip = "Translating…";
+			}
+			else
+			{
+				bool anyAI = item.Translations.Any(t => t.AITranslated);
+				aiLabel.text = anyAI ? "✨" : string.Empty;
+				aiLabel.tooltip = anyAI ? "Contains AI-translated text" : null;
+			}
 		}
 
 		private void OnRowSelectionChanged(IEnumerable<object> selection)
@@ -714,8 +797,15 @@ namespace BlueCheese.App.Editor
 			}
 			_bulkBar.style.display = DisplayStyle.Flex;
 
+			if (_bulkTranslating)
+			{
+				_bulkBar.Add(new Label($"✨ Translating {_bulkDone}/{_bulkTotal}…") { style = { unityFontStyleAndWeight = FontStyle.Bold } });
+				return;
+			}
+
 			_bulkBar.Add(new Label($"{count} selected") { style = { marginRight = 8, unityFontStyleAndWeight = FontStyle.Bold } });
 
+			var translate = new Button(TranslateSelectedWithAI) { text = "✨ Translate", style = { marginRight = 4 } };
 			var validate = IconButton("Validate", EditorIcon.Valid, ValidateSelected);
 			validate.style.marginRight = 4;
 			var delete = IconButton("Delete", EditorIcon.Trash, DeleteSelected);
@@ -723,6 +813,7 @@ namespace BlueCheese.App.Editor
 			var move = IconButton("Move to  ▾", EditorIcon.Open, null);
 			move.clicked += () => ShowMoveMenu(_active.SelectedKeys.ToArray(), move.worldBound);
 
+			_bulkBar.Add(translate);
 			_bulkBar.Add(validate);
 			_bulkBar.Add(delete);
 			_bulkBar.Add(move);
@@ -829,15 +920,6 @@ namespace BlueCheese.App.Editor
 
 			box.Add(InfoLine("Modified:", TimeAgoOrDash(item.LastModified)));
 			box.Add(InfoLine("Validated:", TimeAgoOrDash(item.LastValidated)));
-
-			var aiLanguages = item.Translations
-				.Where(t => t.AITranslated && t.IsValid)
-				.Select(t => t.Language.ToString())
-				.ToList();
-			if (aiLanguages.Count > 0)
-			{
-				box.Add(InfoLine("AI:", string.Join(", ", aiLanguages)));
-			}
 			return box;
 		}
 
@@ -867,12 +949,25 @@ namespace BlueCheese.App.Editor
 			{
 				Undo.RecordObject(Asset, "Validate Translations");
 				item.ValidateTranslations();
+				ClearAlternatives(); // lock in the chosen AI alternatives (selectors become plain fields)
 				AfterMutation();
 				RefreshList();
 				ShowDetail();
 			});
 			validate.style.flexGrow = 1;
 			validate.style.marginRight = 4;
+			if (item.Status == TranslationStatus.Modified)
+			{
+				validate.style.color = StatusColor(TranslationStatus.Modified); // yellow "Validate" text
+			}
+			else if (item.Status == TranslationStatus.Validated)
+			{
+				var validateIcon = validate.Q<Image>();
+				if (validateIcon != null)
+				{
+					validateIcon.tintColor = StatusColor(TranslationStatus.Validated); // green check
+				}
+			}
 
 			var move = IconButton("Move", EditorIcon.Open, null);
 			move.style.flexGrow = 1;
@@ -1352,6 +1447,182 @@ namespace BlueCheese.App.Editor
 			ShowDetail();
 		}
 
+		// Translates every selected key with AI (sequentially), applying the most probable option per
+		// language. No alternatives UI here — bulk auto-applies; single-key editing keeps the picker.
+		private void TranslateSelectedWithAI()
+		{
+			if (_bulkTranslating || _scanning)
+			{
+				return;
+			}
+
+			var settings = AITranslationSettings.GetOrNull();
+			if (settings == null)
+			{
+				if (EditorUtility.DisplayDialog("AI Translation", "No AI Translation Settings found. Create one now?", "Create", "Cancel"))
+				{
+					AITranslationSettings.Open();
+				}
+				return;
+			}
+			if (settings.Provider == AITranslationProviderKind.None)
+			{
+				EditorUtility.DisplayDialog("AI Translation", "No AI provider selected. Choose one in the AI Translation Settings.", "Ok");
+				AITranslationSettings.Open();
+				return;
+			}
+			if (string.IsNullOrEmpty(AITranslationSettings.GetApiKey(settings.Provider)))
+			{
+				EditorUtility.DisplayDialog("AI Translation", $"Set your {settings.Provider} API key in the AI Translation Settings first.", "Ok");
+				AITranslationSettings.Open();
+				return;
+			}
+
+			var allTargets = Asset.Languages.Where(l => l != _defaultLanguage).ToList();
+			if (allTargets.Count == 0)
+			{
+				EditorUtility.DisplayDialog("AI Translation", "No target languages to translate into.", "Ok");
+				return;
+			}
+
+			var items = _active.SelectedKeys
+				.Select(key => Asset.Items.FirstOrDefault(i => i.Key == key))
+				.Where(item => item != null)
+				.ToList();
+			if (items.Count == 0)
+			{
+				return;
+			}
+
+			if (!EditorUtility.DisplayDialog("AI Translation",
+				$"Translate {items.Count} selected key(s) with {settings.Provider}?\nOne request is sent per key; the most likely translation is applied to empty languages.",
+				"Translate", "Cancel"))
+			{
+				return;
+			}
+
+			// One project scan for all selected keys (usage context incl. the hierarchy path of each field).
+			Dictionary<string, List<TranslationKeyReferenceFinder.Reference>> refsByKey = null;
+			if (settings.IncludeUsageContext)
+			{
+				try
+				{
+					refsByKey = TranslationKeyReferenceFinder.FindReferences(
+						items.Select(i => i.Key),
+						(progress, path) => EditorUtility.DisplayProgressBar("AI Translation", $"Scanning usage… {System.IO.Path.GetFileName(path)}", progress));
+				}
+				finally
+				{
+					EditorUtility.ClearProgressBar();
+				}
+			}
+
+			_bulkTranslating = true;
+			_bulkTotal = items.Count;
+			_bulkDone = 0;
+			RefreshBulkBar();
+			StartBulkSpinner();
+			TranslateNextSelected(items, 0, AIProviders.Create(settings), settings, allTargets, refsByKey);
+		}
+
+		private void StartBulkSpinner()
+		{
+			if (_bulkSpinnerTick != null)
+			{
+				return;
+			}
+			_bulkSpinnerTick = () =>
+			{
+				int frame = (int)(EditorApplication.timeSinceStartup * 10) % _spinner.Length;
+				if (frame != _bulkSpinnerFrame)
+				{
+					_bulkSpinnerFrame = frame;
+					_listView?.RefreshItems(); // animate the spinner on the current row
+				}
+			};
+			EditorApplication.update += _bulkSpinnerTick;
+		}
+
+		private void StopBulkSpinner()
+		{
+			if (_bulkSpinnerTick != null)
+			{
+				EditorApplication.update -= _bulkSpinnerTick;
+				_bulkSpinnerTick = null;
+			}
+		}
+
+		private void TranslateNextSelected(List<TItem> items, int index, IAITranslationProvider provider, AITranslationSettings settings, List<Language> allTargets, Dictionary<string, List<TranslationKeyReferenceFinder.Reference>> refsByKey)
+		{
+			if (index >= items.Count)
+			{
+				_bulkTranslating = false;
+				_bulkCurrentKey = null;
+				StopBulkSpinner();
+				RefreshBulkBar();
+				RefreshList();
+				ShowDetail();
+				EditorUtility.DisplayDialog("AI Translation", $"Translated {items.Count} key(s).", "Ok");
+				return;
+			}
+
+			var item = items[index];
+			var targets = allTargets.Where(l => string.IsNullOrEmpty(Asset.GetTranslation(item.Key, l))).ToList();
+			if (targets.Count == 0)
+			{
+				_bulkDone++;
+				RefreshBulkBar();
+				TranslateNextSelected(items, index + 1, provider, settings, allTargets, refsByKey);
+				return;
+			}
+
+			_bulkCurrentKey = item.Key; // row shows the spinner while this key is translated
+			RefreshList();
+
+			var references = refsByKey != null && refsByKey.TryGetValue(item.Key, out var found)
+				? found
+				: new List<TranslationKeyReferenceFinder.Reference>();
+			var request = AITranslationContextBuilder.Build(Asset, item, _defaultLanguage, targets, references, settings);
+			provider.Translate(request, result =>
+			{
+				if (result.Success)
+				{
+					ApplyMostProbable(item, result);
+				}
+				else
+				{
+					Debug.LogWarning($"[AI Translation] '{item.Key}' failed: {result.Error}");
+				}
+				_bulkDone++;
+				RefreshBulkBar();
+				RefreshList();
+				TranslateNextSelected(items, index + 1, provider, settings, allTargets, refsByKey);
+			});
+		}
+
+		// Applies the most probable option per target language (used by bulk translation, no alternatives UI).
+		private void ApplyMostProbable(TItem item, AITranslationResult result)
+		{
+			Undo.RecordObject(Asset, "AI Translate");
+
+			if (Asset.IsLanguageSupported(_defaultLanguage)
+				&& string.IsNullOrEmpty(Asset.GetTranslation(item.Key, _defaultLanguage))
+				&& !string.IsNullOrEmpty(result.GeneratedSource))
+			{
+				Asset.SetTranslation(_defaultLanguage, item.Key, result.GeneratedSource, aiTranslated: true);
+			}
+
+			foreach (var entry in result.Entries)
+			{
+				if (entry.Language == _defaultLanguage || !Asset.IsLanguageSupported(entry.Language) || entry.Options.Count == 0)
+				{
+					continue;
+				}
+				Asset.SetTranslation(entry.Language, item.Key, entry.Options[0], aiTranslated: true);
+			}
+			AfterMutation();
+		}
+
 		// Clears a translation and discards its AI alternatives (no validation), then shows an empty editable field.
 		private void ResetTranslation(TItem item, Language language)
 		{
@@ -1413,7 +1684,7 @@ namespace BlueCheese.App.Editor
 		private static Texture2D StatusIcon(TranslationStatus status) => status switch
 		{
 			TranslationStatus.Validated => EditorIcon.Valid,
-			TranslationStatus.Modified => EditorIcon.Warning,
+			TranslationStatus.Modified => EditorIcon.Edit,
 			TranslationStatus.ToRemove => EditorIcon.Trash,
 			_ => null,
 		};
