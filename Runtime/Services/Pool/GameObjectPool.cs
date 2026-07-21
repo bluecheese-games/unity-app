@@ -125,9 +125,9 @@ namespace BlueCheese.App
 					case PoolOverflow.LogError:
 						_logger.LogError($"Pool<{(_prefab != null ? _prefab.name : _componentType.Name)}> overflows capacity ({_options.Capacity})");
 						break;
-					case PoolOverflow.RecycleActive:
-						var oldest = _activeItems.First();
-						Despawn(oldest.gameObject);
+					case PoolOverflow.RecycleAny:
+						var itemToRecycle = _activeItems.First();
+						Despawn(itemToRecycle.gameObject);
 						return GetOrCreateItem();
 					case PoolOverflow.ReturnsNull:
 						return null;

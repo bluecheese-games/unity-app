@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-	public class FXPlayer : MonoBehaviour
+	public class FXTrigger : MonoBehaviour
 	{
 		[SerializeField] private FX _fx;
 		[SerializeField] private PlayTimeEvent _playTime = PlayTimeEvent.None;

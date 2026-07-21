@@ -1144,7 +1144,7 @@ MonoBehaviour:
   _config:
     Guid: 3fd7c9cd3f91d3f4c866f370fe2ad6c9
   _plopKey:
-    _key: plop
+    _key: 
     _pluralKey: 
     _parameters:
     - 0
@@ -1904,7 +1904,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: Foo
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

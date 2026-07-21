@@ -90,7 +90,7 @@ namespace BlueCheese.App
 				}
 			}
 
-			return new PoolOptions { Capacity = 10 };
+			return PoolOptions.Default;
 		}
 	}
 }

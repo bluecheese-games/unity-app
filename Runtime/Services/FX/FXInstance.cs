@@ -14,10 +14,14 @@ namespace BlueCheese.App
 		private Vector3 _offsetPosition;
 		private Vector3 _offsetRotation;
 		private bool _isPlaying;
+		private bool _isPaused;
 		private float _timeElapsed;
 		private float _scaleValue = 1f;
 		private ParticleSystem _particleSystem;
 
+		// Note: intentionally independent from _isPaused. Pausing must not make the instance
+		// look "dead" to FXService, otherwise it gets despawned back to the pool mid-effect
+		// (see Pause()/Resume() below).
 		public bool IsAlive => _isPlaying && gameObject.activeInHierarchy;
 
 		public void Setup(FXDef fxDef)
@@ -28,7 +32,7 @@ namespace BlueCheese.App
 
 		public void UpdateFX(float deltaTime)
 		{
-			if (!IsAlive)
+			if (!IsAlive || _isPaused)
 			{
 				return;
 			}
@@ -37,8 +41,16 @@ namespace BlueCheese.App
 			if (_particleSystem != null && _particleSystem.isStopped)
 			{
 				Stop();
+				return;
 			}
-			else if (_def.Duration > 0f && _timeElapsed >= _def.Duration)
+
+			// When Duration wasn't explicitly overridden, it's auto-derived from the prefab's
+			// ParticleSystems purely as an editor preview reference (see FXDef.AutoDeriveDuration),
+			// and may reflect a looping system's main.duration. Only enforce it as a hard runtime
+			// stop when the designer explicitly opted in (OverrideDuration) or the system doesn't
+			// loop — otherwise a looping FX would be cut short shortly after it starts.
+			bool enforceDuration = _def.OverrideDuration || _particleSystem == null || !_particleSystem.main.loop;
+			if (enforceDuration && _def.Duration > 0f && _timeElapsed >= _def.Duration)
 			{
 				Stop();
 			}
@@ -74,6 +86,7 @@ namespace BlueCheese.App
 		private void Play()
 		{
 			_isPlaying = true;
+			_isPaused = false;
 			_timeElapsed = 0f;
 			if (_target != null)
 			{
@@ -118,6 +131,7 @@ namespace BlueCheese.App
 			}
 
 			_isPlaying = false;
+			_isPaused = false;
 			gameObject.SetActive(false);
 
 			if (_target != null)
@@ -130,13 +144,40 @@ namespace BlueCheese.App
 		public void OnRecycle()
 		{
 			_isPlaying = false;
+			_isPaused = false;
 			_scaleValue = 1f;
 			_target = null;
 		}
 
-		public void Pause() => _isPlaying = false;
+		public void Pause()
+		{
+			if (!_isPlaying || _isPaused)
+			{
+				return;
+			}
 
-		public void Resume() => _isPlaying = true;
+			_isPaused = true;
+
+			if (_particleSystem != null)
+			{
+				_particleSystem.Pause(true);
+			}
+		}
+
+		public void Resume()
+		{
+			if (!_isPlaying || !_isPaused)
+			{
+				return;
+			}
+
+			_isPaused = false;
+
+			if (_particleSystem != null)
+			{
+				_particleSystem.Play(true);
+			}
+		}
 
 		private void OnDestroy() => Stop();
 	}

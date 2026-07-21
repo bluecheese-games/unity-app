@@ -18,6 +18,12 @@ namespace BlueCheese.App
 			ParticleCount,
 			ParticleSize,
 			StartSpeed,
+			Lifetime,
+			Gravity,
+			RotationSpeed,
+			EmissionShapeRadius,
+			NoiseStrength,
+			LightIntensity,
 		}
 
 		[HideInInspector]
@@ -45,6 +51,12 @@ namespace BlueCheese.App
 			Type.ParticleCount => ps.AddOrGetComponent<FXScalerParticleCount>(scaler => scaler.Initialize(ps)),
 			Type.ParticleSize => ps.AddOrGetComponent<FXScalerParticleSize>(scaler => scaler.Initialize(ps)),
 			Type.StartSpeed => ps.AddOrGetComponent<FXScalerParticleStartSpeed>(scaler => scaler.Initialize(ps)),
+			Type.Lifetime => ps.AddOrGetComponent<FXScalerParticleLifetime>(scaler => scaler.Initialize(ps)),
+			Type.Gravity => ps.AddOrGetComponent<FXScalerGravity>(scaler => scaler.Initialize(ps)),
+			Type.RotationSpeed => ps.AddOrGetComponent<FXScalerRotationSpeed>(scaler => scaler.Initialize(ps)),
+			Type.EmissionShapeRadius => ps.AddOrGetComponent<FXScalerEmissionShapeRadius>(scaler => scaler.Initialize(ps)),
+			Type.NoiseStrength => ps.AddOrGetComponent<FXScalerNoiseStrength>(scaler => scaler.Initialize(ps)),
+			Type.LightIntensity => ps.AddOrGetComponent<FXScalerLightIntensity>(scaler => scaler.Initialize(ps)),
 			_ => null,
 		};
 	}

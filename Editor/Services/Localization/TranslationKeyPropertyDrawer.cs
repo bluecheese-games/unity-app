@@ -37,6 +37,8 @@ namespace BlueCheese.App.Editor
 
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 		{
+			EditorGUI.BeginProperty(position, label, property);
+
 			float line = EditorGUIUtility.singleLineHeight;
 			var keyProperty = property.FindPropertyRelative("_key");
 			var key = keyProperty.stringValue;
@@ -50,12 +52,24 @@ namespace BlueCheese.App.Editor
 
 			var firstLine = new Rect(position.x, position.y, position.width, line);
 
-			// Valid key: a foldout arrow (to reveal plural/parameters) at the far left; the label/field
-			// are indented one step so the arrow has room. The field itself is always drawn by the helper
-			// through PrefixLabel, so it aligns exactly with the other inspector fields.
+			// Draw the prefix with LabelField (EditorGUI.PrefixLabel renders it detached from its field in
+			// this drawer). LabelField puts "Translation Key" on the correct row, at the same x as the other
+			// component prefixes (Script, Text, ...). The field rect mirrors what PrefixLabel returns — the
+			// label column plus Unity's internal 2px gap — so the field lines up with the other values.
+			const float prefixPaddingRight = 2f;
+			float labelWidth = EditorGUIUtility.labelWidth;
+			var labelRect = new Rect(firstLine.x, firstLine.y, labelWidth, line);
+			var fieldRect = new Rect(firstLine.x + labelWidth + prefixPaddingRight, firstLine.y, firstLine.width - labelWidth - prefixPaddingRight, line);
+
+			EditorGUI.LabelField(labelRect, label);
+
 			if (valid)
 			{
-				var arrowRect = new Rect(firstLine.x, firstLine.y, 14f, line);
+				// A foldout arrow in the free space at the end of the label column toggles the plural key /
+				// parameters. It sits just before the field, so it neither indents the prefix nor shortens
+				// the key selector.
+				const float arrowWidth = 13f;
+				var arrowRect = new Rect(labelRect.xMax - arrowWidth, firstLine.y, arrowWidth, line);
 				property.isExpanded = EditorGUI.Foldout(arrowRect, property.isExpanded, GUIContent.none, toggleOnLabelClick: true);
 			}
 			else
@@ -63,13 +77,7 @@ namespace BlueCheese.App.Editor
 				property.isExpanded = false;
 			}
 
-			int previousIndent = EditorGUI.indentLevel;
-			if (valid)
-			{
-				EditorGUI.indentLevel++;
-			}
-			DrawKeyFieldWithOpen(firstLine, keyProperty, label, choices, choiceLabels, keys, CreateNew);
-			EditorGUI.indentLevel = previousIndent;
+			DrawKeyFieldWithOpen(fieldRect, keyProperty, GUIContent.none, choices, choiceLabels, keys, CreateNew);
 
 			if (valid && property.isExpanded)
 			{
@@ -79,6 +87,8 @@ namespace BlueCheese.App.Editor
 				DrawParameters(position, y, property);
 				EditorGUI.indentLevel--;
 			}
+
+			EditorGUI.EndProperty();
 		}
 
 		private static void BuildChoicesWithNone(string[] keys, out string[] choices, out string[] labels)

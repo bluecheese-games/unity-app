@@ -65,9 +65,10 @@ namespace BlueCheese.App
 		LogError,
 
 		/// <summary>
-		/// Recycles the oldest active instance.
+		/// Recycles an active instance to make room for the new one.
+		/// The instance is picked arbitrarily and is not guaranteed to be the oldest active instance.
 		/// </summary>
-		RecycleActive,
+		RecycleAny,
 
 		/// <summary>
 		/// Cancel the spawn and returns null.

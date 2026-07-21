@@ -4,6 +4,7 @@
 
 using BlueCheese.Core.Utils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -26,11 +27,27 @@ namespace BlueCheese.App
 
 		public bool IsValid => Prefab != null;
 
+		// Caches runtime-created FXDefs by prefab so implicit GameObject -> FX/FXDef conversions
+		// (e.g. FX.cs's implicit operator) don't allocate a new ScriptableObject + re-walk the
+		// prefab's ParticleSystems on every call/frame. Cleared automatically on domain reload.
+		private static readonly Dictionary<GameObject, FXDef> _runtimeDefCache = new();
+
 		public static FXDef Create(GameObject prefab)
 		{
+			if (prefab == null)
+			{
+				return null;
+			}
+
+			if (_runtimeDefCache.TryGetValue(prefab, out var cached) && cached != null)
+			{
+				return cached;
+			}
+
 			var def = CreateInstance<FXDef>();
 			def.Prefab = prefab;
 			def.AutoDeriveDuration();
+			_runtimeDefCache[prefab] = def;
 			return def;
 		}
 

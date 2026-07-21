@@ -21,10 +21,18 @@ namespace BlueCheese.App
 		}
 
 		public IGameObjectPool SetupPool(GameObject prefab, PoolOptions options = default)
-			=> GetOrCreatePool(prefab.GetHashCode(), prefab: prefab, options: options);
+		{
+			var pool = GetOrCreatePool(prefab.GetHashCode(), prefab: prefab, options: options);
+			pool.Setup(options);
+			return pool;
+		}
 
 		public IGameObjectPool SetupPool<T>(PoolOptions options = default) where T : Component
-			=> GetOrCreatePool(typeof(T).GetHashCode(), componentType: typeof(T), options: options);
+		{
+			var pool = GetOrCreatePool(typeof(T).GetHashCode(), componentType: typeof(T), options: options);
+			pool.Setup(options);
+			return pool;
+		}
 
 		public IGameObjectPool GetOrCreatePool(GameObject prefab)
 			=> GetOrCreatePool(prefab.GetHashCode(), prefab: prefab);
