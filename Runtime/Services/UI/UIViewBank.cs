@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-    [CreateAssetMenu(menuName = "UI/ViewBank", fileName = "UIViewBank")]
+    [CreateAssetMenu(menuName = "BlueCheese/UI/UI View Bank", fileName = "UIViewBank")]
     public class UIViewBank : ScriptableObject
     {
        public UIView[] ViewPrefabs;

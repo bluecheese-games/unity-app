@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-	[CreateAssetMenu(menuName = "FX/FXDef", fileName = "New FX")]
+	[CreateAssetMenu(menuName = "BlueCheese/FX/FX Def", fileName = "New FX")]
 	public class FXDef : AssetBase
 	{
 		[Header("Prefab & Timing")]
@@ -21,6 +21,13 @@ namespace BlueCheese.App
 
 		[Header("Scaling")]
 		public FXScaler[] Scalers;
+
+		[Header("Prewarm")]
+		[Tooltip("If enabled, the FX service preallocates a pool of instances for this effect during initialization, avoiding a first-use hitch.")]
+		public bool Prewarm = false;
+		[Tooltip("Number of pooled instances to preallocate when Prewarm is enabled.")]
+		[Min(1)]
+		public int PrewarmPoolSize = 5;
 
 		[HideInInspector]
 		public PreviewSettings _previewSettings = new(); // Kept serialized intentionally for convenience; see notes.

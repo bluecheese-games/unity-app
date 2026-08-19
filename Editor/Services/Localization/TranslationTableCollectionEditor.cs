@@ -4,7 +4,6 @@
 
 using BlueCheese.Core;
 using BlueCheese.Core.Editor;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -14,98 +13,70 @@ namespace BlueCheese.App.Editor
 	[CustomEditor(typeof(TranslationTableCollection))]
 	public class TranslationTableCollectionEditor : CollectionEditor
 	{
-		private SerializedProperty _itemsProperty;
+		private const float Padding = 4f;
 
-		private string _searchText;
+		private static GUIStyle _modifiedStyle;
 
-		override protected void OnEnable()
-		{
-			base.OnEnable();
-			_itemsProperty = serializedObject.FindProperty("_items");
-		}
+		// Lazily built: EditorStyles isn't safe to touch outside an OnGUI-ish call (e.g. static init).
+		private static GUIStyle ModifiedStyle => _modifiedStyle ??= new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleRight };
 
 		public override void OnInspectorGUI()
 		{
-			serializedObject.Update();
-			DrawTranslationTables();
+			base.OnInspectorGUI();
+
 			EditorGUILayout.Space();
 			DrawDuplicates();
-			serializedObject.ApplyModifiedProperties();
 		}
 
-		private void DrawTranslationTables()
+		protected override float GetItemHeight(SerializedProperty element, int index)
 		{
-			EditorGUIHelper.DrawTitle("Translation Tables");
+			if (GetTable(element) is not TranslationTableAsset table)
+				return base.GetItemHeight(element, index);
 
-			var translationTables = new List<ITranslationTableAsset>();
-			for (int i = 0; i < _itemsProperty.arraySize; i++)
+			int lineCount = table.Keys.Count > 0 ? 3 : 2;
+			return lineCount * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + Padding * 2;
+		}
+
+		protected override void DrawItem(Rect rect, SerializedProperty element, int index)
+		{
+			if (GetTable(element) is not TranslationTableAsset table)
 			{
-				var itemProp = _itemsProperty.GetArrayElementAtIndex(i);
-				if (itemProp.objectReferenceValue is ITranslationTableAsset table)
-				{
-					translationTables.Add(table);
-				}
+				base.DrawItem(rect, element, index);
+				return;
 			}
 
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(new GUIContent(EditorIcon.Search), GUILayout.Width(20));
-			_searchText = EditorGUILayout.TextField("Search key or translation", _searchText);
-			EditorGUILayout.EndHorizontal();
-			bool foundAny = false;
-			foreach (var table in translationTables)
+			GUI.Box(rect, GUIContent.none);
+
+			var lineHeight = EditorGUIUtility.singleLineHeight;
+			var lineRect = new Rect(rect.x + Padding, rect.y + Padding, rect.width - Padding * 2, lineHeight);
+
+			var openRect = new Rect(lineRect.xMax - 100, lineRect.y, 100, lineHeight);
+			var nameRect = new Rect(lineRect.x, lineRect.y, lineRect.width - 108, lineHeight);
+			EditorGUI.LabelField(nameRect, table.Name, EditorStyles.boldLabel);
+			// TranslationTableCollection is an AutoCollection (not user-editable), but the "Open"
+			// action edits the table asset itself, not the collection, so it stays enabled.
+			if (GUI.Button(openRect, "Open"))
 			{
-				if (!string.IsNullOrEmpty(_searchText) &&
-					!table.ContainsKey(_searchText) &&
-					!table.ContainsTranslation(_searchText))
-				{
-					continue;
-				}
-
-				foundAny = true;
-				int keyCount = table.Keys.Count;
-				TranslationTableAsset tableAsset = null;
-				if (table is TranslationTableAsset asset) tableAsset = asset;
-
-				EditorGUILayout.BeginVertical("box");
-				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.LabelField($"{table.Name}", EditorStyles.boldLabel);
-				if (GUILayout.Button("Open", GUILayout.Width(100)))
-				{
-					TranslationTableWindow.Open(tableAsset);
-				}
-				EditorGUILayout.EndHorizontal();
-				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.LabelField($"Key Count: {keyCount}");
-				var lastModifiedStyle = new GUIStyle(EditorStyles.label)
-				{
-					alignment = TextAnchor.MiddleRight
-				};
-				if (tableAsset != null)
-				{
-					EditorGUILayout.LabelField($"Modified: {tableAsset.LastModified.TimeAgo()}", lastModifiedStyle, GUILayout.ExpandWidth(true), GUILayout.MinWidth(200));
-				}
-				EditorGUILayout.EndHorizontal();
-				if (tableAsset != null && keyCount > 0)
-				{
-					int validatedCount = tableAsset.Count(TranslationStatus.Validated);
-					float progress = (float)validatedCount / keyCount;
-					EditorGUI.ProgressBar(EditorGUILayout.GetControlRect(), progress, $"Validated: {validatedCount}/{keyCount} ({progress:P0})");
-				}
-
-				EditorGUILayout.EndVertical();
+				TranslationTableWindow.Open(table);
 			}
-			if (!foundAny)
+
+			lineRect.y += lineHeight + EditorGUIUtility.standardVerticalSpacing;
+			int keyCount = table.Keys.Count;
+			EditorGUI.LabelField(new Rect(lineRect.x, lineRect.y, lineRect.width / 2, lineHeight), $"Key Count: {keyCount}");
+			EditorGUI.LabelField(new Rect(lineRect.x + lineRect.width / 2, lineRect.y, lineRect.width / 2, lineHeight),
+				$"Modified: {table.LastModified.TimeAgo()}", ModifiedStyle);
+
+			if (keyCount > 0)
 			{
-				if (!string.IsNullOrEmpty(_searchText))
-				{
-					EditorGUILayout.LabelField("No match");
-				}
-				else
-				{
-					EditorGUILayout.LabelField("No translation tables found. Create one by right clicking in a resources folder");
-				}
+				lineRect.y += lineHeight + EditorGUIUtility.standardVerticalSpacing;
+				int validatedCount = table.Count(TranslationStatus.Validated);
+				float progress = (float)validatedCount / keyCount;
+				EditorGUI.ProgressBar(lineRect, progress, $"Validated: {validatedCount}/{keyCount} ({progress:P0})");
 			}
 		}
+
+		private static ITranslationTableAsset GetTable(SerializedProperty element)
+			=> element.objectReferenceValue as ITranslationTableAsset;
 
 		private void DrawDuplicates()
 		{

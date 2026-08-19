@@ -23,6 +23,8 @@ MonoBehaviour:
   OverrideDuration: 0
   Duration: 1
   Scalers: []
+  Prewarm: 0
+  PrewarmPoolSize: 5
   _previewSettings:
     backgroundColor: {r: 0, g: 0, b: 0, a: 1}
     showSkybox: 0

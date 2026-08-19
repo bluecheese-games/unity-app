@@ -4,8 +4,11 @@
 
 using BlueCheese.Core;
 using BlueCheese.Core.DI;
+using BlueCheese.Core.Utils;
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace BlueCheese.App
 {
@@ -33,6 +36,31 @@ namespace BlueCheese.App
 		public void Initialize()
 		{
 			_clock.OnTick += UpdateInstances;
+			PrewarmAsync().Forget();
+		}
+
+		// Preallocates a pool for every registered FXDef flagged for prewarm. Spread one instance
+		// per frame so a startup prewarm list doesn't spike a single frame with many Instantiate calls.
+		private async UniTask PrewarmAsync()
+		{
+			var fxDefs = await AssetBank.GetAssetsOfTypeAsync<FXDef>();
+			foreach (var fxDef in fxDefs)
+			{
+				if (fxDef == null || !fxDef.Prewarm || !fxDef.IsValid)
+				{
+					continue;
+				}
+
+				var options = PoolOptions.Default;
+				options.Capacity = Mathf.Max(GameObjectPool.DefaultCapacity, fxDef.PrewarmPoolSize);
+				var pool = _poolService.SetupPool(fxDef.Prefab, options);
+
+				for (int count = pool.CountAvailable + pool.CountInUse + 1; count <= fxDef.PrewarmPoolSize; count++)
+				{
+					pool.Fill(count);
+					await UniTask.Yield();
+				}
+			}
 		}
 
 		private void UpdateInstances(float deltaTime)

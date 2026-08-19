@@ -10,7 +10,7 @@ using UnityEngine;
 namespace BlueCheese.App
 {
 
-	[CreateAssetMenu(fileName = "TranslationTable", menuName = "Localization/Translation Table")]
+	[CreateAssetMenu(fileName = "TranslationTable", menuName = "BlueCheese/Localization/Translation Table")]
 	public class TranslationTableAsset : ScriptableObject, ITranslationTableAsset, ISerializationCallbackReceiver
 	{
 		[SerializeField] private List<Language> _languages;

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-    [CreateAssetMenu(fileName = "AudioBank", menuName = "BlueCheese/Audio/Bank")]
+    [CreateAssetMenu(fileName = "AudioBank", menuName = "BlueCheese/Audio/Audio Bank")]
     public class AudioBank : ScriptableObject
     {
         public List<AudioItem> Items;

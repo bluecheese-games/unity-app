@@ -5,13 +5,13 @@
 using BlueCheese.Core.Utils;
 using UnityEngine;
 
-namespace BlueCheese.App.Sample
+namespace BlueCheese.App
 {
-	[CreateAssetMenu(fileName = "FXCollection", menuName = "BlueCheese/FX/FXCollection", order = 1)]
+	[CreateAssetMenu(menuName = "BlueCheese/FX/FX Collection", fileName = "FXCollection")]
 	public class FXCollection : AutoCollection<FXDef>
 	{
 #if UNITY_EDITOR
-		protected override bool Filter(FXDef asset) => asset.IsValid;
+		protected override bool CollectFilter(FXDef asset) => asset.IsValid;
 #endif
 	}
 }

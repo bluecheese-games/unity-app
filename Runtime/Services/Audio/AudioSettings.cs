@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-	[CreateAssetMenu(fileName = "AudioSettings", menuName = "BlueCheese/Audio/AudioSettings", order = 1)]
+	[CreateAssetMenu(fileName = "AudioSettings", menuName = "BlueCheese/Audio/Audio Settings", order = 1)]
 	public class AudioSettings : AutoCollection<AudioBank>
 	{
 		[SerializeField] private int _audioPoolCapacity = 10;

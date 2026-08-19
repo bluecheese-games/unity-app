@@ -49,6 +49,7 @@ namespace BlueCheese.App.Editor
 
 		private SerializedProperty _overrideDurationProperty;
 		private SerializedProperty _scalersProperty;
+		private SerializedProperty _prewarmProperty;
 
 		private int _cachedScalerTypesMask = -1;
 		private List<string> _cachedScalerOptions;
@@ -63,6 +64,7 @@ namespace BlueCheese.App.Editor
 
 			_overrideDurationProperty = serializedObject.FindProperty(nameof(TargetFXDef.OverrideDuration));
 			_scalersProperty = serializedObject.FindProperty(nameof(TargetFXDef.Scalers));
+			_prewarmProperty = serializedObject.FindProperty(nameof(TargetFXDef.Prewarm));
 
 			_lastTicks = EditorApplication.timeSinceStartup;
 
@@ -140,6 +142,14 @@ namespace BlueCheese.App.Editor
 
 			var scalersContainer = new VisualElement();
 			root.Add(scalersContainer);
+
+			var prewarmField = new PropertyField(_prewarmProperty);
+			root.Add(prewarmField);
+
+			var prewarmPoolSizeField = new PropertyField(serializedObject.FindProperty(nameof(TargetFXDef.PrewarmPoolSize)));
+			root.Add(prewarmPoolSizeField);
+			prewarmPoolSizeField.SetEnabled(_prewarmProperty.boolValue);
+			prewarmField.RegisterValueChangeCallback(evt => prewarmPoolSizeField.SetEnabled(evt.changedProperty.boolValue));
 
 			void RefreshFields()
 			{

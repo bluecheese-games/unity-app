@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-	[CreateAssetMenu(menuName = "Localization/Settings", fileName = "LocalizationSettings")]
+	[CreateAssetMenu(menuName = "BlueCheese/Localization/Localization Settings", fileName = "LocalizationSettings")]
     public class LocalizationSettingsAsset : AssetBase
 	{
 		public Language DefaultLanguage = Language.English;
