@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 490c965aa11553a4faf9a5f4adb0169b, type: 3}
+  m_Name: AudioSettings
+  m_EditorClassIdentifier: BlueCheese.App::BlueCheese.App.AudioSettings
+  Name: AudioSettings
+  Tags:
+    _values:
+    - Audio
+  RegisterInAssetBank: 1
+  LoadMode: 0
+  BundleKey: 
+  _items:
+  - {fileID: 11400000, guid: 8102bbeebfbc4f94ba2be4c65ac68956, type: 2}
+  _audioPoolCapacity: 12

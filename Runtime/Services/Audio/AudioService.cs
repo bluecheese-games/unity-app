@@ -16,7 +16,6 @@ namespace BlueCheese.App
 
 		private readonly ILocalStorageService _localStorage;
 		private readonly IGameObjectPoolService _poolService;
-		private readonly IAssetLoaderService _assetLoader;
 		private readonly AudioSettings _settings;
 
 		private string _currentMusic = null;
@@ -27,14 +26,11 @@ namespace BlueCheese.App
 		private readonly List<AudioItemPlayer> _audioPlayers = new();
 		private readonly Dictionary<string, AudioItem> _audioItems = new();
 
-		public AudioService(ILocalStorageService localStorage, IGameObjectPoolService pool, IAssetLoaderService assetLoader, IOptions<AudioSettings> settings)
+		public AudioService(ILocalStorageService localStorage, IGameObjectPoolService pool, IOptions<AudioSettings> settings)
 		{
 			_localStorage = localStorage;
 			_poolService = pool;
-			_assetLoader = assetLoader;
 			_settings = settings.Value;
-
-			_settings.AudioPlayerFactory ??= () => GetAvailablePlayer();
 		}
 
 		public void Initialize()
@@ -67,13 +63,9 @@ namespace BlueCheese.App
 		private void LoadAudioBanks()
 		{
 			List<AudioBank> banks = new();
-			if (_settings.AudioBankResourcePath != null)
+			if (_settings.Items != null)
 			{
-				banks.AddRange(_assetLoader.LoadAssetsFromResources<AudioBank>(_settings.AudioBankResourcePath));
-			}
-			if (_settings.AudioBanks != null)
-			{
-				banks.AddRange(_settings.AudioBanks);
+				banks.AddRange(_settings.Items);
 			}
 			foreach (var bank in banks)
 			{
@@ -117,7 +109,7 @@ namespace BlueCheese.App
 				return false;
 			}
 
-			var player = _settings.AudioPlayerFactory();
+			var player = GetAvailablePlayer();
 			if (player != null)
 			{
 				var item = GetAudioItem(sound.Name);
@@ -146,16 +138,16 @@ namespace BlueCheese.App
 			StopSoundsWhere(player => true, fadeDuration);
 		}
 
-        private void StopSoundsWhere(Func<AudioItemPlayer, bool> predicate, float fadeDuration = 0)
-        {
+		private void StopSoundsWhere(Func<AudioItemPlayer, bool> predicate, float fadeDuration = 0)
+		{
 			var players = _audioPlayers.Where(predicate).ToArray();
-            foreach (var player in players)
-            {
-                player.Stop(fadeDuration);
-            }
-        }
+			foreach (var player in players)
+			{
+				player.Stop(fadeDuration);
+			}
+		}
 
-        public bool PlayMusic(string name) => PlayMusic(name, MusicOptions.Default);
+		public bool PlayMusic(string name) => PlayMusic(name, MusicOptions.Default);
 
 		public bool PlayMusic(string name, MusicOptions options)
 		{
@@ -174,7 +166,7 @@ namespace BlueCheese.App
 
 			StopMusic(_currentMusic, options.FadeDurationSec);
 
-			var player = _settings.AudioPlayerFactory();
+			var player = GetAvailablePlayer();
 			var item = GetAudioItem(name);
 			if (player != null && player.PlayMusic(item, options))
 			{
@@ -212,6 +204,11 @@ namespace BlueCheese.App
 
 		private AudioItemPlayer GetAvailablePlayer()
 		{
+			if (_settings.AudioPlayerFactory != null)
+			{
+				return _settings.AudioPlayerFactory();
+			}
+
 			AudioItemPlayer player = _audioPlayerPool.Spawn<AudioItemPlayer>();
 			if (!_audioPlayers.Contains(player))
 			{
@@ -225,29 +222,6 @@ namespace BlueCheese.App
 		{
 			_audioPlayers.Remove(audioPlayer);
 			_audioPlayerPool.Despawn(audioPlayer);
-		}
-
-		public class AudioSettings
-		{
-			/// <summary>
-			/// Custom audio player factory.
-			/// </summary>
-			public Func<AudioItemPlayer> AudioPlayerFactory;
-
-			/// <summary>
-			/// Directly provided audio banks.
-			/// </summary>
-			public AudioBank[] AudioBanks;
-
-			/// <summary>
-			/// The resource path where audio banks are located.
-			/// </summary>
-			public string AudioBankResourcePath;
-
-			/// <summary>
-			/// The AudioPlayer pool size.
-			/// </summary>
-			public int AudioPoolCapacity;
 		}
 	}
 }

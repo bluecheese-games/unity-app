@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BlueCheese.App.Sample
 {
-	[CreateAssetMenu(fileName = "FXCollection", menuName = "BlueCheese/Sample/FXCollection", order = 1)]
+	[CreateAssetMenu(fileName = "FXCollection", menuName = "BlueCheese/FX/FXCollection", order = 1)]
 	public class FXCollection : AutoCollection<FXDef>
 	{
 #if UNITY_EDITOR

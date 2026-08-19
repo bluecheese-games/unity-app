@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 07a535b3702b11b48bd52383225a3dd9, type: 3}
-  m_Name: AudioBank
+  m_Name: SampleAudioBank
   m_EditorClassIdentifier: 
   Items:
   - Name: SphereSpawn

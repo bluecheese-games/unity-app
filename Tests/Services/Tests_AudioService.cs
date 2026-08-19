@@ -9,6 +9,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using BlueCheese.Core.DI;
+using AudioSettings = BlueCheese.App.AudioSettings;
 
 namespace BlueCheese.Tests.Services
 {
@@ -32,12 +33,11 @@ namespace BlueCheese.Tests.Services
 				new() { Name = "valid_music_name", Clip = AudioClip.Create("valid_music_name", 1, 1, 1000, true) },
 				new() { Name = "valid_clip_name", Clip = AudioClip.Create("valid_clip_name", 1, 1, 1000, true) }
 			};
-			var settings = new OptionsWrapper<AudioService.AudioSettings>(new AudioService.AudioSettings()
-			{
-				AudioPlayerFactory = () => new GameObject().AddComponent<FakeAudioPlayer>(),
-				AudioBanks = new[] { audioBank }
-			});
-			_audioService = new AudioService(localStorage, pool, assetLoader, settings);
+			var audioSettings = ScriptableObject.CreateInstance<AudioSettings>();
+			audioSettings.SetAudioPlayerFactory(() => new GameObject().AddComponent<FakeAudioPlayer>());
+			audioSettings.AddAudioBank(audioBank);
+			var options = new OptionsWrapper<AudioSettings>(audioSettings);
+			_audioService = new AudioService(localStorage, pool, options);
 			_audioService.Initialize();
 		}
 

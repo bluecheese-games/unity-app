@@ -25,6 +25,7 @@ namespace BlueCheese.App
 		private readonly HashSet<PoolItem> _activeItems = new(DefaultCapacity);
 		private Transform _container;
 		private PoolOptions _options;
+		private bool _isSetup = false;
 
 		public GameObjectPool(IGameObjectService gameObjectService, ILogger<GameObjectPoolService> logger, GameObject prefab = null, Type componentType = null, PoolOptions options = default)
 		{
@@ -39,27 +40,35 @@ namespace BlueCheese.App
 
 		public void Setup(PoolOptions options = default)
 		{
-			_options = options;
-			if (_options.Capacity <= 0)
+			if (options.Capacity <= 0)
 			{
-				_options.Capacity = DefaultCapacity;
+				options.Capacity = DefaultCapacity;
 			}
 
-			if (options.UseContainer && _container == null)
+			// Check if the existing options are the same as the new options, if so, do nothing
+			if (_isSetup && _options.Equals(options))
+			{
+				return;
+			}
+
+			_options = options;
+			_isSetup = true;
+
+			if (_options.UseContainer && _container == null)
 			{
 				_container = _gameObjectService.CreateEmptyObject().transform;
 				_container.name = $"Pool<{(_prefab != null ? _prefab.name : _componentType.Name)}>";
 			}
 
-			if (_container != null && options.DontDestroyOnLoad)
+			if (_container != null && _options.DontDestroyOnLoad)
 			{
 				_gameObjectService.DontDestroyOnLoad(_container.gameObject);
 			}
 
-			_inactiveItems.EnsureCapacity(options.Capacity);
-			_activeItems.EnsureCapacity(options.Capacity);
+			_inactiveItems.EnsureCapacity(_options.Capacity);
+			_activeItems.EnsureCapacity(_options.Capacity);
 
-			Fill(options.FillAmount);
+			Fill(_options.FillAmount);
 		}
 
 		public void Fill(int amount)
@@ -285,6 +294,12 @@ namespace BlueCheese.App
 		{
 			internal GameObjectPool Pool { get; set; }
 			private Coroutine _despawnCoroutine;
+			private Pose _initialPose;
+
+			private void Awake()
+			{
+				_initialPose = new Pose(transform.position, transform.rotation);
+			}
 
 			public void Recycle()
 			{
@@ -293,6 +308,8 @@ namespace BlueCheese.App
 					StopCoroutine(_despawnCoroutine);
 					_despawnCoroutine = null;
 				}
+
+				transform.SetPositionAndRotation(_initialPose.position, _initialPose.rotation);
 
 				var recyclables = GetComponents<IRecyclable>();
 				for (int i = 0; i < recyclables.Length; i++)

@@ -13,6 +13,15 @@ MonoBehaviour:
   m_Name: AssetBank
   m_EditorClassIdentifier: 
   _assets:
+  - Name: AudioSettings
+    Guid: c7866ee01425d6e489059177c2e87897
+    TypeName: BlueCheese.App.AudioSettings, BlueCheese.App, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    Tags:
+      _values:
+      - Audio
+    LoadMode: 0
+    BundleKey: 
   - Name: ExplodeFX
     Guid: c0228b673e6aee84985c1e290433b5bd
     TypeName: BlueCheese.App.FXDef, BlueCheese.App, Version=0.0.0.0, Culture=neutral,

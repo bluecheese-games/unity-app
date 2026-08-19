@@ -7,61 +7,68 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
-	public struct PoolOptions
-    {
-        public static PoolOptions Default = new()
-        {
-            UseContainer = true,
-            FillAmount = 0,
-            Capacity = GameObjectPool.DefaultCapacity,
-            Overflow = PoolOverflow.LogError,
-            DontDestroyOnLoad = false,
-            Factory = null
-        };
+	public struct PoolOptions : IEquatable<PoolOptions>
+	{
+		public static PoolOptions Default = new()
+		{
+			UseContainer = true,
+			FillAmount = 0,
+			Capacity = GameObjectPool.DefaultCapacity,
+			Overflow = PoolOverflow.LogError,
+			DontDestroyOnLoad = false,
+			Factory = null
+		};
 
-        /// <summary>
-        /// If true, the pool will use a container object to store the instances of this pool.
-        /// </summary>
-        public bool UseContainer;
+		/// <summary>
+		/// If true, the pool will use a container object to store the instances of this pool.
+		/// </summary>
+		public bool UseContainer;
 
-        /// <summary>
-        /// Automarically fills the pool with instances.
-        /// </summary>
-        public int FillAmount;
+		/// <summary>
+		/// Automarically fills the pool with instances.
+		/// </summary>
+		public int FillAmount;
 
-        /// <summary>
-        /// The capacity of the pool.
-        /// </summary>
-        public int Capacity;
+		/// <summary>
+		/// The capacity of the pool.
+		/// </summary>
+		public int Capacity;
 
-        /// <summary>
-        /// The policy to handle the overflow of the pool.
-        /// </summary>
-        public PoolOverflow Overflow;
+		/// <summary>
+		/// The policy to handle the overflow of the pool.
+		/// </summary>
+		public PoolOverflow Overflow;
 
-        /// <summary>
-        /// If true, the pool will not be destroyed when a new scene is loaded.
-        /// </summary>
-        public bool DontDestroyOnLoad;
+		/// <summary>
+		/// If true, the pool will not be destroyed when a new scene is loaded.
+		/// </summary>
+		public bool DontDestroyOnLoad;
 
-        /// <summary>
-        /// The custom factory function to create new instances.
-        /// If not set, the pool will use the prefab to instantiate new instances.
-        /// </summary>
-        public Func<GameObject> Factory;
+		/// <summary>
+		/// The custom factory function to create new instances.
+		/// If not set, the pool will use the prefab to instantiate new instances.
+		/// </summary>
+		public Func<GameObject> Factory;
 
+		public readonly bool Equals(PoolOptions other) =>
+			UseContainer == other.UseContainer &&
+			FillAmount == other.FillAmount &&
+			Capacity == other.Capacity &&
+			Overflow == other.Overflow &&
+			DontDestroyOnLoad == other.DontDestroyOnLoad &&
+			Factory == other.Factory;
 	}
 
 	public enum PoolOverflow
-    {
-        /// <summary>
-        /// Ignore the pool capacity and returns a new instance anyway.
-        /// </summary>
-        Ignore,
+	{
+		/// <summary>
+		/// Ignore the pool capacity and returns a new instance anyway.
+		/// </summary>
+		Ignore,
 
-        /// <summary>
-        /// Returns a new instance and logs an error.
-        /// </summary>
+		/// <summary>
+		/// Returns a new instance and logs an error.
+		/// </summary>
 		LogError,
 
 		/// <summary>

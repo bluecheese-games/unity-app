@@ -9,10 +9,7 @@ namespace BlueCheese.App
 		public static UnityApp.Builder RegisterDefaultServices(this UnityApp.Builder builder)
 		{
 			builder.ServiceContainer.Register<IAudioService, AudioService>();
-			builder.ServiceContainer.Configure<AudioService.AudioSettings>((settings) =>
-			{
-				settings.AudioBankResourcePath = "Audio";
-			});
+			builder.ServiceContainer.Configure<AudioSettings>(() => AudioSettings.FromAssetBankOrDefault());
 			builder.ServiceContainer.Register<IRemoteConfigService, DefaultRemoteConfigService>();
 			builder.ServiceContainer.Register<ILocalStorageService, PlayerPrefsService>();
 			builder.ServiceContainer.Register<ICacheService, MemoryCacheService>();
@@ -31,12 +28,7 @@ namespace BlueCheese.App
 			builder.ServiceContainer.Register<ITrackingService, DebugTrackingService>();
 			builder.ServiceContainer.Register<IRandomService, DefaultRandomService>().AsTransient();
 			builder.ServiceContainer.Register<ILocalizationService, LocalizationService>();
-			builder.ServiceContainer.Configure<LocalizationService.Settings>((options) =>
-			{
-				var localizationOptions = LocalizationService.Settings.FromAssetBankOrDefault();
-				options.DefaultLanguage = localizationOptions.DefaultLanguage;
-				options.SupportedLanguages = localizationOptions.SupportedLanguages;
-			});
+			builder.ServiceContainer.Configure<LocalizationService.Settings>(() => LocalizationService.Settings.FromAssetBankOrDefault());
 			builder.ServiceContainer.Register<ITranslationService, TranslationService>();
 			builder.ServiceContainer.Register(typeof(ILogger<>), typeof(UnityLogger<>));
 			builder.ServiceContainer.Register<IFXService, FXService>();

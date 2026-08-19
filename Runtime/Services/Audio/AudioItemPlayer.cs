@@ -26,7 +26,6 @@ namespace BlueCheese.App
 		private void Awake()
 		{
 			_audioSource = GetComponent<AudioSource>();
-			DontDestroyOnLoad(gameObject);
 		}
 
 		private void LateUpdate()
@@ -133,7 +132,7 @@ namespace BlueCheese.App
 		private void Stop(bool raiseEvent = true)
 		{
 			PlayingItem = null;
-			_audioSource.Stop();
+			if (_audioSource != null) _audioSource.Stop();
 			_target = null;
 			if (raiseEvent)
 			{

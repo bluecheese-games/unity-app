@@ -75,6 +75,7 @@ namespace BlueCheese.App.Sample
 		private void Spawn()
 		{
 			_testPool.Spawn(5f);
+			_spawnSFX.Play();
 			return;
 
 			Log.Debug("Spawn", this);

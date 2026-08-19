@@ -41,12 +41,7 @@ namespace BlueCheese.App
 			container.Register<IHttpService, HttpService>();
 			container.Register<IHttpClient, UnityWebRequestHttpClient>();
 			container.Register<ILocalizationService, LocalizationService>();
-			container.Configure<LocalizationService.Settings>((options) =>
-			{
-				var editorOptions = LocalizationService.Settings.FromAssetBankOrDefault();
-				options.DefaultLanguage = editorOptions.DefaultLanguage;
-				options.SupportedLanguages = editorOptions.SupportedLanguages;
-			});
+			container.Configure<LocalizationService.Settings>(() => LocalizationService.Settings.FromAssetBankOrDefault());
 			container.Register<ITranslationService, EditorTranslationService>();
 			container.Register<EditorTranslationService>();
 			container.Register<IApp, EditorApp>();
