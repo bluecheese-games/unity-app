@@ -4,13 +4,21 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+[assembly: InternalsVisibleTo("BlueCheese.App.Tests")]
+
 namespace BlueCheese.App
 {
-
+	/// <summary>
+	/// Tracks the stack of currently-visible views (app-wide, via a single static list) and keeps input
+	/// focus on the most recently shown one. Registration happens automatically whenever a view is toggled
+	/// on/off through <see cref="ToggleableView"/> (see <see cref="ToggleableView.ToggleAsync"/>) or, as a
+	/// fallback, from <see cref="OnEnable"/> for views that get activated without going through Toggle.
+	/// </summary>
 	public class NavigableView : UIViewBehaviour
 	{
 		[SerializeField] private Button _defaultButton;
@@ -25,6 +33,17 @@ namespace BlueCheese.App
 
 		private static NavigableView _focusedView;
 		private static readonly List<NavigableView> _viewList = new();
+
+#if UNITY_EDITOR
+		// Test seam: the focus stack above is static (app-wide) by design, so it otherwise leaks state
+		// between unrelated unit tests running in the same Editor session. Mirrors AssetBank's
+		// ResetForTests()/InternalsVisibleTo pattern (see BlueCheese.Core.Utils.AssetBank).
+		internal static void ResetForTests()
+		{
+			_focusedView = null;
+			_viewList.Clear();
+		}
+#endif
 
 		public bool HasFocus { get; private set; }
 

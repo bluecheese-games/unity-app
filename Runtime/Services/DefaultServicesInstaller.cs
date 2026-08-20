@@ -15,6 +15,7 @@ namespace BlueCheese.App
 			builder.ServiceContainer.Register<ICacheService, MemoryCacheService>();
 			builder.ServiceContainer.Register<ISceneService, UnitySceneService>();
 			builder.ServiceContainer.Register<IUIService, UIService>();
+			builder.ServiceContainer.Configure<UISettings>(() => UISettings.FromAssetBankOrDefault());
 			builder.ServiceContainer.Register<IInputService, DefaultInputService>();
 			builder.ServiceContainer.Register<IAssetLoaderService, AssetService>();
 			builder.ServiceContainer.Register<IAssetFinderService, AssetService>();

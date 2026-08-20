@@ -120,6 +120,19 @@ MonoBehaviour:
     LastModified: 639185194443140114
     LastValidated: 0
     Status: 1
-  _lastModified: 639189440726667279
+  - Key: ui.exit_app
+    Translations:
+    - Language: 11
+      Value: Exit Application
+      AITranslated: 1
+      LastModified: 639228361011916267
+    - Language: 15
+      Value: Quitter l'application
+      AITranslated: 1
+      LastModified: 639228361011916267
+    LastModified: 639228361011916267
+    LastValidated: 0
+    Status: 1
+  _lastModified: 639228361011916267
   _sourceType: 
   _sourcePath: 

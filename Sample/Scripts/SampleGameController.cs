@@ -30,6 +30,7 @@ namespace BlueCheese.App.Sample
 		[SerializeField] private SoundFX _spawnSFX = "SphereSpawn";
 		[PoolOptions(Capacity = 20, FillAmount = 10, UseContainer = true)]
 		[SerializeField] private Pool<GameObject> _testPool;
+		[SerializeField] private UIViewRef _okPopup;
 
 		[Injectable] private IGameObjectPoolService _poolService;
 		[Injectable] private IRandomService _random;
@@ -103,6 +104,16 @@ namespace BlueCheese.App.Sample
 			_spawnSFX.Play();
 
 			pool.Despawn(spawnedInstance, _spawnLifetime);
+		}
+
+		public async void ShowExitPopup()
+		{
+			var popup = _okPopup.Spawn<Popup>();
+			var result = await popup.ShowAsync();
+			if (result == PopupResult.Ok)
+			{
+				Application.Quit();
+			}
 		}
 	}
 

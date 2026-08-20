@@ -6,6 +6,13 @@ using UnityEngine;
 
 namespace BlueCheese.App
 {
+	/// <summary>
+	/// Toggles visibility via <see cref="CanvasGroup"/> (alpha/interactable/blocksRaycasts) instead of
+	/// SetActive, so the GameObject stays active while hidden. This is the natural place to plug in a fade
+	/// transition: override <c>PlayShowTransitionAsync</c>/<c>PlayHideTransitionAsync</c> from
+	/// <see cref="ToggleableView"/> to animate <see cref="CanvasGroup.alpha"/> over time instead of the
+	/// instant 0/1 jump applied by <see cref="ToggleOn"/>/<see cref="ToggleOff"/> below.
+	/// </summary>
 	public class CanvasGroupToggleableView : ToggleableView
 	{
 		[SerializeField] private CanvasGroup _canvasGroup;

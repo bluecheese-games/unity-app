@@ -3,6 +3,7 @@
 //
 
 using BlueCheese.Core.DI;
+using Cysharp.Threading.Tasks;
 
 namespace BlueCheese.App
 {
@@ -23,6 +24,16 @@ namespace BlueCheese.App
 		public virtual void Show() => ToggleableView.Toggle(true);
 
 		public virtual void Hide() => ToggleableView.Toggle(false);
+
+		/// <summary>
+		/// Shows the view and awaits its show transition (see <see cref="ToggleableView.ToggleAsync"/>).
+		/// </summary>
+		public virtual UniTask ShowAsync() => ToggleableView.ToggleAsync(true);
+
+		/// <summary>
+		/// Hides the view and awaits its hide transition (see <see cref="ToggleableView.ToggleAsync"/>).
+		/// </summary>
+		public virtual UniTask HideAsync() => ToggleableView.ToggleAsync(false);
 
 		public virtual void Destroy()
 		{

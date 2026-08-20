@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d74a8c844c9d1bb4bb0be65f1e844b06, type: 3}
+  m_Name: OKPopupView
+  m_EditorClassIdentifier: BlueCheese.App::BlueCheese.App.UIViewDef
+  Name: OkPopupView
+  Tags:
+    _values:
+    - UI
+  RegisterInAssetBank: 1
+  LoadMode: 0
+  BundleKey: 
+  ViewPrefab: {fileID: 8878719291231759606, guid: c7cb5bc1c5520e84f8dbafebf1e2c471, type: 3}
+  Prewarm: 0
+  PrewarmPoolSize: 1
+  Capacity: 10
+  Overflow: 1
+  DontDestroyOnLoad: 0

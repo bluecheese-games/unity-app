@@ -3,7 +3,8 @@
     "rootNamespace": "BlueCheese.App.Sample",
     "references": [
         "GUID:f6ecf9bcf81d8e245a50ec0ac247ad60",
-        "GUID:e5c6ae23fb900a946894d0e9dca31f1d"
+        "GUID:e5c6ae23fb900a946894d0e9dca31f1d",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

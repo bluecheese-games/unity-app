@@ -49,6 +49,15 @@ MonoBehaviour:
       - Localization
     LoadMode: 0
     BundleKey: 
+  - Name: OkPopupView
+    Guid: a2d29ea2293957246a36ec579fc1521c
+    TypeName: BlueCheese.App.UIViewDef, BlueCheese.App, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    Tags:
+      _values:
+      - UI
+    LoadMode: 0
+    BundleKey: 
   - Name: SampleConfig
     Guid: 3fd7c9cd3f91d3f4c866f370fe2ad6c9
     TypeName: BlueCheese.Core.Config.ConfigAsset, BlueCheese.Core, Version=0.0.0.0,
@@ -85,3 +94,11 @@ MonoBehaviour:
       - Localization
     LoadMode: 1
     BundleKey: Localization
+  - Name: UISettings
+    Guid: 7dea7b7c967f14d4795d4259971c8c7e
+    TypeName: BlueCheese.App.UISettings, BlueCheese.App, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    Tags:
+      _values: []
+    LoadMode: 0
+    BundleKey: 
