@@ -1604,22 +1604,7 @@ namespace BlueCheese.App.Editor
 		private void ApplyMostProbable(TItem item, AITranslationResult result)
 		{
 			Undo.RecordObject(Asset, "AI Translate");
-
-			if (Asset.IsLanguageSupported(_defaultLanguage)
-				&& string.IsNullOrEmpty(Asset.GetTranslation(item.Key, _defaultLanguage))
-				&& !string.IsNullOrEmpty(result.GeneratedSource))
-			{
-				Asset.SetTranslation(_defaultLanguage, item.Key, result.GeneratedSource, aiTranslated: true);
-			}
-
-			foreach (var entry in result.Entries)
-			{
-				if (entry.Language == _defaultLanguage || !Asset.IsLanguageSupported(entry.Language) || entry.Options.Count == 0)
-				{
-					continue;
-				}
-				Asset.SetTranslation(entry.Language, item.Key, entry.Options[0], aiTranslated: true);
-			}
+			AITranslationApplier.ApplyMostProbable(Asset, item, _defaultLanguage, result);
 			AfterMutation();
 		}
 

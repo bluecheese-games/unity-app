@@ -25,11 +25,24 @@ namespace BlueCheese.App
 			_runtimeDef = fxDef;
 		}
 
-		public readonly FXDef Def => _runtimeDef != null ? _runtimeDef : _fxDef.Asset;
+		public FXDef Def
+		{
+			get
+			{
+				if (_runtimeDef == null)
+				{
+					if (!_fxDef.Load(out _runtimeDef))
+					{
+						Debug.LogWarning($"FXDef not found for FX: {_fxDef.Guid}");
+					}
+				}
+				return _runtimeDef;
+			}
+		}
 
-		private readonly FXInstance CreateInstance() => ServiceLocator.Resolve<IFXService>().CreateFX(Def);
+		private FXInstance CreateInstance() => ServiceLocator.Resolve<IFXService>().CreateFX(Def);
 
-		public readonly FXInstance Play(Transform target, Vector3 offset = default, float scale = 1f)
+		public FXInstance Play(Transform target, Vector3 offset = default, float scale = 1f)
 		{
 			if (!IsValid)
 			{
@@ -43,7 +56,7 @@ namespace BlueCheese.App
 			return instance;
 		}
 
-		public readonly FXInstance Play(Vector3 position, Quaternion rotation = default, float scale = 1f)
+		public FXInstance Play(Vector3 position, Quaternion rotation = default, float scale = 1f)
 		{
 			if (!IsValid)
 			{
@@ -57,14 +70,9 @@ namespace BlueCheese.App
 			return instance;
 		}
 
-		public readonly bool IsValid
-		{
-			get
-			{
-				var def = Def;
-				return def != null && def.IsValid;
-			}
-		}
+		public bool IsValid => Def != null && Def.IsValid;
+
+		public readonly void Release() => _fxDef.Release();
 
 		public static implicit operator FX(FXDef fxDef) => new(fxDef);
 		public static implicit operator FXDef(FX fx) => fx.Def;

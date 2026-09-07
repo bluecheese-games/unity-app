@@ -307,7 +307,7 @@ namespace BlueCheese.App.Editor
 		#endregion
 
 		// Rough UI character budget from the TMP field size and font size (0 = unknown/unconstrained).
-		private static int EstimateMaxChars(Component component)
+		internal static int EstimateMaxChars(Component component)
 		{
 			var tmp = component.GetComponent<TMP_Text>();
 			if (tmp == null || tmp.enableAutoSizing)
@@ -331,7 +331,7 @@ namespace BlueCheese.App.Editor
 
 		// Collects the text values of other TMP_Text components under the same parent object,
 		// to give the AI nearby-UI context (e.g. neighbouring labels/buttons).
-		private static string[] GatherSiblingTexts(Component component)
+		internal static string[] GatherSiblingTexts(Component component)
 		{
 			var parent = component.transform.parent;
 			if (parent == null)
@@ -358,7 +358,7 @@ namespace BlueCheese.App.Editor
 			return texts.ToArray();
 		}
 
-		private static string GetHierarchyPath(Transform transform)
+		internal static string GetHierarchyPath(Transform transform)
 		{
 			var parts = new List<string>();
 			while (transform != null)

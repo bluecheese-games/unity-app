@@ -3,9 +3,11 @@
 //
 
 using BlueCheese.Core.Editor;
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace BlueCheese.App.Editor
@@ -15,6 +17,11 @@ namespace BlueCheese.App.Editor
 	{
 		private const float Spacing = 2f;
 		private const float OpenButtonWidth = 28f;
+		private const float AIButtonWidth = 24f;
+
+		// Keyed by target instance id so the button can only fire once per component while a request
+		// is in flight (a drawer instance may be reused across different targets/repaints).
+		private static readonly HashSet<int> _aiBusyInstanceIds = new();
 
 		private static string[] GetKeys() => EditorServiceLocator.Resolve<EditorTranslationService>().GetAllKeys();
 
@@ -59,7 +66,9 @@ namespace BlueCheese.App.Editor
 			const float prefixPaddingRight = 2f;
 			float labelWidth = EditorGUIUtility.labelWidth;
 			var labelRect = new Rect(firstLine.x, firstLine.y, labelWidth, line);
-			var fieldRect = new Rect(firstLine.x + labelWidth + prefixPaddingRight, firstLine.y, firstLine.width - labelWidth - prefixPaddingRight, line);
+			// The AI button always claims space at the row's right edge, whether or not a key is set yet.
+			var aiButtonRect = new Rect(firstLine.xMax - AIButtonWidth, firstLine.y, AIButtonWidth, line);
+			var fieldRect = new Rect(firstLine.x + labelWidth + prefixPaddingRight, firstLine.y, firstLine.width - labelWidth - prefixPaddingRight - AIButtonWidth - Spacing, line);
 
 			EditorGUI.LabelField(labelRect, label);
 
@@ -78,6 +87,7 @@ namespace BlueCheese.App.Editor
 			}
 
 			DrawKeyFieldWithOpen(fieldRect, keyProperty, GUIContent.none, choices, choiceLabels, keys, CreateNew);
+			DrawAIButton(aiButtonRect, property, keyProperty);
 
 			if (valid && property.isExpanded)
 			{
@@ -231,6 +241,125 @@ namespace BlueCheese.App.Editor
 			{
 				TranslationTableWindow.Open(table, key);
 			}
+		}
+
+		// AI: tries to match an existing key (using maximum context) or propose new key candidates.
+		private static void DrawAIButton(Rect rect, SerializedProperty property, SerializedProperty keyProperty)
+		{
+			int instanceId = property.serializedObject.targetObject.GetInstanceID();
+			bool busy = _aiBusyInstanceIds.Contains(instanceId);
+
+			using (new EditorGUI.DisabledScope(busy))
+			{
+				if (GUI.Button(rect, new GUIContent(busy ? "…" : "✨", "AI: find or create a matching translation key")))
+				{
+					OnClickAIMatch(property, keyProperty, instanceId);
+				}
+			}
+		}
+
+		private static void OnClickAIMatch(SerializedProperty property, SerializedProperty keyProperty, int instanceId)
+		{
+			var settings = AITranslationSettings.GetOrNull();
+			if (settings == null)
+			{
+				if (EditorUtility.DisplayDialog("AI Translation", "No AI Translation Settings found. Create one now?", "Create", "Cancel"))
+				{
+					AITranslationSettings.Open();
+				}
+				return;
+			}
+			if (settings.Provider == AITranslationProviderKind.None)
+			{
+				EditorUtility.DisplayDialog("AI Translation", "No AI provider selected. Choose one in the AI Translation Settings.", "Ok");
+				AITranslationSettings.Open();
+				return;
+			}
+			if (string.IsNullOrEmpty(AITranslationSettings.GetApiKey(settings.Provider)))
+			{
+				EditorUtility.DisplayDialog("AI Translation", $"Set your {settings.Provider} API key in the AI Translation Settings first.", "Ok");
+				AITranslationSettings.Open();
+				return;
+			}
+			if (property.serializedObject.targetObject is not Component component)
+			{
+				return;
+			}
+
+			var service = EditorServiceLocator.Resolve<EditorTranslationService>();
+			var defaultLanguage = service.DefaultLanguage;
+			var sourceText = GetSourceText(property);
+			var existingKeys = AIKeyMatchContextBuilder.BuildExistingKeysGlossary(service, defaultLanguage);
+			var request = AIKeyMatchContextBuilder.Build(component, sourceText, defaultLanguage, existingKeys, settings);
+
+			// The SerializedProperty/SerializedObject must NOT be captured across this async call: Unity
+			// may rebuild or dispose them before the response arrives, and touching a stale one throws
+			// from native code even after a null-check. Keep only the plain component reference (whose
+			// `== null` check is safe) and the property path, and rebuild a fresh SerializedObject later.
+			var keyPropertyPath = keyProperty.propertyPath;
+
+			_aiBusyInstanceIds.Add(instanceId);
+			AIProviders.Create(settings).MatchKey(request, result =>
+			{
+				_aiBusyInstanceIds.Remove(instanceId);
+				InternalEditorUtility.RepaintAllViews();
+				HandleMatchResult(component, keyPropertyPath, result, settings, defaultLanguage);
+			});
+		}
+
+		private static void HandleMatchResult(Component component, string keyPropertyPath, AIKeyMatchResult result, AITranslationSettings settings, Language defaultLanguage)
+		{
+			if (component == null)
+			{
+				return; // the inspected object was destroyed/unloaded while the request was in flight
+			}
+
+			if (!result.Success)
+			{
+				EditorUtility.DisplayDialog("AI Key Match", "Failed:\n" + result.Error, "Ok");
+				return;
+			}
+
+			if (!string.IsNullOrEmpty(result.MatchedKey))
+			{
+				var service = EditorServiceLocator.Resolve<EditorTranslationService>();
+				var table = service.GetTranslationTableAssets().FirstOrDefault(t => t != null && t.Keys != null && t.Keys.Contains(result.MatchedKey));
+				var defaultText = table != null ? table.GetTranslation(result.MatchedKey, defaultLanguage) : string.Empty;
+
+				var message = $"Key: {result.MatchedKey}\nDefault text: \"{defaultText}\"";
+				if (!string.IsNullOrEmpty(result.MatchReason))
+				{
+					message += $"\n\nReason: {result.MatchReason}";
+				}
+
+				if (EditorUtility.DisplayDialog("AI Key Match", message, "Use this key", "Cancel"))
+				{
+					ApplyKey(component, keyPropertyPath, result.MatchedKey);
+				}
+				return;
+			}
+
+			if (result.NewKeySuggestions.Count == 0)
+			{
+				EditorUtility.DisplayDialog("AI Key Match", "The AI did not return a match or any new key suggestion.", "Ok");
+				return;
+			}
+
+			AIKeySuggestionWindow.Open(component, keyPropertyPath, result.NewKeySuggestions, settings, defaultLanguage);
+		}
+
+		// Rebuilds a fresh SerializedObject from the still-live component rather than reusing a
+		// SerializedProperty captured before the async AI round-trip (see the comment in OnClickAIMatch).
+		private static void ApplyKey(Component component, string keyPropertyPath, string key)
+		{
+			var serializedObject = new SerializedObject(component);
+			var property = serializedObject.FindProperty(keyPropertyPath);
+			if (property == null)
+			{
+				return;
+			}
+			property.stringValue = key;
+			serializedObject.ApplyModifiedProperties();
 		}
 
 		// Robustly resolves the source text to seed the default-language translation.

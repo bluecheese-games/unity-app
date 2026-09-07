@@ -56,8 +56,38 @@ namespace BlueCheese.App.Editor
 	{
 		void Translate(AITranslationRequest request, Action<AITranslationResult> onComplete);
 
+		/// <summary>Finds the best existing key for a text, or proposes new key candidates.</summary>
+		void MatchKey(AIKeyMatchRequest request, Action<AIKeyMatchResult> onComplete);
+
 		/// <summary>Minimal round-trip to verify the endpoint/model/API key. onResult(success, message).</summary>
 		void TestConnection(Action<bool, string> onResult);
+	}
+
+	#endregion
+
+	#region Applying results
+
+	/// <summary>Shared logic to apply an <see cref="AITranslationResult"/> to a table item (no alternatives UI).</summary>
+	public static class AITranslationApplier
+	{
+		public static void ApplyMostProbable(TranslationTableAsset asset, TranslationTableAsset.TranslationItem item, Language defaultLanguage, AITranslationResult result)
+		{
+			if (asset.IsLanguageSupported(defaultLanguage)
+				&& string.IsNullOrEmpty(asset.GetTranslation(item.Key, defaultLanguage))
+				&& !string.IsNullOrEmpty(result.GeneratedSource))
+			{
+				asset.SetTranslation(defaultLanguage, item.Key, result.GeneratedSource, aiTranslated: true);
+			}
+
+			foreach (var entry in result.Entries)
+			{
+				if (entry.Language == defaultLanguage || !asset.IsLanguageSupported(entry.Language) || entry.Options.Count == 0)
+				{
+					continue;
+				}
+				asset.SetTranslation(entry.Language, item.Key, entry.Options[0], aiTranslated: true);
+			}
+		}
 	}
 
 	#endregion
@@ -321,6 +351,37 @@ namespace BlueCheese.App.Editor
 				error => onComplete(AITranslationResult.Fail(error)));
 		}
 
+		public void MatchKey(AIKeyMatchRequest request, Action<AIKeyMatchResult> onComplete)
+		{
+			if (string.IsNullOrEmpty(_apiKey))
+			{
+				onComplete(AIKeyMatchResult.Fail("No Anthropic API key set (see AI Translation Settings)."));
+				return;
+			}
+
+			var body = new Body
+			{
+				model = _model,
+				max_tokens = 4096,
+				system = AIKeyMatchPrompt.BuildSystem(request),
+				messages = new[] { new Msg { role = "user", content = AIKeyMatchPrompt.BuildUser(request) } },
+			};
+
+			EditorWebRequest.Post(Endpoint, JsonUtility.ToJson(body),
+				new[] { ("x-api-key", _apiKey), ("anthropic-version", AnthropicVersion) },
+				(text, _) =>
+				{
+					try
+					{
+						var response = JsonUtility.FromJson<Response>(text);
+						var content = response?.content != null && response.content.Length > 0 ? response.content[0].text : null;
+						onComplete(AIKeyMatchPrompt.Parse(content));
+					}
+					catch (Exception e) { onComplete(AIKeyMatchResult.Fail(e.Message)); }
+				},
+				error => onComplete(AIKeyMatchResult.Fail(error)));
+		}
+
 		public void TestConnection(Action<bool, string> onResult)
 		{
 			if (string.IsNullOrEmpty(_apiKey))
@@ -414,6 +475,39 @@ namespace BlueCheese.App.Editor
 					catch (Exception e) { onComplete(AITranslationResult.Fail(e.Message)); }
 				},
 				error => onComplete(AITranslationResult.Fail(error)));
+		}
+
+		public void MatchKey(AIKeyMatchRequest request, Action<AIKeyMatchResult> onComplete)
+		{
+			if (string.IsNullOrEmpty(_apiKey))
+			{
+				onComplete(AIKeyMatchResult.Fail("No Gemini API key set (see AI Translation Settings)."));
+				return;
+			}
+
+			var url = string.Format(EndpointFormat, _model, UnityWebRequest.EscapeURL(_apiKey));
+			var body = new Body
+			{
+				systemInstruction = new SystemInstruction { parts = new[] { new Part { text = AIKeyMatchPrompt.BuildSystem(request) } } },
+				contents = new[] { new Content { role = "user", parts = new[] { new Part { text = AIKeyMatchPrompt.BuildUser(request) } } } },
+				generationConfig = new GenConfig { responseMimeType = "application/json" },
+			};
+
+			EditorWebRequest.Post(url, JsonUtility.ToJson(body), null,
+				(text, _) =>
+				{
+					try
+					{
+						var response = JsonUtility.FromJson<Response>(text);
+						var part = response?.candidates != null && response.candidates.Length > 0
+							&& response.candidates[0].content?.parts != null && response.candidates[0].content.parts.Length > 0
+							? response.candidates[0].content.parts[0].text
+							: null;
+						onComplete(AIKeyMatchPrompt.Parse(part));
+					}
+					catch (Exception e) { onComplete(AIKeyMatchResult.Fail(e.Message)); }
+				},
+				error => onComplete(AIKeyMatchResult.Fail(error)));
 		}
 
 		public void TestConnection(Action<bool, string> onResult)

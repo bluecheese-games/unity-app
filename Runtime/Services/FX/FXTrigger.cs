@@ -32,5 +32,10 @@ namespace BlueCheese.App
 				_fx.Play(_target, _offset, _scale);
 			}
 		}
+
+		private void OnDestroy()
+		{
+			_fx.Release();
+		}
 	}
 }

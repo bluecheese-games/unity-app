@@ -133,6 +133,32 @@ MonoBehaviour:
     LastModified: 639228361011916267
     LastValidated: 0
     Status: 1
-  _lastModified: 639228361011916267
+  - Key: ui.common.ok
+    Translations:
+    - Language: 11
+      Value: OK
+      AITranslated: 1
+      LastModified: 639228392223737963
+    - Language: 15
+      Value: OK
+      AITranslated: 1
+      LastModified: 639228392231478724
+    LastModified: 639228392231478724
+    LastValidated: 0
+    Status: 1
+  - Key: ui.title.main
+    Translations:
+    - Language: 11
+      Value: Bluecheese Sample Project
+      AITranslated: 1
+      LastModified: 639228395003330675
+    - Language: 15
+      Value: 
+      AITranslated: 0
+      LastModified: 639228395003330675
+    LastModified: 639228395003330675
+    LastValidated: 0
+    Status: 1
+  _lastModified: 639228395003330675
   _sourceType: 
   _sourcePath: 

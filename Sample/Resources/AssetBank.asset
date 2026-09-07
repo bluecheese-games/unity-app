@@ -99,6 +99,7 @@ MonoBehaviour:
     TypeName: BlueCheese.App.UISettings, BlueCheese.App, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
     Tags:
-      _values: []
+      _values:
+      - UI
     LoadMode: 0
     BundleKey: 

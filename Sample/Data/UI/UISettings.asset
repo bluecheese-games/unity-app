@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: BlueCheese.App::BlueCheese.App.UISettings
   Name: UISettings
   Tags:
-    _values: []
+    _values:
+    - UI
   RegisterInAssetBank: 1
   LoadMode: 0
   BundleKey: 
