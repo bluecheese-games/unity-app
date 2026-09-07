@@ -1,8 +1,4 @@
-//
-// Copyright (c) 2026 BlueCheese Games All rights reserved
-//
-
-using BlueCheese.Core.DI;
+﻿using BlueCheese.Core.DI;
 using Cysharp.Threading.Tasks;
 
 namespace BlueCheese.App

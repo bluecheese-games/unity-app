@@ -1,12 +1,4 @@
-//
-// Copyright (c) 2026 BlueCheese Games All rights reserved
-//
-
-// 
-//  Copyright (c) 2024 Pierre Martin All rights reserved
-// 
-
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace BlueCheese.App

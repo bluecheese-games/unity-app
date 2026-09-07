@@ -1,8 +1,4 @@
-//
-// Copyright (c) 2026 BlueCheese Games All rights reserved
-//
-
-using TMPro;
+﻿using TMPro;
 using UnityEditor;
 
 namespace BlueCheese.App.Editor

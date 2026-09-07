@@ -1,8 +1,4 @@
-//
-// Copyright (c) 2026 BlueCheese Games All rights reserved
-//
-
-namespace BlueCheese.App.Editor
+﻿namespace BlueCheese.App.Editor
 {
 	/// <summary>
 	/// An external translation store that a <see cref="TranslationTableAsset"/> can sync with.

@@ -1,8 +1,4 @@
-//
-// Copyright (c) 2026 BlueCheese Games All rights reserved
-//
-
-using System.Net;
+﻿using System.Net;
 
 namespace BlueCheese.App
 {

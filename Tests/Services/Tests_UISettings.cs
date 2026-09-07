@@ -1,8 +1,4 @@
-//
-// Copyright (c) 2026 BlueCheese Games All rights reserved
-//
-
-using BlueCheese.App;
+﻿using BlueCheese.App;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UI;
