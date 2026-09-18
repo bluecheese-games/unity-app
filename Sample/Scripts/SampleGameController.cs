@@ -27,6 +27,7 @@ namespace BlueCheese.App.Sample
 		[PoolOptions(Capacity = 20, FillAmount = 10, UseContainer = true)]
 		[SerializeField] private Pool<GameObject> _testPool;
 		[SerializeField] private UIViewRef _okPopup;
+		[SerializeField] private SceneRef _scene;
 
 		[Injectable] private IGameObjectPoolService _poolService;
 		[Injectable] private IRandomService _random;
@@ -59,6 +60,11 @@ namespace BlueCheese.App.Sample
 			if (_input.GetButtonDown("Jump"))
 			{
 				Spawn();
+			}
+
+			if (_input.GetButtonDown("Fire2"))
+			{
+				_scene.Load();
 			}
 
 			int usedItems = 0;

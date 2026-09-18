@@ -159,6 +159,19 @@ MonoBehaviour:
     LastModified: 639228395003330675
     LastValidated: 0
     Status: 1
-  _lastModified: 639228395003330675
+  - Key: gamecontroller.status
+    Translations:
+    - Language: 11
+      Value: Game Controller Status
+      AITranslated: 1
+      LastModified: 639252580707754913
+    - Language: 15
+      Value: "\xC9tat du contr\xF4leur de jeu"
+      AITranslated: 1
+      LastModified: 639252580907628853
+    LastModified: 639252580907628853
+    LastValidated: 0
+    Status: 1
+  _lastModified: 639252580907628853
   _sourceType: 
   _sourcePath: 

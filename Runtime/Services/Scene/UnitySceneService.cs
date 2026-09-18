@@ -1,35 +1,89 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using BlueCheese.Core.Signals;
+using System.Collections.Generic;
 
 namespace BlueCheese.App
 {
-    public class UnitySceneService : ISceneService
-    {
-        public void Load(string sceneName, object payload = null)
-        {
-            string exitingSceneName = SceneManager.GetActiveScene().name;
-            SignalAPI.Publish(new ExitSceneSignal(exitingSceneName, sceneName, payload));
-            SceneManager.LoadScene(sceneName);
-            SignalAPI.Publish(new EnterSceneSignal(sceneName, exitingSceneName, payload));
-        }
+	public class UnitySceneService : ISceneService
+	{
+		private readonly ILogger<UnitySceneService> _logger;
 
-		public async UniTask LoadAsync(string sceneName, object payload = null)
-        {
-            string exitingSceneName = SceneManager.GetActiveScene().name;
-            await SignalAPI.PublishAsync(new ExitSceneSignal(exitingSceneName, sceneName, payload));
-            await SceneManager.LoadSceneAsync(sceneName).ToUniTask();
-            await SignalAPI.PublishAsync(new EnterSceneSignal(sceneName, exitingSceneName, payload));
+		public UnitySceneService(ILogger<UnitySceneService> logger)
+		{
+			_logger = logger;
 		}
 
-		public async UniTask LoadAdditiveAsync(string sceneName)
+		public void Load(SceneRef scene, object payload = null)
 		{
-            await SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive).ToUniTask();
+			if (!scene.IsValid)
+			{
+				_logger.LogError($"Invalid scene reference: {scene}");
+				return;
+			}
+
+			SceneRef currentScene = SceneManager.GetActiveScene().name;
+			if (currentScene == scene)
+			{
+				_logger.LogWarning($"Attempted to load the same scene: {scene}");
+				return;
+			}
+
+			SignalAPI.Publish(new ExitSceneSignal(currentScene, scene, payload));
+			SceneManager.LoadScene(scene);
+			SignalAPI.Publish(new EnterSceneSignal(scene, currentScene, payload));
 		}
 
-		public async UniTask UnloadAsync(string sceneName)
+		public async UniTask LoadAsync(SceneRef scene, object payload = null)
 		{
-            await SceneManager.UnloadSceneAsync(sceneName).ToUniTask();
+			if (!scene.IsValid)
+			{
+				_logger.LogError($"Invalid scene reference: {scene}");
+				return;
+			}
+
+			SceneRef currentScene = SceneManager.GetActiveScene().name;
+			if (currentScene == scene)
+			{
+				_logger.LogWarning($"Attempted to load the same scene: {scene}");
+				return;
+			}
+
+			await SignalAPI.PublishAsync(new ExitSceneSignal(currentScene, scene, payload));
+			await SceneManager.LoadSceneAsync(scene).ToUniTask();
+			await SignalAPI.PublishAsync(new EnterSceneSignal(scene, currentScene, payload));
+		}
+
+		public async UniTask LoadAdditiveAsync(SceneRef scene)
+		{
+			if (!scene.IsValid)
+			{
+				_logger.LogError($"Invalid scene reference: {scene}");
+				return;
+			}
+
+			await SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive).ToUniTask();
+		}
+
+		public async UniTask UnloadAsync(SceneRef scene)
+		{
+			if (!scene.IsValid)
+			{
+				_logger.LogError($"Invalid scene reference: {scene}");
+				return;
+			}
+
+			await SceneManager.UnloadSceneAsync(scene).ToUniTask();
+		}
+
+		public SceneRef CurrentScene => SceneManager.GetActiveScene().name;
+
+		public IEnumerable<SceneRef> GetLoadedScenes()
+		{
+			for (int i = 0; i < SceneManager.sceneCount; i++)
+			{
+				yield return SceneManager.GetSceneAt(i).name;
+			}
 		}
 	}
 }
