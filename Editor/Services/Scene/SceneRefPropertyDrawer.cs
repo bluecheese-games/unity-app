@@ -20,16 +20,14 @@ namespace BlueCheese.App.Editor
 		{
 			EditorGUI.BeginProperty(position, label, property);
 
-			// Draw the label
-			EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+			// Draw the label, then let the field fill the remaining (narrowed) rect.
+			var fieldRect = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
 
 			// Draw the scene reference field
 			var nameProperty = property.FindPropertyRelative(nameof(SceneRef.Name));
 			var sceneNames = GetSceneNames().ToArray();
 
-			var fieldRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
-
-			EditorGUIHelper.DrawSearchableKeyProperty(fieldRect, nameProperty, label, sceneNames, sceneNames);
+			EditorGUIHelper.DrawSearchableKeyProperty(fieldRect, nameProperty, GUIContent.none, sceneNames, sceneNames);
 
 			EditorGUI.EndProperty();
 		}

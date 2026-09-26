@@ -16,8 +16,7 @@ MonoBehaviour:
   Tags:
     _values:
     - Localization
-  RegisterInAssetBank: 1
-  LoadMode: 1
+  LoadMode: 2
   BundleKey: Localization
   _items:
   - {fileID: 11400000, guid: a81161296f133ed41b418ff401241837, type: 2}

@@ -16,8 +16,7 @@ MonoBehaviour:
   Tags:
     _values:
     - Config
-  RegisterInAssetBank: 1
-  LoadMode: 1
+  LoadMode: 2
   BundleKey: Config
   Items:
   - Key: TestKey

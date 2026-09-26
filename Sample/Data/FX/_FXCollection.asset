@@ -16,8 +16,7 @@ MonoBehaviour:
   Tags:
     _values:
     - FX
-  RegisterInAssetBank: 1
-  LoadMode: 1
+  LoadMode: 2
   BundleKey: FX
   _items:
   - {fileID: 11400000, guid: c0228b673e6aee84985c1e290433b5bd, type: 2}

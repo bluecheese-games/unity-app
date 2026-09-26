@@ -16,9 +16,8 @@ MonoBehaviour:
   Tags:
     _values:
     - UI
-  RegisterInAssetBank: 1
-  LoadMode: 0
-  BundleKey: 
+  LoadMode: 1
+  BundleKey:
   Canvas:
     UiScaleMode: 1
     ReferenceResolution: {x: 1920, y: 1080}

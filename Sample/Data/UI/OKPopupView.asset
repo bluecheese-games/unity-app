@@ -16,9 +16,8 @@ MonoBehaviour:
   Tags:
     _values:
     - UI
-  RegisterInAssetBank: 1
-  LoadMode: 0
-  BundleKey: 
+  LoadMode: 1
+  BundleKey:
   ViewPrefab: {fileID: 8878719291231759606, guid: c7cb5bc1c5520e84f8dbafebf1e2c471, type: 3}
   Prewarm: 0
   PrewarmPoolSize: 1

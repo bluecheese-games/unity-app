@@ -194,7 +194,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Force
+  m_text: Strength
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -504,7 +504,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Projet D\xE9mo Bluecheese"
+  m_text: Bluecheese Sample Project
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -821,8 +821,17 @@ MonoBehaviour:
   _okPopup:
     _viewDef:
       Guid: a2d29ea2293957246a36ec579fc1521c
-  _scene:
+  _sceneTest:
     Name: CommandSyncSample
+  _testItem:
+    _collection: {fileID: 11400000, guid: 235ff34154c644a4c872eaebb2b7dc7f, type: 2}
+    _item: {fileID: 7658002209671511108, guid: c77e1f5b32f16d840b20e342b5aa4018, type: 3}
+  _testItems:
+    _collection: {fileID: 11400000, guid: 235ff34154c644a4c872eaebb2b7dc7f, type: 2}
+    _items:
+    - {fileID: 7658002209671511108, guid: c77e1f5b32f16d840b20e342b5aa4018, type: 3}
+    - {fileID: 3670112285062335086, guid: 1cd8672ec8f89fa458695abe4a57840d, type: 3}
+    - {fileID: 1782572614288478433, guid: b592897c0f5b5764680baaaa8f45f773, type: 3}
 --- !u!4 &874103958
 Transform:
   m_ObjectHideFlags: 0
@@ -1010,7 +1019,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Selon le livre et le film H2G2, la r\xE9ponse ultime \xE0 la vie est :"
+  m_text: 'According to the book and the movie H2G2, the ultimate answer to life
+    is:'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1166,7 +1176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Sph\xE8res : 0"
+  m_text: 'Spheres: 0'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1348,7 +1358,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Truc
+  m_text: Foo
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1795,7 +1805,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Sant\xE9"
+  m_text: Health
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

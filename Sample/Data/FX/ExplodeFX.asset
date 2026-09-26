@@ -16,8 +16,7 @@ MonoBehaviour:
   Tags:
     _values:
     - FX
-  RegisterInAssetBank: 1
-  LoadMode: 1
+  LoadMode: 2
   BundleKey: FX
   Prefab: {fileID: 4298575415737741924, guid: 05bcca53a5b0a5342a0db73b87e105ca, type: 3}
   OverrideDuration: 0
