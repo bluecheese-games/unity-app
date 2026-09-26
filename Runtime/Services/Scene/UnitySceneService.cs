@@ -62,6 +62,15 @@ namespace BlueCheese.App
 				return;
 			}
 
+			// Mirrors Load()/LoadAsync()'s own "already there" guard, which single-mode loading has always
+			// had -- additive load/unload never did, so a caller couldn't safely call these unconditionally
+			// (e.g. a screen that might already be the one the app was launched directly into).
+			if (SceneManager.GetSceneByName(scene).isLoaded)
+			{
+				_logger.LogWarning($"Attempted to additively load an already-loaded scene: {scene}");
+				return;
+			}
+
 			await SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive).ToUniTask();
 		}
 
@@ -70,6 +79,12 @@ namespace BlueCheese.App
 			if (!scene.IsValid)
 			{
 				_logger.LogError($"Invalid scene reference: {scene}");
+				return;
+			}
+
+			if (!SceneManager.GetSceneByName(scene).isLoaded)
+			{
+				_logger.LogWarning($"Attempted to unload a scene that isn't loaded: {scene}");
 				return;
 			}
 
