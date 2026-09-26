@@ -20,8 +20,9 @@ MonoBehaviour:
     Tags:
       _values:
       - Audio
-    LoadMode: 0
+    LoadMode: 1
     BundleKey: 
+    DirectRef: {fileID: 11400000, guid: c7866ee01425d6e489059177c2e87897, type: 2}
   - Name: ExplodeFX
     Guid: c0228b673e6aee84985c1e290433b5bd
     TypeName: BlueCheese.App.FXDef, BlueCheese.App, Version=0.0.0.0, Culture=neutral,
@@ -29,8 +30,9 @@ MonoBehaviour:
     Tags:
       _values:
       - FX
-    LoadMode: 1
+    LoadMode: 2
     BundleKey: FX
+    DirectRef: {fileID: 0}
   - Name: FXCollection
     Guid: e9c01a8643525d34b82a4bcf213ea0ca
     TypeName: BlueCheese.App.FXCollection, BlueCheese.App, Version=0.0.0.0, Culture=neutral,
@@ -38,8 +40,9 @@ MonoBehaviour:
     Tags:
       _values:
       - FX
-    LoadMode: 1
+    LoadMode: 2
     BundleKey: FX
+    DirectRef: {fileID: 0}
   - Name: LocalizationSettings
     Guid: 2fd14a188312c1f4b86cfafb706695f8
     TypeName: BlueCheese.App.LocalizationSettingsAsset, BlueCheese.App, Version=0.0.0.0,
@@ -47,8 +50,9 @@ MonoBehaviour:
     Tags:
       _values:
       - Localization
-    LoadMode: 0
+    LoadMode: 1
     BundleKey: 
+    DirectRef: {fileID: 11400000, guid: 2fd14a188312c1f4b86cfafb706695f8, type: 2}
   - Name: OkPopupView
     Guid: a2d29ea2293957246a36ec579fc1521c
     TypeName: BlueCheese.App.UIViewDef, BlueCheese.App, Version=0.0.0.0, Culture=neutral,
@@ -56,8 +60,9 @@ MonoBehaviour:
     Tags:
       _values:
       - UI
-    LoadMode: 0
+    LoadMode: 1
     BundleKey: 
+    DirectRef: {fileID: 11400000, guid: a2d29ea2293957246a36ec579fc1521c, type: 2}
   - Name: SampleConfig
     Guid: 3fd7c9cd3f91d3f4c866f370fe2ad6c9
     TypeName: BlueCheese.Core.Config.ConfigAsset, BlueCheese.Core, Version=0.0.0.0,
@@ -65,8 +70,9 @@ MonoBehaviour:
     Tags:
       _values:
       - Config
-    LoadMode: 1
+    LoadMode: 2
     BundleKey: Config
+    DirectRef: {fileID: 0}
   - Name: SphereFX
     Guid: 606f0fc46252e1b47b1f48c1a4883b39
     TypeName: BlueCheese.App.FXDef, BlueCheese.App, Version=0.0.0.0, Culture=neutral,
@@ -74,8 +80,9 @@ MonoBehaviour:
     Tags:
       _values:
       - FX
-    LoadMode: 1
+    LoadMode: 2
     BundleKey: FX
+    DirectRef: {fileID: 0}
   - Name: Spheres
     Guid: 235ff34154c644a4c872eaebb2b7dc7f
     TypeName: BlueCheese.Core.Utils.PrefabCollection, BlueCheese.Core, Version=0.0.0.0,
@@ -83,8 +90,9 @@ MonoBehaviour:
     Tags:
       _values:
       - Sphere
-    LoadMode: 1
+    LoadMode: 2
     BundleKey: 
+    DirectRef: {fileID: 0}
   - Name: TranslationTables
     Guid: 04683e4ab1b1b7c4ea3dc449ea3d98af
     TypeName: BlueCheese.App.TranslationTableCollection, BlueCheese.App, Version=0.0.0.0,
@@ -92,8 +100,9 @@ MonoBehaviour:
     Tags:
       _values:
       - Localization
-    LoadMode: 1
+    LoadMode: 2
     BundleKey: Localization
+    DirectRef: {fileID: 0}
   - Name: UISettings
     Guid: 7dea7b7c967f14d4795d4259971c8c7e
     TypeName: BlueCheese.App.UISettings, BlueCheese.App, Version=0.0.0.0, Culture=neutral,
@@ -101,5 +110,7 @@ MonoBehaviour:
     Tags:
       _values:
       - UI
-    LoadMode: 0
+    LoadMode: 1
     BundleKey: 
+    DirectRef: {fileID: 11400000, guid: 7dea7b7c967f14d4795d4259971c8c7e, type: 2}
+  _debugLogging: 1
