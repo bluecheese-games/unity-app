@@ -12,8 +12,11 @@
 			builder.ServiceContainer.Register<ISceneService, UnitySceneService>();
 			builder.ServiceContainer.Register<IUIService, UIService>();
 			builder.ServiceContainer.Configure<UISettings>(() => UISettings.FromAssetBankOrDefault());
-			builder.ServiceContainer.Configure<ButtonSettings>(() => ButtonSettings.FromAssetBankOrDefault());
-			builder.ServiceContainer.Register<IInputService, DefaultInputService>();
+#if ENABLE_INPUT_SYSTEM
+			builder.ServiceContainer.Register<IInputService, InputSystemInputService>();
+#else
+			builder.ServiceContainer.Register<IInputService, LegacyInputService>();
+#endif
 			builder.ServiceContainer.Register<IAssetLoaderService, AssetService>();
 			builder.ServiceContainer.Register<IAssetFinderService, AssetService>();
 			builder.ServiceContainer.Register<IJsonService, JsonUtilityService>();

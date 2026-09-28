@@ -1,8 +1,15 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace BlueCheese.App
 {
-    public class DefaultInputService : IInputService
+    /// <summary>
+    /// <see cref="IInputService"/> backed by the legacy <see cref="UnityEngine.Input"/> class (the "Input
+    /// Manager (Old)" backend). Selected automatically by <see cref="DefaultServicesInstaller"/> unless the
+    /// project's Active Input Handling includes the new Input System package -- see
+    /// <see cref="InputSystemInputService"/> for that case. Throws at runtime if Active Input Handling is
+    /// set to "Input System Package (New)" only, since UnityEngine.Input is disabled entirely in that mode.
+    /// </summary>
+    public class LegacyInputService : IInputService
     {
         public bool GetButton(string actionName) => Input.GetButton(actionName);
 
