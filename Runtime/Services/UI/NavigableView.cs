@@ -59,6 +59,16 @@ namespace BlueCheese.App
 			}
 		}
 
+		// Symmetric counterpart to the OnEnable fallback above: a view that registered itself without going
+		// through ToggleableView.ToggleAsync(false) (e.g. a scene-placed view whose GameObject is destroyed
+		// outright by an additive scene unload, rather than explicitly hidden first) would otherwise leave a
+		// stale entry in the static view stack forever -- UnregisterView() is already a safe no-op for views
+		// that went through ToggleAsync(false) and were unregistered already.
+		private void OnDisable()
+		{
+			UnregisterView(this);
+		}
+
 		public void Focus(bool focus)
 		{
 			HasFocus = focus;
