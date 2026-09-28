@@ -47,8 +47,48 @@ namespace BlueCheese.App
 			}
 		}
 
+		/// <summary>
+		/// App-wide defaults for <see cref="UIButton"/>. Each nested section doubles as the payload type
+		/// for <see cref="UIButton"/>'s own per-button <c>Optional&lt;T&gt;</c> overrides (see
+		/// <see cref="UIButton"/>), so there is exactly one place that defines the shape of a feature's
+		/// parameters. Add further sections here as new button-wide behaviors come up (navigation,
+		/// cooldown, haptics...).
+		/// </summary>
+		[Serializable]
+		public class ButtonSection
+		{
+			[Serializable]
+			public class PunchSection
+			{
+				public bool Enabled = true;
+				[Min(0.01f)] public float Scale = 0.9f;
+				[Min(0f)] public float Duration = 0.12f;
+				public AnimationCurve Curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+			}
+
+			[Serializable]
+			public class GrayscaleSection
+			{
+				public bool Enabled = true;
+				[Range(0f, 1f)] public float Saturation = 0f;
+			}
+
+			[Serializable]
+			public class AudioSection
+			{
+				public SoundFX ClickSfx;
+			}
+
+			[Header("Punch animation")] public PunchSection Punch = new();
+			[Header("Grayscale when disabled")] public GrayscaleSection Grayscale = new();
+			[Header("Audio")] public AudioSection Audio = new();
+		}
+
 		[Header("Canvas")]
 		public CanvasSection Canvas = new();
+
+		[Header("Button")]
+		public ButtonSection Button = new();
 
 		// Add further sections here as new UI-wide concerns come up, e.g.:
 		// [Header("Transitions")] public TransitionSection Transitions = new();

@@ -14,12 +14,12 @@ namespace BlueCheese.App
 	/// graphic under it while non-interactable, a click SFX, and a free-form <see cref="Id"/> for anything
 	/// external (analytics, automated tests, per-id SFX lookups...) that wants to identify this button.
 	///
-	/// All behavior is centrally configured via <see cref="ButtonSettings"/> (registered by
-	/// <see cref="DefaultServicesInstaller"/>); each feature can be overridden per-button through the
-	/// <see cref="Optional{T}"/> fields below -- leave a field unchecked to inherit the app-wide default,
-	/// tick it to replace that section wholesale for this one button. New button-wide features should
-	/// follow the same recipe: add a section to <see cref="ButtonSettings"/>, then an
-	/// <c>Optional&lt;ThatSection&gt;</c> override field here.
+	/// All behavior is centrally configured via <see cref="UISettings"/>.<see cref="UISettings.Button"/>
+	/// (registered by <see cref="DefaultServicesInstaller"/>); each feature can be overridden per-button
+	/// through the <see cref="Optional{T}"/> fields below -- leave a field unchecked to inherit the
+	/// app-wide default, tick it to replace that section wholesale for this one button. New button-wide
+	/// features should follow the same recipe: add a section to <see cref="UISettings.ButtonSection"/>,
+	/// then an <c>Optional&lt;ThatSection&gt;</c> override field here.
 	/// </summary>
 	[RequireComponent(typeof(Button))]
 	public class UIButton : MonoBehaviour
@@ -29,11 +29,11 @@ namespace BlueCheese.App
 		[Tooltip("Free-form identifier for this button (analytics, automated tests, per-id SFX lookups...). Not used by UIButton itself.")]
 		[SerializeField] private string _id;
 
-		[SerializeField] private Optional<ButtonSettings.PunchSection> _punchOverride;
-		[SerializeField] private Optional<ButtonSettings.GrayscaleSection> _grayscaleOverride;
+		[SerializeField] private Optional<UISettings.ButtonSection.PunchSection> _punchOverride;
+		[SerializeField] private Optional<UISettings.ButtonSection.GrayscaleSection> _grayscaleOverride;
 		[SerializeField] private Optional<SoundFX> _sfxOverride;
 
-		[Injectable] private IOptions<ButtonSettings> _settings;
+		[Injectable] private IOptions<UISettings> _settings;
 
 		private Button _button;
 		private RectTransform _rectTransform;
@@ -54,9 +54,9 @@ namespace BlueCheese.App
 		/// <summary> Free-form identifier for this button. See the field tooltip for intended uses. </summary>
 		public string Id => _id;
 
-		private ButtonSettings.PunchSection Punch => _punchOverride.Resolve(_settings.Value.Punch);
-		private ButtonSettings.GrayscaleSection Grayscale => _grayscaleOverride.Resolve(_settings.Value.Grayscale);
-		private SoundFX Sfx => _sfxOverride.Resolve(_settings.Value.Audio.ClickSfx);
+		private UISettings.ButtonSection.PunchSection Punch => _punchOverride.Resolve(_settings.Value.Button.Punch);
+		private UISettings.ButtonSection.GrayscaleSection Grayscale => _grayscaleOverride.Resolve(_settings.Value.Button.Grayscale);
+		private SoundFX Sfx => _sfxOverride.Resolve(_settings.Value.Button.Audio.ClickSfx);
 
 		private void Awake()
 		{
