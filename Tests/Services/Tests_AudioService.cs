@@ -23,12 +23,12 @@ namespace BlueCheese.Tests.Services
 			var pool = new GameObjectPoolService(gameObjectService, logger);
 			var assetLoader = new FakeAssetLoaderService();
 			var audioBank = ScriptableObject.CreateInstance<AudioBank>();
-			audioBank.Items = new List<AudioItem>()
+			audioBank.SetItemsForTests(new List<AudioItem>()
 			{
 				new() { Name = "valid_sound_name", Clip = AudioClip.Create("valid_sound_name", 1, 1, 1000, true) },
 				new() { Name = "valid_music_name", Clip = AudioClip.Create("valid_music_name", 1, 1, 1000, true) },
 				new() { Name = "valid_clip_name", Clip = AudioClip.Create("valid_clip_name", 1, 1, 1000, true) }
-			};
+			});
 			var audioSettings = ScriptableObject.CreateInstance<AudioSettings>();
 			audioSettings.SetAudioPlayerFactory(() => new GameObject().AddComponent<FakeAudioPlayer>());
 			audioSettings.AddAudioBank(audioBank);

@@ -42,6 +42,14 @@ namespace BlueCheese.App
 
 		protected override async UniTask PlayShowTransitionAsync()
 		{
+			// Same guard as UIButton's press animation/disable-state (see its remarks): skip entirely outside
+			// Play Mode. Without this, ShowAsync()/HideAsync() -- called e.g. from AddComponent<Popup>() or a
+			// bare unit test that never enters Play Mode -- would resolve the DI-guaranteed default UISettings
+			// (ServiceContainer.ResolveOptions() always returns *some* instance, even unregistered) and start
+			// a real, timed animation whose UniTask.Yield(PlayerLoopTiming.Update) never gets pumped outside
+			// an actually-running Play Mode/Editor update loop, hanging the awaiting call forever.
+			if (!Application.isPlaying) return;
+
 			EnsureInitialized();
 
 			var sfx = _settings.Value.Popup.Audio.OpenSfx;
@@ -52,6 +60,8 @@ namespace BlueCheese.App
 
 		protected override async UniTask PlayHideTransitionAsync()
 		{
+			if (!Application.isPlaying) return;
+
 			EnsureInitialized();
 
 			var sfx = _settings.Value.Popup.Audio.CloseSfx;
