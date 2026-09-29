@@ -106,12 +106,19 @@ namespace BlueCheese.App
 			}
 
 			var player = GetAvailablePlayer();
-			if (player != null)
+			if (player == null)
 			{
-				var item = GetAudioItem(sound.Name);
-				return player.PlaySound(item, sound);
+				return false;
 			}
-			return false;
+
+			var item = GetAudioItem(sound.Name);
+			if (item == null)
+			{
+				UnityEngine.Debug.LogWarning($"AudioService.PlaySound: no sound named \"{sound.Name}\" found in any registered AudioBank.");
+				return false;
+			}
+
+			return player.PlaySound(item, sound);
 		}
 
 		public void StopSound(SoundFX sound, float fadeDuration = 0f)
@@ -160,10 +167,16 @@ namespace BlueCheese.App
 				return false;
 			}
 
+			var item = GetAudioItem(name);
+			if (item == null)
+			{
+				UnityEngine.Debug.LogWarning($"AudioService.PlayMusic: no music named \"{name}\" found in any registered AudioBank.");
+				return false;
+			}
+
 			StopMusic(_currentMusic, options.FadeDurationSec);
 
 			var player = GetAvailablePlayer();
-			var item = GetAudioItem(name);
 			if (player != null && player.PlayMusic(item, options))
 			{
 				_currentMusic = name;
