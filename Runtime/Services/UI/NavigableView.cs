@@ -71,6 +71,13 @@ namespace BlueCheese.App
 
 		public void Focus(bool focus)
 		{
+			// Defensive: UpdateCurrentView() re-focuses whatever's left in the static _viewList, which can
+			// still hold a view that Unity has already destroyed (e.g. several views torn down in the same
+			// frame during a scene unload or Play Mode stop, in an order OnDisable/UnregisterView doesn't
+			// fully control). Unity's overloaded null check catches that "destroyed but not yet GC'd" case;
+			// a raw reference wouldn't. Without this, reading `gameObject` below throws MissingReferenceException.
+			if (this == null) return;
+
 			HasFocus = focus;
 
 			if (focus)

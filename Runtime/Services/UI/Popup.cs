@@ -39,6 +39,16 @@ namespace BlueCheese.App
         {
             _canvas = GetComponent<Canvas>();
             ValidateCanvasSetup();
+
+            // Pre-empt UIViewBehaviour's lazy ToggleableView factory (see its class-level remarks): left
+            // alone it would add a plain CanvasToggleableView the first time Show()/Hide() is called, since
+            // that's the appropriate match for "has a Canvas". Adding the richer PopupToggleableView here
+            // first means that same lazy lookup (TryGetComponent<ToggleableView>) finds this one instead,
+            // giving every popup a configurable UISettings.Popup-driven show/hide animation + SFX for free.
+            if (!TryGetComponent<ToggleableView>(out _))
+            {
+                gameObject.AddComponent<PopupToggleableView>();
+            }
         }
 
         // Popups stack via _canvas.sortingOrder, which only behaves as a "topmost popup wins" ordering for
@@ -122,11 +132,19 @@ namespace BlueCheese.App
 			// Resolve any stale awaiter from a previous ShowAsync() call that never completed normally,
 			// so it doesn't hang forever once replaced below.
 			_resultCompletionSource?.TrySetResult(Result);
-			_resultCompletionSource = new UniTaskCompletionSource<PopupResult>();
+
+			// Captured in a local rather than re-read from the field below: OnDisable() nulls out the field
+			// (see its own remarks) if this popup is deactivated/destroyed while the show transition is
+			// still playing -- e.g. a scene unload or Play Mode stop racing the animation added by
+			// PopupToggleableView. Re-reading the field after that await would NullReferenceException on
+			// ".Task"; the local still refers to the same completion source, which OnDisable has by then
+			// already resolved via its own TrySetResult, so the await below simply returns that result.
+			var completionSource = new UniTaskCompletionSource<PopupResult>();
+			_resultCompletionSource = completionSource;
 
 			await ToggleableView.ToggleAsync(true);
 
-			return await _resultCompletionSource.Task;
+			return await completionSource.Task;
         }
 
         public void SetResult(PopupResult result)
