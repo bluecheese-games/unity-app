@@ -5,14 +5,27 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace BlueCheese.App
 {
 	/// <summary>
-	/// Drop-in enrichment for a <see cref="Button"/>: a click punch animation, auto-grayscale of every
-	/// graphic under it while non-interactable, a click SFX, and a free-form <see cref="Id"/> for anything
-	/// external (analytics, automated tests, per-id SFX lookups...) that wants to identify this button.
+	/// Drop-in replacement for <see cref="Button"/> (same GameObject, same serialized data -- onClick,
+	/// colors, transition, targetGraphic all carry over) that adds: a punch animation on press, a
+	/// configurable visual treatment while non-interactable, a click SFX, and a free-form <see cref="Id"/>
+	/// for anything external (analytics, automated tests, per-id SFX lookups...) that wants to identify
+	/// this button.
+	///
+	/// Subclasses <see cref="Button"/> rather than sitting alongside it as a companion component so it can
+	/// hook <see cref="DoStateTransition"/> -- the same mechanism Selectable itself uses to drive its own
+	/// color/sprite/animation transitions -- instead of polling <c>interactable</c> every frame. That also
+	/// means the disable-state visual reacts immediately and correctly whether <c>interactable</c> is
+	/// flipped from code, from the Inspector while the game is running, or from a CanvasGroup up the
+	/// hierarchy. Likewise, the punch triggers from <see cref="OnPointerDown"/>/<see cref="OnSubmit"/>
+	/// (the moment of press, mouse or gamepad/keyboard) rather than from <c>onClick</c> -- which fires on
+	/// release, at the same instant a click handler might already be navigating away or opening a popover,
+	/// leaving no visible frame for the animation to play before the button itself is affected.
 	///
 	/// All behavior is centrally configured via <see cref="UISettings"/>.<see cref="UISettings.Button"/>
 	/// (registered by <see cref="DefaultServicesInstaller"/>); each feature can be overridden per-button
@@ -21,8 +34,7 @@ namespace BlueCheese.App
 	/// features should follow the same recipe: add a section to <see cref="UISettings.ButtonSection"/>,
 	/// then an <c>Optional&lt;ThatSection&gt;</c> override field here.
 	/// </summary>
-	[RequireComponent(typeof(Button))]
-	public class UIButton : MonoBehaviour
+	public class UIButton : Button
 	{
 		private static Shader _grayscaleShader;
 
@@ -30,42 +42,113 @@ namespace BlueCheese.App
 		[SerializeField] private string _id;
 
 		[SerializeField] private Optional<UISettings.ButtonSection.PunchSection> _punchOverride;
-		[SerializeField] private Optional<UISettings.ButtonSection.GrayscaleSection> _grayscaleOverride;
+		[SerializeField] private Optional<UISettings.ButtonSection.DisableStateSection> _disableStateOverride;
 		[SerializeField] private Optional<SoundFX> _sfxOverride;
 
 		[Injectable] private IOptions<UISettings> _settings;
 
-		private Button _button;
 		private RectTransform _rectTransform;
 		private Vector3 _originalScale;
+		private CanvasGroup _canvasGroup;
+		private bool? _lastDisabledState;
 
 		// Image/RawImage graphics get a real per-pixel desaturation via a shared shader (so multi-colored
 		// sprites/icons actually turn gray, not just dimmer); everything else (TMP text, legacy Text...)
 		// gets a cheap color-lerp-toward-luminance instead, since swapping their material would break
-		// whatever SDF/font shader they depend on.
+		// whatever SDF/font shader they depend on. Only used by DisableStateMode.Grayscale.
+		private bool _initialized;
 		private Graphic[] _imageGraphics;
 		private Material[] _grayscaleMaterials;
 		private Graphic[] _tintGraphics;
 		private Color[] _originalTintColors;
 
-		private bool? _wasInteractable;
 		private CancellationTokenSource _punchCts;
 
 		/// <summary> Free-form identifier for this button. See the field tooltip for intended uses. </summary>
 		public string Id => _id;
 
 		private UISettings.ButtonSection.PunchSection Punch => _punchOverride.Resolve(_settings.Value.Button.Punch);
-		private UISettings.ButtonSection.GrayscaleSection Grayscale => _grayscaleOverride.Resolve(_settings.Value.Button.Grayscale);
+		private UISettings.ButtonSection.DisableStateSection DisableState => _disableStateOverride.Resolve(_settings.Value.Button.DisableState);
 		private SoundFX Sfx => _sfxOverride.Resolve(_settings.Value.Button.Audio.ClickSfx);
 
-		private void Awake()
+		protected override void Awake()
 		{
+			base.Awake();
+			if (Application.isPlaying) EnsureInitialized();
+		}
+
+		/// <summary>
+		/// Lazily resolves DI/gathers graphics on first real use rather than solely in <see cref="Awake"/>.
+		/// Awake() alone isn't reliable here: it doesn't fire again on entering Play Mode for objects that
+		/// already existed in the open scene when the project has Edit &gt; Project Settings &gt; Editor &gt;
+		/// Enter Play Mode Options set to skip domain/scene reload (a common iteration-speed optimization)
+		/// -- exactly the case for a button whose script/state was set up via editor tooling before Play
+		/// was ever pressed. Called defensively from every entry point that needs <see cref="_settings"/>
+		/// or the graphics cache, so initialization happens on whichever comes first.
+		/// </summary>
+		private void EnsureInitialized()
+		{
+			if (_initialized) return;
+			_initialized = true;
+
 			ServiceInjector.Inject(this);
 
-			_button = GetComponent<Button>();
 			_rectTransform = (RectTransform)transform;
 			_originalScale = _rectTransform.localScale;
+			GatherGraphics();
 
+			onClick.AddListener(PlaySfx);
+		}
+
+		protected override void OnDestroy()
+		{
+			_punchCts?.Cancel();
+			_punchCts?.Dispose();
+
+			if (_grayscaleMaterials != null)
+			{
+				foreach (var material in _grayscaleMaterials)
+				{
+					if (material != null) Destroy(material);
+				}
+			}
+
+			base.OnDestroy();
+		}
+
+		public override void OnPointerDown(PointerEventData eventData)
+		{
+			base.OnPointerDown(eventData);
+			if (!Application.isPlaying) return;
+			EnsureInitialized();
+			TryPlayPunch();
+		}
+
+		public override void OnSubmit(BaseEventData eventData)
+		{
+			base.OnSubmit(eventData);
+			if (!Application.isPlaying) return;
+			EnsureInitialized();
+			TryPlayPunch();
+		}
+
+		protected override void DoStateTransition(SelectionState state, bool instant)
+		{
+			base.DoStateTransition(state, instant);
+			if (!Application.isPlaying) return;
+
+			EnsureInitialized();
+			ApplyDisableState(state == SelectionState.Disabled);
+		}
+
+		private void TryPlayPunch()
+		{
+			if (!IsActive() || !IsInteractable()) return;
+			PlayPunchAsync().Forget();
+		}
+
+		private void GatherGraphics()
+		{
 			var imageGraphics = new List<Graphic>();
 			var tintGraphics = new List<Graphic>();
 			foreach (var graphic in GetComponentsInChildren<Graphic>(true))
@@ -81,47 +164,6 @@ namespace BlueCheese.App
 			{
 				_originalTintColors[i] = _tintGraphics[i].color;
 			}
-
-			_button.onClick.AddListener(OnClick);
-		}
-
-		private void OnEnable()
-		{
-			// Force a refresh next Update, in case interactable changed while this button was disabled.
-			_wasInteractable = null;
-		}
-
-		private void Update()
-		{
-			// Selectable/Button raise no event when `interactable` changes, so this is the only reliable
-			// way to react to it being toggled from anywhere (including plain `button.interactable = x`).
-			if (_wasInteractable != _button.interactable)
-			{
-				_wasInteractable = _button.interactable;
-				ApplyGrayscale(!_button.interactable);
-			}
-		}
-
-		private void OnDestroy()
-		{
-			_punchCts?.Cancel();
-			_punchCts?.Dispose();
-
-			if (_button != null)
-			{
-				_button.onClick.RemoveListener(OnClick);
-			}
-
-			foreach (var material in _grayscaleMaterials)
-			{
-				if (material != null) Destroy(material);
-			}
-		}
-
-		private void OnClick()
-		{
-			PlaySfx();
-			PlayPunchAsync().Forget();
 		}
 
 		private void PlaySfx()
@@ -167,22 +209,57 @@ namespace BlueCheese.App
 			_rectTransform.localScale = _originalScale;
 		}
 
-		private void ApplyGrayscale(bool wantsGrayscale)
+		private void ApplyDisableState(bool disabled)
 		{
-			var grayscale = Grayscale;
-			bool active = wantsGrayscale && grayscale.Enabled;
-			float saturation = active ? grayscale.Saturation : 1f;
+			if (_lastDisabledState == disabled) return;
+			_lastDisabledState = disabled;
 
+			ResetAlpha();
+			ResetGrayscale();
+
+			if (!disabled) return;
+
+			var state = DisableState;
+			switch (state.Mode)
+			{
+				case UISettings.ButtonSection.DisableStateMode.Alpha:
+					_canvasGroup = _canvasGroup != null ? _canvasGroup : GetOrAddCanvasGroup();
+					_canvasGroup.alpha = state.DisabledAlpha;
+					break;
+				case UISettings.ButtonSection.DisableStateMode.Grayscale:
+					ApplyGrayscale(state.GrayscaleSaturation);
+					break;
+				case UISettings.ButtonSection.DisableStateMode.Default:
+				default:
+					break; // Leave Button's own Transition/ColorBlock as the only visual cue.
+			}
+		}
+
+		private CanvasGroup GetOrAddCanvasGroup() => TryGetComponent(out CanvasGroup group) ? group : gameObject.AddComponent<CanvasGroup>();
+
+		private void ResetAlpha()
+		{
+			if (_canvasGroup != null) _canvasGroup.alpha = 1f;
+		}
+
+		private void ResetGrayscale()
+		{
+			for (int i = 0; i < _imageGraphics.Length; i++)
+			{
+				if (_imageGraphics[i] != null) _imageGraphics[i].material = null;
+			}
+			for (int i = 0; i < _tintGraphics.Length; i++)
+			{
+				if (_tintGraphics[i] != null) _tintGraphics[i].color = _originalTintColors[i];
+			}
+		}
+
+		private void ApplyGrayscale(float saturation)
+		{
 			for (int i = 0; i < _imageGraphics.Length; i++)
 			{
 				var graphic = _imageGraphics[i];
 				if (graphic == null) continue;
-
-				if (!active)
-				{
-					graphic.material = null; // restore the Graphic's own default material
-					continue;
-				}
 
 				_grayscaleMaterials[i] ??= CreateGrayscaleMaterial();
 				if (_grayscaleMaterials[i] == null) continue; // shader unavailable (e.g. stripped from build)
@@ -197,12 +274,6 @@ namespace BlueCheese.App
 				if (graphic == null) continue;
 
 				Color original = _originalTintColors[i];
-				if (!active)
-				{
-					graphic.color = original;
-					continue;
-				}
-
 				float luminance = Vector3.Dot(new Vector3(original.r, original.g, original.b), new Vector3(0.299f, 0.587f, 0.114f));
 				Color gray = new(luminance, luminance, luminance, original.a);
 				graphic.color = Color.Lerp(gray, original, saturation);

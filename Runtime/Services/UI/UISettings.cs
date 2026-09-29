@@ -66,11 +66,22 @@ namespace BlueCheese.App
 				public AnimationCurve Curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 			}
 
-			[Serializable]
-			public class GrayscaleSection
+			public enum DisableStateMode
 			{
-				public bool Enabled = true;
-				[Range(0f, 1f)] public float Saturation = 0f;
+				/// <summary>Do nothing extra -- leave whatever the Button's own Transition/ColorBlock does.</summary>
+				Default,
+				/// <summary>Desaturate every graphic under the button (see <see cref="UIButton"/>).</summary>
+				Grayscale,
+				/// <summary>Fade the whole button out via a CanvasGroup.</summary>
+				Alpha,
+			}
+
+			[Serializable]
+			public class DisableStateSection
+			{
+				public DisableStateMode Mode = DisableStateMode.Grayscale;
+				[Range(0f, 1f)] public float GrayscaleSaturation = 0f;
+				[Range(0f, 1f)] public float DisabledAlpha = 0.5f;
 			}
 
 			[Serializable]
@@ -80,7 +91,7 @@ namespace BlueCheese.App
 			}
 
 			[Header("Punch animation")] public PunchSection Punch = new();
-			[Header("Grayscale when disabled")] public GrayscaleSection Grayscale = new();
+			[Header("Disable state")] public DisableStateSection DisableState = new();
 			[Header("Audio")] public AudioSection Audio = new();
 		}
 

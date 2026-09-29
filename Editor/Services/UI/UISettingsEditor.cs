@@ -29,7 +29,7 @@ namespace BlueCheese.App.Editor
 			var buttonTab = new Tab { label = "Button" };
 			var buttonProperty = serializedObject.FindProperty(nameof(UISettings.Button));
 			AddFoldoutSection(buttonTab, buttonProperty, nameof(UISettings.ButtonSection.Punch), "Punch animation");
-			AddFoldoutSection(buttonTab, buttonProperty, nameof(UISettings.ButtonSection.Grayscale), "Grayscale when disabled");
+			AddFoldoutSection(buttonTab, buttonProperty, nameof(UISettings.ButtonSection.DisableState), "Disable state");
 			AddFoldoutSection(buttonTab, buttonProperty, nameof(UISettings.ButtonSection.Audio), "Audio");
 			tabView.Add(buttonTab);
 
