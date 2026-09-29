@@ -12,7 +12,7 @@ namespace BlueCheese.App
 {
 	/// <summary>
 	/// Drop-in replacement for <see cref="Button"/> (same GameObject, same serialized data -- onClick,
-	/// colors, transition, targetGraphic all carry over) that adds: a punch animation on press, a
+	/// colors, transition, targetGraphic all carry over) that adds: a configurable press animation, a
 	/// configurable visual treatment while non-interactable, a click SFX, and a free-form <see cref="Id"/>
 	/// for anything external (analytics, automated tests, per-id SFX lookups...) that wants to identify
 	/// this button.
@@ -22,10 +22,12 @@ namespace BlueCheese.App
 	/// color/sprite/animation transitions -- instead of polling <c>interactable</c> every frame. That also
 	/// means the disable-state visual reacts immediately and correctly whether <c>interactable</c> is
 	/// flipped from code, from the Inspector while the game is running, or from a CanvasGroup up the
-	/// hierarchy. Likewise, the punch triggers from <see cref="OnPointerDown"/>/<see cref="OnSubmit"/>
-	/// (the moment of press, mouse or gamepad/keyboard) rather than from <c>onClick</c> -- which fires on
-	/// release, at the same instant a click handler might already be navigating away or opening a popover,
-	/// leaving no visible frame for the animation to play before the button itself is affected.
+	/// hierarchy. Likewise, the press animation and click SFX both trigger together from
+	/// <see cref="OnPointerDown"/>/<see cref="OnSubmit"/> (the moment of press, mouse or gamepad/keyboard,
+	/// see <see cref="HandlePress"/>) rather than from <c>onClick</c> -- which fires on release, at the same
+	/// instant a click handler might already be navigating away or opening a popover, leaving no visible
+	/// frame for the animation to play before the button itself is affected, and which would otherwise fire
+	/// the SFX out of sync with an animation triggered on press.
 	///
 	/// All behavior is centrally configured via <see cref="UISettings"/>.<see cref="UISettings.Button"/>
 	/// (registered by <see cref="DefaultServicesInstaller"/>); each feature can be overridden per-button
@@ -41,7 +43,7 @@ namespace BlueCheese.App
 		[Tooltip("Free-form identifier for this button (analytics, automated tests, per-id SFX lookups...). Not used by UIButton itself.")]
 		[SerializeField] private string _id;
 
-		[SerializeField] private Optional<UISettings.ButtonSection.PunchSection> _punchOverride;
+		[SerializeField] private Optional<UISettings.ButtonSection.AnimationSection> _animationOverride;
 		[SerializeField] private Optional<UISettings.ButtonSection.DisableStateSection> _disableStateOverride;
 		[SerializeField] private Optional<SoundFX> _sfxOverride;
 
@@ -49,25 +51,27 @@ namespace BlueCheese.App
 
 		private RectTransform _rectTransform;
 		private Vector3 _originalScale;
+		private Vector2 _originalAnchoredPosition;
 		private CanvasGroup _canvasGroup;
 		private bool? _lastDisabledState;
 
-		// Image/RawImage graphics get a real per-pixel desaturation via a shared shader (so multi-colored
-		// sprites/icons actually turn gray, not just dimmer); everything else (TMP text, legacy Text...)
-		// gets a cheap color-lerp-toward-luminance instead, since swapping their material would break
-		// whatever SDF/font shader they depend on. Only used by DisableStateMode.Grayscale.
+		// Image/RawImage graphics get a real per-pixel lerp-to-flat-gray via a shared shader (so
+		// multi-colored sprites/icons, and pure whites/blacks, actually turn gray at amount=1, not just
+		// dimmer); everything else (TMP text, legacy Text...) gets a cheap color-lerp instead, since
+		// swapping their material would break whatever SDF/font shader they depend on. Only used by
+		// DisableStateMode.Grayscale.
 		private bool _initialized;
 		private Graphic[] _imageGraphics;
 		private Material[] _grayscaleMaterials;
 		private Graphic[] _tintGraphics;
 		private Color[] _originalTintColors;
 
-		private CancellationTokenSource _punchCts;
+		private CancellationTokenSource _animCts;
 
 		/// <summary> Free-form identifier for this button. See the field tooltip for intended uses. </summary>
 		public string Id => _id;
 
-		private UISettings.ButtonSection.PunchSection Punch => _punchOverride.Resolve(_settings.Value.Button.Punch);
+		private UISettings.ButtonSection.AnimationSection Animation => _animationOverride.Resolve(_settings.Value.Button.Animation);
 		private UISettings.ButtonSection.DisableStateSection DisableState => _disableStateOverride.Resolve(_settings.Value.Button.DisableState);
 		private SoundFX Sfx => _sfxOverride.Resolve(_settings.Value.Button.Audio.ClickSfx);
 
@@ -95,15 +99,14 @@ namespace BlueCheese.App
 
 			_rectTransform = (RectTransform)transform;
 			_originalScale = _rectTransform.localScale;
+			_originalAnchoredPosition = _rectTransform.anchoredPosition;
 			GatherGraphics();
-
-			onClick.AddListener(PlaySfx);
 		}
 
 		protected override void OnDestroy()
 		{
-			_punchCts?.Cancel();
-			_punchCts?.Dispose();
+			_animCts?.Cancel();
+			_animCts?.Dispose();
 
 			if (_grayscaleMaterials != null)
 			{
@@ -121,7 +124,7 @@ namespace BlueCheese.App
 			base.OnPointerDown(eventData);
 			if (!Application.isPlaying) return;
 			EnsureInitialized();
-			TryPlayPunch();
+			HandlePress();
 		}
 
 		public override void OnSubmit(BaseEventData eventData)
@@ -129,7 +132,7 @@ namespace BlueCheese.App
 			base.OnSubmit(eventData);
 			if (!Application.isPlaying) return;
 			EnsureInitialized();
-			TryPlayPunch();
+			HandlePress();
 		}
 
 		protected override void DoStateTransition(SelectionState state, bool instant)
@@ -141,10 +144,16 @@ namespace BlueCheese.App
 			ApplyDisableState(state == SelectionState.Disabled);
 		}
 
-		private void TryPlayPunch()
+		/// <summary>
+		/// Fires the click SFX and the press animation from the same call, at the moment of press -- not
+		/// from <c>onClick</c> (fires on release) and not from two separate trigger points, either of which
+		/// would let the sound and the animation drift out of sync with each other by a frame or more.
+		/// </summary>
+		private void HandlePress()
 		{
 			if (!IsActive() || !IsInteractable()) return;
-			PlayPunchAsync().Forget();
+			PlaySfx();
+			PlayAnimationAsync().Forget();
 		}
 
 		private void GatherGraphics()
@@ -175,38 +184,76 @@ namespace BlueCheese.App
 			}
 		}
 
-		private async UniTask PlayPunchAsync()
+		/// <summary>
+		/// Plays the press animation according to <see cref="Animation"/>'s <see cref="UISettings.ButtonSection.AnimationType"/>.
+		/// Punch Down/Punch Up animate a single scale channel (jump to <c>PunchScale</c>, spring back to the
+		/// original scale). Custom independently animates whichever of Scale/OffsetX/OffsetY channels are
+		/// enabled, each via its own <see cref="CurveParam.Curve"/>, sharing the same Duration.
+		/// </summary>
+		private async UniTask PlayAnimationAsync()
 		{
-			var punch = Punch;
-			if (!punch.Enabled || punch.Duration <= 0f)
+			var anim = Animation;
+			if (anim.Type == UISettings.ButtonSection.AnimationType.None || anim.Duration <= 0f)
 			{
 				return;
 			}
 
-			_punchCts?.Cancel();
-			_punchCts?.Dispose();
-			_punchCts = new CancellationTokenSource();
-			CancellationToken token = _punchCts.Token;
+			bool animateScale = false, animateX = false, animateY = false;
+			float scaleFactor = 1f, offsetX = 0f, offsetY = 0f;
+			AnimationCurve scaleCurve = anim.Curve, xCurve = anim.Curve, yCurve = anim.Curve;
 
-			Vector3 targetScale = _originalScale * punch.Scale;
-			float elapsed = 0f;
+			switch (anim.Type)
+			{
+				case UISettings.ButtonSection.AnimationType.PunchDown:
+				case UISettings.ButtonSection.AnimationType.PunchUp:
+					animateScale = true;
+					scaleFactor = anim.PunchScale;
+					break;
+				case UISettings.ButtonSection.AnimationType.Custom:
+					var custom = anim.Custom;
+					if (custom.Scale.Enabled) { animateScale = true; scaleFactor = custom.Scale.Value.Value; scaleCurve = custom.Scale.Value.Curve; }
+					if (custom.OffsetX.Enabled) { animateX = true; offsetX = custom.OffsetX.Value.Value; xCurve = custom.OffsetX.Value.Curve; }
+					if (custom.OffsetY.Enabled) { animateY = true; offsetY = custom.OffsetY.Value.Value; yCurve = custom.OffsetY.Value.Curve; }
+					break;
+			}
+
+			if (!animateScale && !animateX && !animateY)
+			{
+				return;
+			}
+
+			_animCts?.Cancel();
+			_animCts?.Dispose();
+			_animCts = new CancellationTokenSource();
+			CancellationToken token = _animCts.Token;
+
+			Vector3 scaleFrom = _originalScale * scaleFactor;
+			Vector2 posFrom = _originalAnchoredPosition + new Vector2(animateX ? offsetX : 0f, animateY ? offsetY : 0f);
 
 			try
 			{
-				while (elapsed < punch.Duration)
+				await UIAnimationUtility.RunAsync(anim.Duration, token, progress =>
 				{
-					elapsed += Time.unscaledDeltaTime;
-					float progress = punch.Curve.Evaluate(Mathf.Clamp01(elapsed / punch.Duration));
-					_rectTransform.localScale = Vector3.LerpUnclamped(targetScale, _originalScale, progress);
-					await UniTask.Yield(PlayerLoopTiming.Update, token);
-				}
+					if (animateScale)
+					{
+						_rectTransform.localScale = Vector3.LerpUnclamped(scaleFrom, _originalScale, scaleCurve.Evaluate(progress));
+					}
+					if (animateX || animateY)
+					{
+						Vector2 pos = _rectTransform.anchoredPosition;
+						if (animateX) pos.x = Mathf.LerpUnclamped(posFrom.x, _originalAnchoredPosition.x, xCurve.Evaluate(progress));
+						if (animateY) pos.y = Mathf.LerpUnclamped(posFrom.y, _originalAnchoredPosition.y, yCurve.Evaluate(progress));
+						_rectTransform.anchoredPosition = pos;
+					}
+				});
 			}
 			catch (OperationCanceledException)
 			{
 				return;
 			}
 
-			_rectTransform.localScale = _originalScale;
+			if (animateScale) _rectTransform.localScale = _originalScale;
+			if (animateX || animateY) _rectTransform.anchoredPosition = _originalAnchoredPosition;
 		}
 
 		private void ApplyDisableState(bool disabled)
@@ -227,7 +274,7 @@ namespace BlueCheese.App
 					_canvasGroup.alpha = state.DisabledAlpha;
 					break;
 				case UISettings.ButtonSection.DisableStateMode.Grayscale:
-					ApplyGrayscale(state.GrayscaleSaturation);
+					ApplyGrayscale(state.GrayscaleAmount);
 					break;
 				case UISettings.ButtonSection.DisableStateMode.Default:
 				default:
@@ -254,7 +301,13 @@ namespace BlueCheese.App
 			}
 		}
 
-		private void ApplyGrayscale(float saturation)
+		// Flat mid-gray target for both the shader path (Image/RawImage) and the tint-color path (TMP/legacy
+		// Text below): at amount=1 every graphic becomes exactly this gray, regardless of its original color
+		// -- including pure white and pure black, which a luminance-preserving desaturation would leave
+		// untouched. At amount=0 the original color/texture is unaffected.
+		private static readonly Color _flatGray = new(0.5f, 0.5f, 0.5f, 1f);
+
+		private void ApplyGrayscale(float amount)
 		{
 			for (int i = 0; i < _imageGraphics.Length; i++)
 			{
@@ -264,7 +317,7 @@ namespace BlueCheese.App
 				_grayscaleMaterials[i] ??= CreateGrayscaleMaterial();
 				if (_grayscaleMaterials[i] == null) continue; // shader unavailable (e.g. stripped from build)
 
-				_grayscaleMaterials[i].SetFloat("_Saturation", saturation);
+				_grayscaleMaterials[i].SetFloat("_GrayscaleAmount", amount);
 				graphic.material = _grayscaleMaterials[i];
 			}
 
@@ -274,9 +327,8 @@ namespace BlueCheese.App
 				if (graphic == null) continue;
 
 				Color original = _originalTintColors[i];
-				float luminance = Vector3.Dot(new Vector3(original.r, original.g, original.b), new Vector3(0.299f, 0.587f, 0.114f));
-				Color gray = new(luminance, luminance, luminance, original.a);
-				graphic.color = Color.Lerp(gray, original, saturation);
+				Color gray = new(_flatGray.r, _flatGray.g, _flatGray.b, original.a);
+				graphic.color = Color.Lerp(original, gray, amount);
 			}
 		}
 

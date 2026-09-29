@@ -1,15 +1,17 @@
 // Minimal fork of Unity's built-in "UI/Default" shader (stencil masking + soft clip-rect support kept
-// intact, so it still works correctly inside a RectMask2D/Mask'd popup) with one addition: a _Saturation
-// property that desaturates the sampled texture toward its luminance. Used by UIButton (see UIButton.cs)
-// to gray out an Image/RawImage graphic when its Button becomes non-interactable, without touching the
-// Graphic's own color (which stays available for anything else, e.g. a designer-authored tint).
+// intact, so it still works correctly inside a RectMask2D/Mask'd popup) with one addition: a
+// _GrayscaleAmount property that lerps the sampled texture towards flat mid-gray. Used by UIButton (see
+// UIButton.cs) to gray out an Image/RawImage graphic when its Button becomes non-interactable, without
+// touching the Graphic's own color (which stays available for anything else, e.g. a designer-authored
+// tint). Deliberately lerps toward a flat gray rather than the pixel's own luminance, so pure whites and
+// blacks turn gray too at amount=1 instead of staying untouched.
 Shader "BlueCheese/UI/Grayscale"
 {
 	Properties
 	{
 		[PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
 		_Color ("Tint", Color) = (1, 1, 1, 1)
-		_Saturation ("Saturation (0 = grayscale, 1 = full color)", Range(0, 1)) = 1
+		_GrayscaleAmount ("Grayscale Amount (0 = full color, 1 = flat gray)", Range(0, 1)) = 0
 
 		_StencilComp ("Stencil Comparison", Float) = 8
 		_Stencil ("Stencil ID", Float) = 0
@@ -82,7 +84,7 @@ Shader "BlueCheese/UI/Grayscale"
 			fixed4 _TextureSampleAdd;
 			float4 _ClipRect;
 			float4 _MainTex_ST;
-			float _Saturation;
+			float _GrayscaleAmount;
 
 			v2f vert(appdata_t v)
 			{
@@ -102,8 +104,7 @@ Shader "BlueCheese/UI/Grayscale"
 			{
 				half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd) * IN.color;
 
-				half luminance = dot(color.rgb, half3(0.299, 0.587, 0.114));
-				color.rgb = lerp(luminance.xxx, color.rgb, _Saturation);
+				color.rgb = lerp(color.rgb, half3(0.5, 0.5, 0.5), _GrayscaleAmount);
 
 				#ifdef UNITY_UI_CLIP_RECT
 				color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);

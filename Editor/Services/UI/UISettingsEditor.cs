@@ -10,10 +10,11 @@ namespace BlueCheese.App.Editor
 	// editor, while still inheriting its Name/Tags/LoadMode header (drawn via OnHeaderGUI, unaffected by
 	// this class overriding CreateInspectorGUI for the body).
 	//
-	// UISettings groups every UI-wide concern (Canvas scaling, UIButton's punch/grayscale/click-SFX
-	// defaults...) into one asset so a project doesn't accumulate a separate settings asset per UI
-	// feature. A plain default inspector would list every section's fields one after another in a single
-	// wall; tabs keep each concern visually isolated without needing a separate asset per tab.
+	// UISettings groups every UI-wide concern (Canvas scaling, UIButton's press animation/disable-state/
+	// click-SFX defaults, Popup's show/hide animation/SFX defaults...) into one asset so a project doesn't
+	// accumulate a separate settings asset per UI feature. A plain default inspector would list every
+	// section's fields one after another in a single wall; tabs keep each concern visually isolated
+	// without needing a separate asset per tab.
 	[CustomEditor(typeof(UISettings))]
 	public class UISettingsEditor : AssetBaseEditor
 	{
@@ -26,12 +27,19 @@ namespace BlueCheese.App.Editor
 			AddChildFields(canvasTab, serializedObject.FindProperty(nameof(UISettings.Canvas)));
 			tabView.Add(canvasTab);
 
-			var buttonTab = new Tab { label = "Button" };
+			var buttonTab = new Tab { label = "Buttons" };
 			var buttonProperty = serializedObject.FindProperty(nameof(UISettings.Button));
-			AddFoldoutSection(buttonTab, buttonProperty, nameof(UISettings.ButtonSection.Punch), "Punch animation");
+			AddFoldoutSection(buttonTab, buttonProperty, nameof(UISettings.ButtonSection.Animation), "Animation");
 			AddFoldoutSection(buttonTab, buttonProperty, nameof(UISettings.ButtonSection.DisableState), "Disable state");
 			AddFoldoutSection(buttonTab, buttonProperty, nameof(UISettings.ButtonSection.Audio), "Audio");
 			tabView.Add(buttonTab);
+
+			var popupTab = new Tab { label = "Popups" };
+			var popupProperty = serializedObject.FindProperty(nameof(UISettings.Popup));
+			AddFoldoutSection(popupTab, popupProperty, nameof(UISettings.PopupSection.AnimIn), "Animation in");
+			AddFoldoutSection(popupTab, popupProperty, nameof(UISettings.PopupSection.AnimOut), "Animation out");
+			AddFoldoutSection(popupTab, popupProperty, nameof(UISettings.PopupSection.Audio), "Audio");
+			tabView.Add(popupTab);
 
 			root.Add(tabView);
 			root.Bind(serializedObject);

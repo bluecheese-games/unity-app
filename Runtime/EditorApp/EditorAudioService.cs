@@ -64,6 +64,32 @@ namespace BlueCheese.App
 			_audioSource.Play();
 		}
 
+		/// <summary>
+		/// Plays an <see cref="AudioClip"/> directly, bypassing the by-name <see cref="_items"/> lookup used
+		/// by <see cref="PlaySound"/>. Used by inspectors (e.g. <see cref="AudioBankEditor"/>) that already
+		/// hold a direct reference to the clip they want to preview -- which may not even be registered in
+		/// any <see cref="AudioBank"/> yet, or may live in a bank outside Resources (so <see cref="_items"/>
+		/// wouldn't know about it regardless).
+		/// </summary>
+		public void PlayClip(AudioClip clip, float volume = 1f)
+		{
+			StopAll();
+
+			if (clip == null)
+			{
+				return;
+			}
+
+			GameObject gameObject = new("AudioPlayer_" + clip.name);
+			_audioSource = gameObject.AddComponent<AudioSource>();
+			gameObject.hideFlags = HideFlags.HideAndDontSave;
+
+			_audioSource.clip = clip;
+			_audioSource.volume = volume;
+			_audioSource.spatialize = false;
+			_audioSource.Play();
+		}
+
 		public bool IsPlaying() => _audioSource != null && _audioSource.isPlaying;
 
 		public void StopAll()
