@@ -21,5 +21,8 @@ namespace BlueCheese.App
 
         /// <summary>Current pointer (mouse or primary touch) position in screen space, in pixels.</summary>
         Vector2 GetPointerPosition();
+
+        /// <summary>Whether the pointer (mouse left button or primary touch contact) is currently held down.</summary>
+        bool IsPointerPressed();
     }
 }

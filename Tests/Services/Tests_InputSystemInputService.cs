@@ -34,6 +34,27 @@ namespace BlueCheese.Tests.Services
 			// Assert
 			Assert.AreEqual(expectedPosition, result);
 		}
+
+		[Test]
+		public void IsPointerPressed_AfterMouseButtonPressed_ReturnsTrue()
+		{
+			// Arrange & Act
+			Press(Mouse.current.leftButton);
+			bool result = _inputService.IsPointerPressed();
+
+			// Assert
+			Assert.IsTrue(result);
+		}
+
+		[Test]
+		public void IsPointerPressed_WithNoInput_ReturnsFalse()
+		{
+			// Act
+			bool result = _inputService.IsPointerPressed();
+
+			// Assert
+			Assert.IsFalse(result);
+		}
 	}
 }
 #endif

@@ -58,6 +58,11 @@ namespace BlueCheese.App
 
         public Vector2 GetPointerPosition() => Pointer.current?.position.ReadValue() ?? Vector2.zero;
 
+        // Pointer.press is the device-agnostic base control both Mouse (left button) and
+        // Touchscreen (primary touch contact) resolve into -- same rationale as
+        // GetPointerPosition() using Pointer.current instead of Mouse/Touchscreen separately.
+        public bool IsPointerPressed() => Pointer.current?.press.isPressed ?? false;
+
         private static bool IsPressed(ButtonControl a, ButtonControl b) => (a?.isPressed ?? false) || (b?.isPressed ?? false);
         private static bool WasPressedThisFrame(ButtonControl a, ButtonControl b) => (a?.wasPressedThisFrame ?? false) || (b?.wasPressedThisFrame ?? false);
         private static bool WasReleasedThisFrame(ButtonControl a, ButtonControl b) => (a?.wasReleasedThisFrame ?? false) || (b?.wasReleasedThisFrame ?? false);

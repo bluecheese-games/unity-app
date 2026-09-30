@@ -31,5 +31,9 @@ namespace BlueCheese.App
 
         public Vector2 GetPointerPosition() => Input.mousePosition;
 
+        // Input.GetMouseButton(0) also reflects touch contact under the legacy Input Manager
+        // (Input.simulateMouseWithTouches is on by default), so this doubles as "is the primary
+        // touch down" without a separate touchCount check.
+        public bool IsPointerPressed() => Input.GetMouseButton(0);
     }
 }

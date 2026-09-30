@@ -9,6 +9,15 @@ namespace BlueCheese.App
 	{
 		private readonly ILogger<UnitySceneService> _logger;
 
+		// Tracks in-flight additive load/unload operations per scene. A state handler's OnExit
+		// kicks off UnloadAsync fire-and-forget (IStateHandler is synchronous by design), so a
+		// caller that quickly returns to that same screen can reach LoadAdditiveAsync before the
+		// unload has actually finished -- SceneManager still reports the scene as loaded, which
+		// without this tracking would spuriously hit the "already loaded" guard below and skip the
+		// reload entirely instead of just being reported as a harmless warning. Awaiting the
+		// pending operation first makes both methods correct regardless of call site timing.
+		private readonly Dictionary<string, UniTask> _pendingOperations = new();
+
 		public UnitySceneService(ILogger<UnitySceneService> logger)
 		{
 			_logger = logger;
@@ -62,6 +71,8 @@ namespace BlueCheese.App
 				return;
 			}
 
+			await WaitForPendingOperation(scene);
+
 			// Mirrors Load()/LoadAsync()'s own "already there" guard, which single-mode loading has always
 			// had -- additive load/unload never did, so a caller couldn't safely call these unconditionally
 			// (e.g. a screen that might already be the one the app was launched directly into).
@@ -71,7 +82,10 @@ namespace BlueCheese.App
 				return;
 			}
 
-			await SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive).ToUniTask();
+			var operation = SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive).ToUniTask().Preserve();
+			_pendingOperations[scene] = operation;
+			await operation;
+			_pendingOperations.Remove(scene);
 		}
 
 		public async UniTask UnloadAsync(SceneRef scene)
@@ -82,13 +96,26 @@ namespace BlueCheese.App
 				return;
 			}
 
+			await WaitForPendingOperation(scene);
+
 			if (!SceneManager.GetSceneByName(scene).isLoaded)
 			{
 				_logger.LogWarning($"Attempted to unload a scene that isn't loaded: {scene}");
 				return;
 			}
 
-			await SceneManager.UnloadSceneAsync(scene).ToUniTask();
+			var operation = SceneManager.UnloadSceneAsync(scene).ToUniTask().Preserve();
+			_pendingOperations[scene] = operation;
+			await operation;
+			_pendingOperations.Remove(scene);
+		}
+
+		private async UniTask WaitForPendingOperation(string scene)
+		{
+			if (_pendingOperations.TryGetValue(scene, out var pending))
+			{
+				await pending;
+			}
 		}
 
 		public SceneRef CurrentScene => SceneManager.GetActiveScene().name;
