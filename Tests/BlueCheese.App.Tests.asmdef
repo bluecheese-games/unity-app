@@ -6,7 +6,9 @@
         "UnityEditor.TestRunner",
         "BlueCheese.App",
         "BlueCheese.Core",
-        "UniTask"
+        "UniTask",
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework"
     ],
     "includePlatforms": [
         "Editor"

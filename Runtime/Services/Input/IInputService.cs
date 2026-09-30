@@ -18,5 +18,8 @@ namespace BlueCheese.App
         bool GetMouseButton(int button);
         bool GetMouseButtonDown(int button);
         bool GetMouseButtonUp(int button);
+
+        /// <summary>Current pointer (mouse or primary touch) position in screen space, in pixels.</summary>
+        Vector2 GetPointerPosition();
     }
 }

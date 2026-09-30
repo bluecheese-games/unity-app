@@ -29,5 +29,7 @@ namespace BlueCheese.App
 
         public bool GetMouseButtonUp(int button) => Input.GetMouseButtonUp(button);
 
+        public Vector2 GetPointerPosition() => Input.mousePosition;
+
     }
 }

@@ -56,6 +56,8 @@ namespace BlueCheese.App
 
         public bool GetMouseButtonUp(int button) => ToMouseButton(button)?.wasReleasedThisFrame ?? false;
 
+        public Vector2 GetPointerPosition() => Pointer.current?.position.ReadValue() ?? Vector2.zero;
+
         private static bool IsPressed(ButtonControl a, ButtonControl b) => (a?.isPressed ?? false) || (b?.isPressed ?? false);
         private static bool WasPressedThisFrame(ButtonControl a, ButtonControl b) => (a?.wasPressedThisFrame ?? false) || (b?.wasPressedThisFrame ?? false);
         private static bool WasReleasedThisFrame(ButtonControl a, ButtonControl b) => (a?.wasReleasedThisFrame ?? false) || (b?.wasReleasedThisFrame ?? false);
