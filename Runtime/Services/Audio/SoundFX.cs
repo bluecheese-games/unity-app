@@ -32,6 +32,7 @@ namespace BlueCheese.App
 		public void Play(SoundOptions options)
 		{
 			Options = options;
+			HasOptions = true;
 			Play();
 		}
 
@@ -39,6 +40,7 @@ namespace BlueCheese.App
 		{
 			Position = position;
 			Options = options;
+			HasOptions = true;
 			Play();
 		}
 

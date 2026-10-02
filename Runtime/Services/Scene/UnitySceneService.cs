@@ -59,7 +59,20 @@ namespace BlueCheese.App
 			}
 
 			await SignalAPI.PublishAsync(new ExitSceneSignal(currentScene, scene, payload));
-			await SceneManager.LoadSceneAsync(scene).ToUniTask();
+
+			var asyncOp = SceneManager.LoadSceneAsync(scene);
+			if (asyncOp == null)
+			{
+				// SceneManager.LoadSceneAsync returns null (rather than throwing) when it can't start
+				// the operation -- e.g. the Editor is mid-teardown exiting Play Mode, or the scene
+				// isn't in Build Settings. ToUniTask() doesn't null-check its input and would NPE deep
+				// in UniTask internals with a confusing stack trace; failing loudly but gracefully here
+				// is the better failure mode.
+				_logger.LogError($"Failed to start loading scene '{scene}' (SceneManager.LoadSceneAsync returned null).");
+				return;
+			}
+			await asyncOp.ToUniTask();
+
 			await SignalAPI.PublishAsync(new EnterSceneSignal(scene, currentScene, payload));
 		}
 
@@ -82,7 +95,16 @@ namespace BlueCheese.App
 				return;
 			}
 
-			var operation = SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive).ToUniTask().Preserve();
+			var asyncOp = SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive);
+			if (asyncOp == null)
+			{
+				// See LoadAsync's identical guard above for why this can be null and why it's
+				// handled here rather than left to crash inside ToUniTask().
+				_logger.LogError($"Failed to start additively loading scene '{scene}' (SceneManager.LoadSceneAsync returned null).");
+				return;
+			}
+
+			var operation = asyncOp.ToUniTask().Preserve();
 			_pendingOperations[scene] = operation;
 			await operation;
 			_pendingOperations.Remove(scene);
@@ -104,7 +126,16 @@ namespace BlueCheese.App
 				return;
 			}
 
-			var operation = SceneManager.UnloadSceneAsync(scene).ToUniTask().Preserve();
+			var asyncOp = SceneManager.UnloadSceneAsync(scene);
+			if (asyncOp == null)
+			{
+				// See LoadAsync's identical guard above for why this can be null and why it's
+				// handled here rather than left to crash inside ToUniTask().
+				_logger.LogError($"Failed to start unloading scene '{scene}' (SceneManager.UnloadSceneAsync returned null).");
+				return;
+			}
+
+			var operation = asyncOp.ToUniTask().Preserve();
 			_pendingOperations[scene] = operation;
 			await operation;
 			_pendingOperations.Remove(scene);
@@ -116,6 +147,18 @@ namespace BlueCheese.App
 			{
 				await pending;
 			}
+		}
+
+		public void SetActiveScene(SceneRef scene)
+		{
+			var target = SceneManager.GetSceneByName(scene);
+			if (!target.IsValid() || !target.isLoaded)
+			{
+				_logger.LogError($"Cannot set active scene to '{scene}': it isn't loaded.");
+				return;
+			}
+
+			SceneManager.SetActiveScene(target);
 		}
 
 		public SceneRef CurrentScene => SceneManager.GetActiveScene().name;
