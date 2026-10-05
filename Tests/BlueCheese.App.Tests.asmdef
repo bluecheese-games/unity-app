@@ -5,6 +5,7 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "BlueCheese.App",
+        "BlueCheese.App.Editor",
         "BlueCheese.Core",
         "UniTask",
         "Unity.InputSystem",

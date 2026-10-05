@@ -122,6 +122,11 @@ namespace BlueCheese.App
 			public bool showSkybox = false;
 			[Range(0.1f, 5f)] public float zoom = 1f;
 			[Range(0f, 1f)] public float scalerRatio = 1f;
+
+			[Tooltip("Editor preview only: drags the emitter sideways at this speed so a world-space trail " +
+				"can be judged as if the effect were attached to a moving object. The camera follows, so the " +
+				"emitter stays centered. Has no effect on systems simulating in local space.")]
+			[Range(0f, 20f)] public float moveSpeed = 0f;
 		}
 	}
 }

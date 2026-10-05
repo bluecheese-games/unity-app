@@ -103,7 +103,8 @@ MonoBehaviour:
   Prewarm: 0
   PrewarmPoolSize: 5
   _previewSettings:
-    backgroundColor: {r: 0, g: 0, b: 0, a: 1}
-    showSkybox: 1
-    zoom: 1.5277778
+    backgroundColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
+    showSkybox: 0
+    zoom: 1.78
     scalerRatio: 1
+    moveSpeed: 5.1
