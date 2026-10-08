@@ -13,10 +13,11 @@ namespace BlueCheese.App
 	{
 		private static readonly ParticleSystem[] _empty = new ParticleSystem[0];
 
-		private FXParticleGraph(ParticleSystem[] all, ParticleSystem[] roots, bool anyLooping, float loopLength, float effectLength)
+		private FXParticleGraph(ParticleSystem[] all, ParticleSystem[] roots, bool hasSubEmitters, bool anyLooping, float loopLength, float effectLength)
 		{
 			All = all;
 			Roots = roots;
+			HasSubEmitters = hasSubEmitters;
 			AnyLooping = anyLooping;
 			LoopLength = loopLength;
 			EffectLength = effectLength;
@@ -32,6 +33,13 @@ namespace BlueCheese.App
 		public ParticleSystem[] Roots { get; }
 
 		public bool IsEmpty => All.Length == 0;
+
+		/// <summary>
+		/// At least one system emits into another through its sub-emitter module. Those particles are created
+		/// by the simulation rather than by a system's own emission, which several ParticleSystem APIs treat
+		/// differently -- see FXPreviewController.Seek for one that matters.
+		/// </summary>
+		public bool HasSubEmitters { get; }
 
 		/// <summary>At least one system repeats instead of ending on its own.</summary>
 		public bool AnyLooping { get; }
@@ -55,7 +63,7 @@ namespace BlueCheese.App
 		{
 			if (root == null)
 			{
-				return new FXParticleGraph(_empty, _empty, false, 0f, 0f);
+				return new FXParticleGraph(_empty, _empty, false, false, 0f, 0f);
 			}
 
 			var candidates = root.GetComponentsInChildren<ParticleSystem>(includeInactive: true);
@@ -77,9 +85,11 @@ namespace BlueCheese.App
 				}
 			}
 
-			Measure(all, out bool anyLooping, out float loopLength, out float effectLength);
+			var subEmitterTargets = CollectSubEmitterTargets(all);
+			Measure(all, subEmitterTargets, out bool anyLooping, out float loopLength, out float effectLength);
 
-			return new FXParticleGraph(all.ToArray(), roots.ToArray(), anyLooping, loopLength, effectLength);
+			return new FXParticleGraph(all.ToArray(), roots.ToArray(), subEmitterTargets.Count > 0,
+				anyLooping, loopLength, effectLength);
 		}
 
 		/// <summary>
@@ -131,13 +141,13 @@ namespace BlueCheese.App
 			return last;
 		}
 
-		private static void Measure(List<ParticleSystem> systems, out bool anyLooping, out float loopLength, out float effectLength)
+		private static void Measure(List<ParticleSystem> systems, HashSet<ParticleSystem> subEmitterTargets,
+			out bool anyLooping, out float loopLength, out float effectLength)
 		{
 			anyLooping = false;
 			loopLength = 0f;
 			effectLength = 0f;
 
-			var subEmitterTargets = CollectSubEmitterTargets(systems);
 			var visiting = new HashSet<ParticleSystem>();
 			bool measuredAny = false;
 

@@ -300,6 +300,53 @@ namespace BlueCheese.Tests.Services
 		}
 
 		[Test]
+		public void Test_Build_NoSubEmitterAnywhere_ReportsNone()
+		{
+			_root = NewRootWithSystem();
+			AddSystem(AddChild(_root, "Child"));
+
+			var graph = FXParticleGraph.Build(_root);
+
+			Assert.That(graph.HasSubEmitters, Is.False);
+		}
+
+		[Test]
+		public void Test_Build_SubEmitterPresent_IsReported()
+		{
+			// Drives the preview's choice of seek strategy: a single Simulate jump leaves sub-emitter
+			// particles with empty renderer bounds, so they vanish while scrubbing.
+			_root = NewRootWithSystem();
+			var owner = Configure(_root, duration: 1f, lifetime: 1f);
+			SetBurst(owner, time: 0f, cycles: 1);
+
+			var child = AddChild(_root, "Sub");
+			var childSystem = Configure(child, duration: 1f, lifetime: 1f);
+			SetBurst(childSystem, time: 0f, cycles: 1);
+			AttachSubEmitter(owner, childSystem, ParticleSystemSubEmitterType.Death);
+
+			var graph = FXParticleGraph.Build(_root);
+
+			Assert.That(graph.HasSubEmitters, Is.True);
+		}
+
+		[Test]
+		public void Test_Build_SubEmitterModuleDisabled_IsNotReported()
+		{
+			_root = NewRootWithSystem();
+			var owner = Configure(_root, duration: 1f, lifetime: 1f);
+			var child = AddChild(_root, "Sub");
+			var childSystem = Configure(child, duration: 1f, lifetime: 1f);
+			AttachSubEmitter(owner, childSystem, ParticleSystemSubEmitterType.Death);
+
+			var sub = owner.subEmitters;
+			sub.enabled = false;
+
+			var graph = FXParticleGraph.Build(_root);
+
+			Assert.That(graph.HasSubEmitters, Is.False, "A disabled module emits nothing, so nothing special is needed.");
+		}
+
+		[Test]
 		public void Test_Build_MutuallyReferencingSubEmitters_StillReportsAUsableLength()
 		{
 			// Nothing stops an author from wiring this. It must terminate rather than blow the stack, and it

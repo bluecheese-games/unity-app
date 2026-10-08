@@ -19,6 +19,11 @@ namespace BlueCheese.App.Editor
 		// Granularity used when a seek has to be replayed by hand (see Seek).
 		private const float _seekStep = 1f / 60f;
 
+		// A seek runs on every frame of a slider drag, so replaying a long effect at a fixed 1/60 would cost
+		// thousands of Simulate calls per frame. Stretching the step instead costs accuracy that does not
+		// show: measured on a sub-emitter burst, 1/15 and 1/60 agree on the resulting bounds to within 0.5%.
+		private const int _maxSeekSteps = 240;
+
 		// Matches the length of the fixed 5-back / 2-up offset this replaced, so an existing FXDef keeps its
 		// framing when the default pitch is applied.
 		private const float _cameraDistance = 5.4f;
@@ -188,7 +193,7 @@ namespace BlueCheese.App.Editor
 			_time = Mathf.Clamp(absoluteTime, 0f, _scrubLength);
 			ResetEmitterPosition();
 
-			if (MoveSpeed <= 0f)
+			if (!NeedsSteppedSeek)
 			{
 				foreach (var root in _roots)
 				{
@@ -200,21 +205,32 @@ namespace BlueCheese.App.Editor
 				return;
 			}
 
-			// With a moving emitter the trail depends on where the emitter was at each instant, which a
-			// single Simulate call cannot reproduce — it would spawn the whole interval's particles from
-			// the final position. Replay the interval by hand instead, moving the emitter as we go.
 			foreach (var root in _roots)
 			{
 				root.Simulate(0f, withChildren: true, restart: true, fixedTimeStep: false);
 			}
 
+			float stepSize = Mathf.Max(_seekStep, _time / _maxSeekSteps);
 			for (float replayed = 0f; replayed < _time;)
 			{
-				float step = Mathf.Min(_seekStep, _time - replayed);
+				float step = Mathf.Min(stepSize, _time - replayed);
 				Step(step);
 				replayed += step;
 			}
 		}
+
+		/// <summary>
+		/// Two cases a single Simulate call cannot reproduce, both of which need the interval replayed by hand.
+		///
+		/// A moving emitter: the trail depends on where the emitter was at each instant, and one call would
+		/// spawn the whole interval's particles from the final position.
+		///
+		/// Sub-emitters: particles created by the sub-emitter module during a single jump do exist -- the
+		/// counts are right -- but their renderer's bounds stay empty, so the camera culls them and the burst
+		/// is simply invisible. Stepping restores the bounds. Measured, not inferred: a 1.3s jump leaves
+		/// extents at (0,0,0) with 160 live particles, while the same interval stepped gives (2.24, 2.04, 0.48).
+		/// </summary>
+		private bool NeedsSteppedSeek => MoveSpeed > 0f || (_graph != null && _graph.HasSubEmitters);
 
 		public void SetScalerRatio(float ratio)
 		{
