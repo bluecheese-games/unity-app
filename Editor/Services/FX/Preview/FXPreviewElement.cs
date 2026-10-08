@@ -22,6 +22,10 @@ namespace BlueCheese.App.Editor
 		private const float _labelWidth = 44f;
 		private const float _iconSize = 16f;
 
+		// Degrees of camera orbit per pixel dragged. At this rate a swipe across a default-width viewport is
+		// a little under a full turn.
+		private const float _orbitSensitivity = 0.5f;
+
 		private readonly FXDef _def;
 		private readonly FXPreviewController _controller;
 
@@ -34,6 +38,7 @@ namespace BlueCheese.App.Editor
 		private readonly Slider _moveSpeedSlider;
 		private readonly ColorField _backgroundField;
 		private readonly ToolbarToggle _skyboxToggle;
+		private readonly ToolbarToggle _gridToggle;
 		private readonly HelpBox _localSpaceWarning;
 
 		// Ancestors whose flexGrow we overrode to pin the section to the bottom, with their previous value
@@ -124,6 +129,7 @@ namespace BlueCheese.App.Editor
 			_image = new Image
 			{
 				scaleMode = ScaleMode.StretchToFill,
+				tooltip = "Drag to orbit the camera around the effect.",
 				style =
 				{
 					height = FXPreviewPrefs.Height,
@@ -132,6 +138,7 @@ namespace BlueCheese.App.Editor
 			};
 			_image.RegisterCallback<GeometryChangedEvent>(OnViewportGeometryChanged);
 			_image.generateVisualContent += _ => _wasDrawn = true;
+			RegisterOrbitDrag();
 			Add(_image);
 
 			// --- View settings ---
@@ -167,6 +174,16 @@ namespace BlueCheese.App.Editor
 					CommitSettings();
 				});
 			viewRow.Add(_skyboxToggle);
+
+			_gridToggle = MakeToggle("Grid", _def._previewSettings.showGrid,
+				"Show a 1-unit reference grid on the ground plane, to judge scale and travel distance.",
+				value =>
+				{
+					RecordUndo();
+					_def._previewSettings.showGrid = value;
+					CommitSettings();
+				});
+			viewRow.Add(_gridToggle);
 
 			Add(viewRow);
 
@@ -456,6 +473,7 @@ namespace BlueCheese.App.Editor
 			_moveSpeedSlider.SetValueWithoutNotify(settings.moveSpeed);
 			_backgroundField.SetValueWithoutNotify(settings.backgroundColor);
 			SetToggleWithoutNotify(_skyboxToggle, settings.showSkybox);
+			SetToggleWithoutNotify(_gridToggle, settings.showGrid);
 		}
 
 		private static VisualElement MakeRow() => new()
@@ -618,6 +636,59 @@ namespace BlueCheese.App.Editor
 			});
 
 			return handle;
+		}
+
+		/// <summary>
+		/// Swiping the viewport orbits the camera around the effect. The angles live on the FXDef like every
+		/// other preview setting, so a chosen viewing angle survives reselecting the asset.
+		/// </summary>
+		private void RegisterOrbitDrag()
+		{
+			bool isDragging = false;
+			Vector2 previous = Vector2.zero;
+
+			_image.RegisterCallback<PointerDownEvent>(evt =>
+			{
+				if (evt.button != 0) return;
+
+				isDragging = true;
+				previous = evt.position;
+				_image.CapturePointer(evt.pointerId);
+
+				// Once per drag, so the whole swipe collapses into a single undo step.
+				RecordUndo();
+			});
+
+			_image.RegisterCallback<PointerMoveEvent>(evt =>
+			{
+				if (!isDragging) return;
+
+				Vector2 position = evt.position;
+				var delta = position - previous;
+				previous = position;
+
+				var settings = _def._previewSettings;
+
+				// Kept in [-180, 180] rather than left to grow without bound, so the serialized value stays
+				// readable and loses no precision after a few hundred turns.
+				settings.cameraYaw = Mathf.Repeat(settings.cameraYaw + (delta.x * _orbitSensitivity) + 180f, 360f) - 180f;
+
+				// Dragging down lifts the camera, which is the convention everywhere else in the editor.
+				settings.cameraPitch = Mathf.Clamp(
+					settings.cameraPitch + (delta.y * _orbitSensitivity),
+					FXDef.PreviewSettings.MinCameraPitch,
+					FXDef.PreviewSettings.MaxCameraPitch);
+
+				CommitSettings();
+			});
+
+			_image.RegisterCallback<PointerUpEvent>(evt =>
+			{
+				if (!isDragging) return;
+
+				isDragging = false;
+				_image.ReleasePointer(evt.pointerId);
+			});
 		}
 
 		private void RecordUndo() => Undo.RecordObject(_def, "Change FX Preview Settings");

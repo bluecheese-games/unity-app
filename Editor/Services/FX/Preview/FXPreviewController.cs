@@ -19,14 +19,20 @@ namespace BlueCheese.App.Editor
 		// Granularity used when a seek has to be replayed by hand (see Seek).
 		private const float _seekStep = 1f / 60f;
 
-		private const float _cameraDistance = 5f;
-		private const float _cameraHeight = 2f;
+		// Matches the length of the fixed 5-back / 2-up offset this replaced, so an existing FXDef keeps its
+		// framing when the default pitch is applied.
+		private const float _cameraDistance = 5.4f;
+
+		// Half-width of the reference grid, in whole units.
+		private const int _gridHalfExtent = 12;
 
 		// Lateral in view space: the camera looks down the instance's forward axis, so sliding along world
 		// X moves the emitter across the screen, which is where a trail reads best.
 		private static readonly Vector3 _moveDirection = Vector3.right;
 
 		private PreviewRenderUtility _previewUtility;
+		private Mesh _gridMesh;
+		private Material _gridMaterial;
 		private GameObject _instance;
 		private ParticleSystem[] _systems = Array.Empty<ParticleSystem>();
 		private ParticleSystem[] _roots = Array.Empty<ParticleSystem>();
@@ -239,7 +245,8 @@ namespace BlueCheese.App.Editor
 			_previewUtility.BeginPreview(rect, GUIStyle.none);
 			try
 			{
-				PlaceCamera(settings.zoom);
+				PlaceCamera(settings);
+				DrawGrid(settings);
 
 				// Render() rather than camera.Render(): it re-enables the preview lights that the utility
 				// switches off at the end of every frame, and compensates the FOV for the viewport aspect.
@@ -260,6 +267,19 @@ namespace BlueCheese.App.Editor
 			DestroyInstance();
 			_isBuilt = false;
 			_texture = null;
+
+			// Built by hand rather than loaded, so the preview scene teardown does not cover them.
+			if (_gridMesh != null)
+			{
+				UnityEngine.Object.DestroyImmediate(_gridMesh);
+				_gridMesh = null;
+			}
+
+			if (_gridMaterial != null)
+			{
+				UnityEngine.Object.DestroyImmediate(_gridMaterial);
+				_gridMaterial = null;
+			}
 
 			if (_previewUtility != null)
 			{
@@ -428,14 +448,88 @@ namespace BlueCheese.App.Editor
 			}
 		}
 
-		private void PlaceCamera(float zoom)
+		private void PlaceCamera(FXDef.PreviewSettings settings)
 		{
 			var pivot = _instance.transform.position;
-			var offset = (-_instance.transform.forward * _cameraDistance + Vector3.up * _cameraHeight) * zoom;
+
+			// Orbit around the effect rather than around the world origin, so the emitter stays framed even
+			// once Move speed has dragged it away.
+			float pitch = Mathf.Clamp(settings.cameraPitch, FXDef.PreviewSettings.MinCameraPitch, FXDef.PreviewSettings.MaxCameraPitch);
+			var orbit = Quaternion.Euler(pitch, settings.cameraYaw, 0f);
+			var offset = orbit * (Vector3.back * (_cameraDistance * settings.zoom));
 
 			var camera = _previewUtility.camera;
 			camera.transform.position = pivot + offset;
-			camera.transform.LookAt(pivot);
+			camera.transform.rotation = Quaternion.LookRotation(-offset, Vector3.up);
+		}
+
+		private void DrawGrid(FXDef.PreviewSettings settings)
+		{
+			if (!settings.showGrid) return;
+
+			EnsureGrid();
+
+			// Snapped to whole units so the grid reads as unbounded no matter where the emitter has drifted,
+			// while still visibly sliding past it -- which is the point when Move speed is up.
+			var center = new Vector3(Mathf.Round(_emitterPosition.x), 0f, Mathf.Round(_emitterPosition.z));
+			_previewUtility.DrawMesh(_gridMesh, Matrix4x4.Translate(center), _gridMaterial, 0);
+		}
+
+		private void EnsureGrid()
+		{
+			if (_gridMesh == null)
+			{
+				_gridMesh = BuildGridMesh();
+			}
+
+			if (_gridMaterial != null) return;
+
+			// The shader the editor itself uses for handles and gizmos: unlit, vertex-coloured, and present
+			// in a player build's resources only when something references it -- which is fine, this is
+			// editor-only code.
+			_gridMaterial = new Material(Shader.Find("Hidden/Internal-Colored")) { hideFlags = HideFlags.HideAndDontSave };
+			_gridMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+			_gridMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+			_gridMaterial.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
+			_gridMaterial.SetInt("_ZWrite", 0);
+		}
+
+		private static Mesh BuildGridMesh()
+		{
+			var vertices = new System.Collections.Generic.List<Vector3>();
+			var colors = new System.Collections.Generic.List<Color>();
+			var indices = new System.Collections.Generic.List<int>();
+
+			var line = new Color(1f, 1f, 1f, 0.12f);
+			var axis = new Color(1f, 1f, 1f, 0.35f);
+
+			for (int i = -_gridHalfExtent; i <= _gridHalfExtent; i++)
+			{
+				var tint = i == 0 ? axis : line;
+				AddLine(new Vector3(i, 0f, -_gridHalfExtent), new Vector3(i, 0f, _gridHalfExtent), tint);
+				AddLine(new Vector3(-_gridHalfExtent, 0f, i), new Vector3(_gridHalfExtent, 0f, i), tint);
+			}
+
+			var mesh = new Mesh { hideFlags = HideFlags.HideAndDontSave, name = "FXPreviewGrid" };
+			mesh.SetVertices(vertices);
+			mesh.SetColors(colors);
+			mesh.SetIndices(indices, MeshTopology.Lines, 0);
+
+			// Set by hand: RecalculateBounds on a line mesh gives a zero-height box on the ground plane, which
+			// the camera happily culls as soon as it looks along it.
+			mesh.bounds = new Bounds(Vector3.zero, new Vector3(_gridHalfExtent * 2f, 1f, _gridHalfExtent * 2f));
+			return mesh;
+
+			void AddLine(Vector3 from, Vector3 to, Color tint)
+			{
+				indices.Add(vertices.Count);
+				vertices.Add(from);
+				colors.Add(tint);
+
+				indices.Add(vertices.Count);
+				vertices.Add(to);
+				colors.Add(tint);
+			}
 		}
 
 		private void DestroyInstance()

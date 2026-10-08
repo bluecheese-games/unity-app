@@ -117,10 +117,27 @@ namespace BlueCheese.App
 		[Serializable]
 		public class PreviewSettings
 		{
+			// Short of +/-90, where looking straight down or up makes the orbit's up vector ambiguous and
+			// the camera snaps round.
+			public const float MinCameraPitch = -89f;
+			public const float MaxCameraPitch = 89f;
+
 			public Color backgroundColor = Color.black;
 			public bool showSkybox = false;
+
+			[Tooltip("Editor preview only: draws a 1-unit reference grid on the ground plane, to judge the " +
+				"scale of an effect and how far its particles travel.")]
+			public bool showGrid = false;
+
 			[Range(0.1f, 5f)] public float zoom = 1f;
 			[Range(0f, 1f)] public float scalerRatio = 1f;
+
+			[Tooltip("Editor preview only: horizontal angle of the preview camera around the effect, in degrees.")]
+			public float cameraYaw = 0f;
+
+			[Tooltip("Editor preview only: elevation of the preview camera above the effect, in degrees. " +
+				"Clamped short of the poles, where the orbit would flip.")]
+			[Range(MinCameraPitch, MaxCameraPitch)] public float cameraPitch = 22f;
 
 			[Tooltip("Editor preview only: drags the emitter sideways at this speed so a world-space trail " +
 				"can be judged as if the effect were attached to a moving object. The camera follows, so the " +
