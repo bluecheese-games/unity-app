@@ -108,6 +108,9 @@ namespace BlueCheese.App.Editor
 			var box = new Box();
 			box.Add(new Label("Scalers") { style = { unityFontStyleAndWeight = FontStyle.Bold, marginBottom = 4 } });
 
+			// Belongs with the scalers rather than in the main field list: on its own it does nothing.
+			box.Add(new PropertyField(serializedObject.FindProperty(nameof(TargetFXDef.ScaleNestedSystems)), "Scale Nested Systems"));
+
 			for (int i = 0; i < _scalersProperty.arraySize; i++)
 			{
 				int index = i; // captured by the remove-button closure below
@@ -165,6 +168,12 @@ namespace BlueCheese.App.Editor
 			box.Add(dropdown);
 
 			container.Add(box);
+
+			// This method runs again every time it is called back into -- including once when the inspector
+			// first binds, via prefabField's change callback -- and each run replaces the PropertyFields with
+			// brand new ones. Anything built after the binding pass has already walked the tree stays unbound,
+			// and an unbound PropertyField renders nothing at all: no children, zero height, no error.
+			box.Bind(serializedObject);
 		}
 
 		private void InvalidateScalerOptionsCache() => _cachedScalerTypesMask = -1;

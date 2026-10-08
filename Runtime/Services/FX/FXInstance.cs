@@ -1,4 +1,5 @@
 ﻿using BlueCheese.Core.Utils;
+using System;
 using UnityEngine;
 
 namespace BlueCheese.App
@@ -13,7 +14,14 @@ namespace BlueCheese.App
 		private bool _isPaused;
 		private float _timeElapsed;
 		private float _scaleValue = 1f;
-		private ParticleSystem _particleSystem;
+
+		// Every system that has to be driven explicitly. Play/Stop(withChildren: true) reaches a system's own
+		// subtree, so this is only the roots -- but it is all of them, including when the prefab has none on
+		// its own root, which used to leave the whole effect silent.
+		private ParticleSystem[] _roots = Array.Empty<ParticleSystem>();
+
+		// Which systems the scalers reach. Same as _roots unless the def opts into scaling nested ones.
+		private ParticleSystem[] _scaleTargets = Array.Empty<ParticleSystem>();
 
 		// Note: intentionally independent from _isPaused. Pausing must not make the instance
 		// look "dead" to FXService, otherwise it gets despawned back to the pool mid-effect
@@ -23,7 +31,10 @@ namespace BlueCheese.App
 		public void Setup(FXDef fxDef)
 		{
 			_def = fxDef;
-			_particleSystem = GetComponent<ParticleSystem>();
+
+			var graph = FXParticleGraph.Build(gameObject);
+			_roots = graph.Roots;
+			_scaleTargets = fxDef.ScaleNestedSystems ? graph.All : graph.Roots;
 		}
 
 		public void UpdateFX(float deltaTime)
@@ -34,7 +45,10 @@ namespace BlueCheese.App
 			}
 
 			_timeElapsed += deltaTime;
-			if (_particleSystem != null && _particleSystem.isStopped)
+
+			// All of them, not the first one: systems with different lifetimes would otherwise end the whole
+			// effect as soon as the shortest of them was done.
+			if (_roots.Length > 0 && AreAllRootsStopped())
 			{
 				Stop();
 				return;
@@ -43,13 +57,39 @@ namespace BlueCheese.App
 			// When Duration wasn't explicitly overridden, it's auto-derived from the prefab's
 			// ParticleSystems purely as an editor preview reference (see FXDef.AutoDeriveDuration),
 			// and may reflect a looping system's main.duration. Only enforce it as a hard runtime
-			// stop when the designer explicitly opted in (OverrideDuration) or the system doesn't
-			// loop — otherwise a looping FX would be cut short shortly after it starts.
-			bool enforceDuration = _def.OverrideDuration || _particleSystem == null || !_particleSystem.main.loop;
+			// stop when the designer explicitly opted in (OverrideDuration) or nothing loops —
+			// otherwise a looping FX would be cut short shortly after it starts.
+			bool enforceDuration = _def.OverrideDuration || _roots.Length == 0 || !AnyRootLoops();
 			if (enforceDuration && _def.Duration > 0f && _timeElapsed >= _def.Duration)
 			{
 				Stop();
 			}
+		}
+
+		private bool AreAllRootsStopped()
+		{
+			foreach (var root in _roots)
+			{
+				if (!root.isStopped)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		private bool AnyRootLoops()
+		{
+			foreach (var root in _roots)
+			{
+				if (root.main.loop)
+				{
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		public void Scale(float value) => _scaleValue = value;
@@ -91,12 +131,15 @@ namespace BlueCheese.App
 
 			foreach (var scaler in _def.Scalers)
 			{
-				scaler.Apply(_particleSystem, _scaleValue);
+				foreach (var target in _scaleTargets)
+				{
+					scaler.Apply(target, _scaleValue);
+				}
 			}
 
-			if (_particleSystem != null)
+			foreach (var root in _roots)
 			{
-				_particleSystem.Play(true);
+				root.Play(withChildren: true);
 			}
 		}
 
@@ -107,15 +150,17 @@ namespace BlueCheese.App
 				return;
 			}
 
-			if (_particleSystem != null)
-			{
-				// Stop the particle system from emitting new particles
-				// Once all existing particles have died, the particle system will stop
-				_particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-			}
-			else
+			if (_roots.Length == 0)
 			{
 				Stop();
+				return;
+			}
+
+			// Stop the particle systems from emitting new particles
+			// Once all existing particles have died, they will stop on their own
+			foreach (var root in _roots)
+			{
+				root.Stop(true, ParticleSystemStopBehavior.StopEmitting);
 			}
 		}
 
@@ -154,9 +199,9 @@ namespace BlueCheese.App
 
 			_isPaused = true;
 
-			if (_particleSystem != null)
+			foreach (var root in _roots)
 			{
-				_particleSystem.Pause(true);
+				root.Pause(withChildren: true);
 			}
 		}
 
@@ -169,9 +214,9 @@ namespace BlueCheese.App
 
 			_isPaused = false;
 
-			if (_particleSystem != null)
+			foreach (var root in _roots)
 			{
-				_particleSystem.Play(true);
+				root.Play(withChildren: true);
 			}
 		}
 

@@ -18,6 +18,11 @@ namespace BlueCheese.App
 		[Header("Scaling")]
 		public FXScaler[] Scalers;
 
+		[Tooltip("By default scalers only reach the ParticleSystems that have to be started explicitly. " +
+			"Enable this to apply them to every system in the prefab instead, including transform children " +
+			"and sub-emitters. Off by default because turning it on changes how existing effects look.")]
+		public bool ScaleNestedSystems = false;
+
 		[Header("Prewarm")]
 		[Tooltip("If enabled, the FX service preallocates a pool of instances for this effect during initialization, avoiding a first-use hitch.")]
 		public bool Prewarm = false;
@@ -98,21 +103,15 @@ namespace BlueCheese.App
 		{
 			if (Prefab == null) return;
 
-			// Robustly derive a usable reference duration from ALL ParticleSystems under the prefab root.
-			// This keeps the preview slider meaningful even for looping systems.
-			var systems = Prefab.GetComponentsInChildren<ParticleSystem>(true);
-			if (systems == null || systems.Length == 0) return;
+			var graph = FXParticleGraph.Build(Prefab);
+			if (graph.IsEmpty) return;
 
-			float maxDuration = 0f;
-			for (int i = 0; i < systems.Length; i++)
-			{
-				var main = systems[i].main;
-				// Use main.duration as a reference even if the system loops; this yields a stable scrub range in the editor.
-				if (main.duration > maxDuration) maxDuration = main.duration;
-			}
-
+			// Exactly what the inspector preview scrubs with, so the two can no longer disagree: one loop for
+			// a looping prefab, otherwise the full effect including start delays, particle lifetimes and
+			// sub-emitter chains. The previous max(main.duration) ignored all of those, and counted systems
+			// on deactivated GameObjects that never play.
 			// Never set to zero; a tiny epsilon avoids divide-by-zero or slider issues downstream.
-			Duration = Mathf.Max(0.01f, maxDuration);
+			Duration = Mathf.Max(0.01f, graph.ReferenceLength);
 		}
 
 		[Serializable]

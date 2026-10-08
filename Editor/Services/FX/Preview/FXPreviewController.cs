@@ -30,11 +30,11 @@ namespace BlueCheese.App.Editor
 		private GameObject _instance;
 		private ParticleSystem[] _systems = Array.Empty<ParticleSystem>();
 		private ParticleSystem[] _roots = Array.Empty<ParticleSystem>();
-		private ParticleSystem _scalerTarget;
+		private ParticleSystem[] _scaleTargets = Array.Empty<ParticleSystem>();
 		private Texture _texture;
 
 		private FXDef _def;
-		private FXPreviewTiming.Measurements _measurements;
+		private FXParticleGraph _graph;
 		private float _scrubLength = 1f;
 		private int _localSpaceSystemCount;
 		private Vector3 _emitterPosition;
@@ -44,6 +44,7 @@ namespace BlueCheese.App.Editor
 		private bool _isPlaying;
 		private bool _isBuilt;
 		private float _appliedScalerRatio = float.NaN;
+		private bool _appliedScaleNested;
 
 		public FXPreviewController(bool loop) => _loop = loop;
 
@@ -53,7 +54,7 @@ namespace BlueCheese.App.Editor
 
 		public float Time => _time;
 
-		public bool HasLoopingSystem => _measurements.AnyLooping;
+		public bool HasLoopingSystem => _graph != null && _graph.AnyLooping;
 
 		/// <summary>Number of ParticleSystems in the instantiated prefab.</summary>
 		public int SystemCount => _systems.Length;
@@ -86,7 +87,19 @@ namespace BlueCheese.App.Editor
 		/// Recomputes the playback bounds from the def. Cheap enough to call every tick, which keeps the
 		/// scrubber honest when Duration or OverrideDuration is edited while the preview is open.
 		/// </summary>
-		public void RefreshTiming() => RefreshLengths();
+		public void RefreshTiming()
+		{
+			RefreshLengths();
+
+			if (!_isBuilt || _def == null || _def.ScaleNestedSystems == _appliedScaleNested)
+			{
+				return;
+			}
+
+			// A scaler mutates the system it is applied to, so merely narrowing the target list would leave
+			// the systems dropped from it stuck at their last ratio. Re-instantiating is the only way back.
+			Rebuild();
+		}
 
 		/// <summary>
 		/// Drops the current instance so the next tick re-instantiates from the prefab. Cheap enough to
@@ -155,7 +168,7 @@ namespace BlueCheese.App.Editor
 
 				// A looping system wraps by itself and only needs the clock reset. A one-shot has already
 				// burned out by now, so it has to be replayed from scratch for Loop to mean anything.
-				if (!_measurements.AnyLooping)
+				if (!HasLoopingSystem)
 				{
 					Seek(_time);
 				}
@@ -271,20 +284,24 @@ namespace BlueCheese.App.Editor
 			if (_instance == null) return false;
 
 			_instance.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-			_systems = _instance.GetComponentsInChildren<ParticleSystem>(includeInactive: true);
-			if (_systems.Length == 0)
+
+			// Same classification the runtime uses, so the preview cannot show an effect FXInstance would be
+			// unable to play -- or stay silent on one it could.
+			_graph = FXParticleGraph.Build(_instance);
+			if (_graph.IsEmpty)
 			{
 				DestroyInstance();
 				return false;
 			}
 
-			_roots = FXPreviewTiming.CollectRoots(_systems);
-			_measurements = FXPreviewTiming.Measure(_systems);
+			_systems = _graph.All;
+			_roots = _graph.Roots;
 			_localSpaceSystemCount = CountLocalSpaceSystems();
 
-			// Root system only, matching FXInstance.Setup/Play: the preview has to show what the runtime
-			// actually does, not a more thorough version of it.
-			_scalerTarget = _instance.GetComponent<ParticleSystem>();
+			// Same targets FXInstance.Setup resolves, so the preview shows what the runtime actually does
+			// rather than a more thorough version of it.
+			_appliedScaleNested = _def.ScaleNestedSystems;
+			_scaleTargets = _appliedScaleNested ? _graph.All : _graph.Roots;
 
 			RefreshLengths();
 			FreezeSeeds();
@@ -340,18 +357,22 @@ namespace BlueCheese.App.Editor
 		{
 			if (_def == null) return;
 
-			_scrubLength = FXPreviewTiming.ResolveScrubLength(_measurements, _def.OverrideDuration, _def.Duration);
+			float reference = _graph != null ? _graph.ReferenceLength : 0f;
+			_scrubLength = FXPreviewTiming.ResolveScrubLength(reference, _def.OverrideDuration, _def.Duration);
 		}
 
 		private void ApplyScalers(float ratio)
 		{
 			_appliedScalerRatio = ratio;
 
-			if (_scalerTarget == null || _def.Scalers == null) return;
+			if (_def.Scalers == null) return;
 
 			foreach (var scaler in _def.Scalers)
 			{
-				scaler.Apply(_scalerTarget, ratio);
+				foreach (var target in _scaleTargets)
+				{
+					scaler.Apply(target, ratio);
+				}
 			}
 		}
 
@@ -425,9 +446,10 @@ namespace BlueCheese.App.Editor
 			}
 
 			_instance = null;
+			_graph = null;
 			_systems = Array.Empty<ParticleSystem>();
 			_roots = Array.Empty<ParticleSystem>();
-			_scalerTarget = null;
+			_scaleTargets = Array.Empty<ParticleSystem>();
 			_localSpaceSystemCount = 0;
 			_emitterPosition = Vector3.zero;
 		}
