@@ -27,9 +27,6 @@ namespace BlueCheese.App.Editor
 
 			/// <summary>Time until the last particle of the last system has died.</summary>
 			public float EffectLength;
-
-			/// <summary>Largest start delay in the hierarchy. Used to grace-gate the "nothing is alive" check.</summary>
-			public float MaxStartDelay;
 		}
 
 		/// <summary>
@@ -65,6 +62,44 @@ namespace BlueCheese.App.Editor
 			_ => curve.curveMultiplier,
 		};
 
+		/// <summary>
+		/// Last moment a system actually emits anything. This is NOT main.duration: duration is the window
+		/// during which the system is allowed to emit, while a burst-only system fires everything at its
+		/// burst time and never emits again. Measuring the effect from duration would leave the preview
+		/// running on an empty frame for however long the system had left to "emit" nothing.
+		/// </summary>
+		public static float LastEmissionTime(ParticleSystem system)
+		{
+			var main = system.main;
+			var emission = system.emission;
+
+			if (!emission.enabled)
+			{
+				return 0f;
+			}
+
+			// Rate-based emission keeps producing particles right up to the end of the window.
+			if (MaxOf(emission.rateOverTime) > 0f || MaxOf(emission.rateOverDistance) > 0f)
+			{
+				return main.duration;
+			}
+
+			float last = 0f;
+			for (int i = 0; i < emission.burstCount; i++)
+			{
+				var burst = emission.GetBurst(i);
+
+				// A non-positive cycle count means "repeat forever", so the burst runs for the whole window.
+				float burstEnd = burst.cycleCount <= 0
+					? main.duration
+					: burst.time + ((burst.cycleCount - 1) * burst.repeatInterval);
+
+				last = Mathf.Max(last, Mathf.Min(burstEnd, main.duration));
+			}
+
+			return last;
+		}
+
 		public static Measurements Measure(IReadOnlyList<ParticleSystem> systems)
 		{
 			var measurements = new Measurements();
@@ -75,8 +110,7 @@ namespace BlueCheese.App.Editor
 				float delay = MaxOf(main.startDelay);
 				float lifetime = MaxOf(main.startLifetime);
 
-				measurements.MaxStartDelay = Mathf.Max(measurements.MaxStartDelay, delay);
-				measurements.EffectLength = Mathf.Max(measurements.EffectLength, delay + main.duration + lifetime);
+				measurements.EffectLength = Mathf.Max(measurements.EffectLength, delay + LastEmissionTime(system) + lifetime);
 
 				if (main.loop)
 				{

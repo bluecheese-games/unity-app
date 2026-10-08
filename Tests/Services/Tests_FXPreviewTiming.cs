@@ -86,6 +86,86 @@ namespace BlueCheese.Tests.Services
 			Assert.That(length, Is.GreaterThan(0f));
 		}
 
+		[Test]
+		public void Test_LastEmissionTime_BurstAtZero_IsZeroNotDuration()
+		{
+			var system = MakeSystem(duration: 1f, lifetime: 1f, burstTime: 0f, burstCycles: 1, rateOverTime: 0f);
+
+			float last = FXPreviewTiming.LastEmissionTime(system);
+
+			Assert.That(last, Is.EqualTo(0f));
+			DestroySystem(system);
+		}
+
+		[Test]
+		public void Test_LastEmissionTime_ContinuousRate_IsDuration()
+		{
+			var system = MakeSystem(duration: 1f, lifetime: 1f, burstTime: 0f, burstCycles: 0, rateOverTime: 10f);
+
+			float last = FXPreviewTiming.LastEmissionTime(system);
+
+			Assert.That(last, Is.EqualTo(1f));
+			DestroySystem(system);
+		}
+
+		[Test]
+		public void Test_LastEmissionTime_RepeatingBurst_AccountsForCycles()
+		{
+			var system = MakeSystem(duration: 5f, lifetime: 1f, burstTime: 0.5f, burstCycles: 3, rateOverTime: 0f, repeatInterval: 0.25f);
+
+			float last = FXPreviewTiming.LastEmissionTime(system);
+
+			Assert.That(last, Is.EqualTo(1f).Within(0.0001f)); // 0.5 + 2 * 0.25
+			DestroySystem(system);
+		}
+
+		[Test]
+		public void Test_Measure_BurstOnlySystem_EffectEndsWithTheLastParticle()
+		{
+			// The regression this guards: duration + lifetime would say 2s for an effect that is over at 1s.
+			var system = MakeSystem(duration: 1f, lifetime: 1f, burstTime: 0f, burstCycles: 1, rateOverTime: 0f);
+
+			var measurements = FXPreviewTiming.Measure(new[] { system });
+
+			Assert.That(measurements.EffectLength, Is.EqualTo(1f));
+			DestroySystem(system);
+		}
+
+		[Test]
+		public void Test_Measure_ContinuousSystem_StillAllowsForTheTail()
+		{
+			var system = MakeSystem(duration: 1f, lifetime: 1f, burstTime: 0f, burstCycles: 0, rateOverTime: 10f);
+
+			var measurements = FXPreviewTiming.Measure(new[] { system });
+
+			Assert.That(measurements.EffectLength, Is.EqualTo(2f));
+			DestroySystem(system);
+		}
+
+		private static ParticleSystem MakeSystem(float duration, float lifetime, float burstTime, int burstCycles, float rateOverTime, float repeatInterval = 0.01f)
+		{
+			var go = new GameObject("Tests_FXPreviewTiming") { hideFlags = HideFlags.HideAndDontSave };
+			var system = go.AddComponent<ParticleSystem>();
+
+			var main = system.main;
+			main.duration = duration;
+			main.startLifetime = lifetime;
+			main.startDelay = 0f;
+			main.loop = false;
+
+			var emission = system.emission;
+			emission.enabled = true;
+			emission.rateOverTime = rateOverTime;
+			emission.rateOverDistance = 0f;
+			emission.SetBursts(burstCycles > 0
+				? new[] { new ParticleSystem.Burst(burstTime, 30, burstCycles, repeatInterval) }
+				: new ParticleSystem.Burst[0]);
+
+			return system;
+		}
+
+		private static void DestroySystem(ParticleSystem system) => Object.DestroyImmediate(system.gameObject);
+
 		private static FXPreviewTiming.Measurements Looping(float loopLength, float effectLength) => new()
 		{
 			AnyLooping = true,

@@ -16,10 +16,6 @@ namespace BlueCheese.App.Editor
 		// assets, dragging a window, ...).
 		private const float _maxDeltaTime = 0.1f;
 
-		// A system reports IsAlive == false before its first emission, so the "did the effect finish
-		// early" check can only be trusted once every system has had a chance to start.
-		private const float _aliveGrace = 0.05f;
-
 		// Granularity used when a seek has to be replayed by hand (see Seek).
 		private const float _seekStep = 1f / 60f;
 
@@ -163,13 +159,6 @@ namespace BlueCheese.App.Editor
 				{
 					Seek(_time);
 				}
-			}
-
-			// A one-shot can finish well before its nominal duration (a short burst on a system with a
-			// long main.duration), in which case there is nothing left to animate.
-			if (!_loop && !_measurements.AnyLooping && _time > _measurements.MaxStartDelay + _aliveGrace && !IsAnyRootAlive())
-			{
-				_isPlaying = false;
 			}
 		}
 
@@ -416,16 +405,6 @@ namespace BlueCheese.App.Editor
 			{
 				_instance.transform.position = _emitterPosition;
 			}
-		}
-
-		private bool IsAnyRootAlive()
-		{
-			foreach (var root in _roots)
-			{
-				if (root.IsAlive(withChildren: true)) return true;
-			}
-
-			return false;
 		}
 
 		private void PlaceCamera(float zoom)

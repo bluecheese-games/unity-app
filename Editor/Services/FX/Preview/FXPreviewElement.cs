@@ -1,5 +1,6 @@
 using BlueCheese.Core.Editor;
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.UIElements;
@@ -19,6 +20,7 @@ namespace BlueCheese.App.Editor
 		private const int _maxRenderSize = 2048;
 		private const float _handleHeight = 5f;
 		private const float _labelWidth = 44f;
+		private const float _iconSize = 16f;
 
 		private readonly FXDef _def;
 		private readonly FXPreviewController _controller;
@@ -33,6 +35,10 @@ namespace BlueCheese.App.Editor
 		private readonly ColorField _backgroundField;
 		private readonly ToolbarToggle _skyboxToggle;
 		private readonly HelpBox _localSpaceWarning;
+
+		// Ancestors whose flexGrow we overrode to pin the section to the bottom, with their previous value
+		// so detaching puts the inspector back exactly as it was.
+		private readonly List<(VisualElement Element, StyleFloat FlexGrow)> _stretchedAncestors = new();
 
 		private IVisualElementScheduledItem _ticker;
 		private Vector2Int _renderSize;
@@ -58,6 +64,12 @@ namespace BlueCheese.App.Editor
 
 			style.marginTop = 8f;
 
+			// Claim whatever vertical space the fields above leave over, then push the whole section to the
+			// bottom of it, so the preview sits at a stable position instead of drifting up and down as the
+			// scaler list grows. Collapses to nothing once the inspector content outgrows the viewport.
+			style.flexGrow = 1f;
+			Add(new VisualElement { style = { flexGrow = 1f, minHeight = 0f } });
+
 			Add(new Label("Preview")
 			{
 				style = { unityFontStyleAndWeight = FontStyle.Bold, marginBottom = 4f },
@@ -67,29 +79,34 @@ namespace BlueCheese.App.Editor
 
 			var transport = new VisualElement { style = { flexDirection = FlexDirection.Row, alignItems = Align.Center } };
 
-			_playPauseIcon = new Image { style = { flexGrow = 1 } };
+			// Fixed size plus ScaleToFit: letting the icon flex to fill the button stretched the small
+			// builtin texture out of shape.
+			_playPauseIcon = new Image
+			{
+				scaleMode = ScaleMode.ScaleToFit,
+				style = { width = _iconSize, height = _iconSize, flexGrow = 0f, flexShrink = 0f },
+			};
 			var playPauseButton = MakeIconButton("Play / Pause", TogglePlayback);
 			playPauseButton.Add(_playPauseIcon);
 			transport.Add(playPauseButton);
 
-			var loopToggle = new ToolbarToggle
-			{
-				text = "Loop",
-				value = FXPreviewPrefs.Loop,
-				tooltip = "Replay the effect indefinitely instead of pausing at the end of a pass.",
-			};
-			loopToggle.RegisterValueChangedCallback(evt =>
-			{
-				FXPreviewPrefs.Loop = evt.newValue;
-				_controller.Loop = evt.newValue;
-				if (evt.newValue && !_controller.IsPlaying)
-				{
-					_controller.Play();
-				}
+			transport.Add(MakeToggle("Auto Play", FXPreviewPrefs.AutoPlay,
+				"Start playing as soon as an FX is selected.",
+				value => FXPreviewPrefs.AutoPlay = value));
 
-				RequestRender();
-			});
-			transport.Add(loopToggle);
+			transport.Add(MakeToggle("Loop", FXPreviewPrefs.Loop,
+				"Replay the effect indefinitely instead of pausing at the end of a pass.",
+				value =>
+				{
+					FXPreviewPrefs.Loop = value;
+					_controller.Loop = value;
+					if (value && !_controller.IsPlaying)
+					{
+						_controller.Play();
+					}
+
+					RequestRender();
+				}));
 
 			_timeSlider = new Slider(0f, 1f) { style = { flexGrow = 1, marginLeft = 6f, marginRight = 6f } };
 			_timeSlider.RegisterValueChangedCallback(evt => { _controller.Seek(evt.newValue); RequestRender(); });
@@ -101,6 +118,8 @@ namespace BlueCheese.App.Editor
 			Add(transport);
 
 			// --- Viewport ---
+
+			Add(MakeResizeHandle());
 
 			_image = new Image
 			{
@@ -114,8 +133,6 @@ namespace BlueCheese.App.Editor
 			_image.RegisterCallback<GeometryChangedEvent>(OnViewportGeometryChanged);
 			_image.generateVisualContent += _ => _wasDrawn = true;
 			Add(_image);
-
-			Add(MakeResizeHandle());
 
 			// --- View settings ---
 
@@ -141,13 +158,14 @@ namespace BlueCheese.App.Editor
 			});
 			viewRow.Add(_backgroundField);
 
-			_skyboxToggle = new ToolbarToggle { text = "Skybox", value = _def._previewSettings.showSkybox };
-			_skyboxToggle.RegisterValueChangedCallback(evt =>
-			{
-				RecordUndo();
-				_def._previewSettings.showSkybox = evt.newValue;
-				CommitSettings();
-			});
+			_skyboxToggle = MakeToggle("Skybox", _def._previewSettings.showSkybox,
+				"Render the skybox instead of a flat background colour.",
+				value =>
+				{
+					RecordUndo();
+					_def._previewSettings.showSkybox = value;
+					CommitSettings();
+				});
 			viewRow.Add(_skyboxToggle);
 
 			Add(viewRow);
@@ -177,15 +195,6 @@ namespace BlueCheese.App.Editor
 			Add(_localSpaceWarning);
 
 			var actionRow = MakeRow();
-
-			var autoPlayToggle = new ToolbarToggle
-			{
-				text = "Auto Play",
-				value = FXPreviewPrefs.AutoPlay,
-				tooltip = "Start playing as soon as an FX is selected.",
-			};
-			autoPlayToggle.RegisterValueChangedCallback(evt => FXPreviewPrefs.AutoPlay = evt.newValue);
-			actionRow.Add(autoPlayToggle);
 
 			actionRow.Add(new Button(() => { _controller.Reseed(); RequestRender(); })
 			{
@@ -220,8 +229,49 @@ namespace BlueCheese.App.Editor
 			RequestRender();
 		}
 
+		/// <summary>
+		/// The inspector's boxes hug their content by default, so there is never any leftover space for the
+		/// bottom spacer to claim. Stretch the chain up to the inspector's scroll view to create some.
+		/// Walks up to the first ScrollView rather than matching Unity's internal class names.
+		/// </summary>
+		private void StretchAncestors()
+		{
+			for (var ancestor = parent; ancestor != null; ancestor = ancestor.parent)
+			{
+				if (ancestor is ScrollView scrollView)
+				{
+					Stretch(scrollView.contentContainer);
+					break;
+				}
+
+				Stretch(ancestor);
+			}
+
+			void Stretch(VisualElement element)
+			{
+				_stretchedAncestors.Add((element, element.style.flexGrow));
+				element.style.flexGrow = 1f;
+			}
+		}
+
+		/// <summary>
+		/// Some of those boxes are Unity's own, shared by every inspector; leaving them stretched would
+		/// follow the user to the next asset they select.
+		/// </summary>
+		private void RestoreAncestors()
+		{
+			for (int i = _stretchedAncestors.Count - 1; i >= 0; i--)
+			{
+				var (element, flexGrow) = _stretchedAncestors[i];
+				element.style.flexGrow = flexGrow;
+			}
+
+			_stretchedAncestors.Clear();
+		}
+
 		private void OnAttachToPanel(AttachToPanelEvent evt)
 		{
+			StretchAncestors();
 			_lastTickTime = EditorApplication.timeSinceStartup;
 			_ticker = schedule.Execute(Tick).Every(_tickIntervalMs);
 
@@ -239,6 +289,8 @@ namespace BlueCheese.App.Editor
 
 		private void OnDetachFromPanel(DetachFromPanelEvent evt)
 		{
+			RestoreAncestors();
+
 			_ticker?.Pause();
 			_ticker = null;
 
@@ -403,7 +455,7 @@ namespace BlueCheese.App.Editor
 			_scalerSlider.SetValueWithoutNotify(settings.scalerRatio);
 			_moveSpeedSlider.SetValueWithoutNotify(settings.moveSpeed);
 			_backgroundField.SetValueWithoutNotify(settings.backgroundColor);
-			_skyboxToggle.SetValueWithoutNotify(settings.showSkybox);
+			SetToggleWithoutNotify(_skyboxToggle, settings.showSkybox);
 		}
 
 		private static VisualElement MakeRow() => new()
@@ -433,8 +485,92 @@ namespace BlueCheese.App.Editor
 			return slider;
 		}
 
+		// ToolbarToggle's checked styling barely registers outside an actual Toolbar container, which left
+		// Loop / Auto Play / Skybox looking identical on and off. Paint the on-state explicitly instead of
+		// relying on the editor theme to do it.
+		private static ToolbarToggle MakeToggle(string text, bool initial, string tooltip, Action<bool> onChanged)
+		{
+			var toggle = new ToolbarToggle
+			{
+				text = text,
+				value = initial,
+				tooltip = tooltip,
+				style =
+				{
+					height = 20f,
+					marginRight = 4f,
+					paddingLeft = 8f,
+					paddingRight = 8f,
+					borderTopLeftRadius = 3f,
+					borderTopRightRadius = 3f,
+					borderBottomLeftRadius = 3f,
+					borderBottomRightRadius = 3f,
+					unityTextAlign = TextAnchor.MiddleCenter,
+				},
+			};
+
+			toggle.RegisterValueChangedCallback(evt =>
+			{
+				PaintToggle(toggle, evt.newValue);
+				onChanged(evt.newValue);
+			});
+
+			PaintToggle(toggle, initial);
+			return toggle;
+		}
+
+		private static void PaintToggle(ToolbarToggle toggle, bool isOn)
+		{
+			var background = isOn ? ToggleOnColor : ToggleOffColor;
+
+			toggle.style.backgroundColor = background;
+			toggle.style.color = isOn ? Color.white : new StyleColor(StyleKeyword.Null);
+			toggle.style.unityFontStyleAndWeight = isOn ? FontStyle.Bold : FontStyle.Normal;
+
+			// The toolbar stylesheet also paints the inner input element, which would otherwise sit on top
+			// of the colour set on the root and hide it.
+			var input = toggle.Q(className: Toggle.inputUssClassName);
+			if (input != null)
+			{
+				input.style.backgroundColor = background;
+			}
+		}
+
+		/// <summary>
+		/// SetValueWithoutNotify skips the change callback, and therefore the explicit on-state painting
+		/// too, so a toggle driven from code (undo/redo) has to be repainted by hand.
+		/// </summary>
+		private static void SetToggleWithoutNotify(ToolbarToggle toggle, bool value)
+		{
+			toggle.SetValueWithoutNotify(value);
+			PaintToggle(toggle, value);
+		}
+
+		private static Color ToggleOnColor => EditorGUIUtility.isProSkin
+			? new Color(0.23f, 0.45f, 0.69f)
+			: new Color(0.35f, 0.55f, 0.80f);
+
+		private static Color ToggleOffColor => EditorGUIUtility.isProSkin
+			? new Color(0.25f, 0.25f, 0.25f)
+			: new Color(0.76f, 0.76f, 0.76f);
+
 		private Button MakeIconButton(string tooltip, Action onClick)
-			=> new(onClick) { tooltip = tooltip, style = { width = 28f, height = 20f } };
+			=> new(onClick)
+			{
+				tooltip = tooltip,
+				style =
+				{
+					width = 30f,
+					height = 20f,
+					marginRight = 4f,
+					paddingLeft = 0f,
+					paddingRight = 0f,
+					paddingTop = 0f,
+					paddingBottom = 0f,
+					alignItems = Align.Center,
+					justifyContent = Justify.Center,
+				},
+			};
 
 		private VisualElement MakeResizeHandle()
 		{
@@ -444,7 +580,8 @@ namespace BlueCheese.App.Editor
 				style =
 				{
 					height = _handleHeight,
-					marginBottom = 4f,
+					marginTop = 3f,
+					marginBottom = 3f,
 					backgroundColor = new Color(1f, 1f, 1f, 0.08f),
 				},
 			};
@@ -465,7 +602,9 @@ namespace BlueCheese.App.Editor
 			{
 				if (!isDragging) return;
 
-				float height = Mathf.Clamp(startHeight + (evt.position.y - startY), FXPreviewPrefs.MinHeight, FXPreviewPrefs.MaxHeight);
+				// The handle sits on the viewport's top edge and the section is pinned to the bottom of the
+				// inspector, so the drag is inverted: pulling up grows the viewport upwards.
+				float height = Mathf.Clamp(startHeight - (evt.position.y - startY), FXPreviewPrefs.MinHeight, FXPreviewPrefs.MaxHeight);
 				_image.style.height = height;
 			});
 
